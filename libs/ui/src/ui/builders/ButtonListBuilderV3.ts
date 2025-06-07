@@ -1,4 +1,5 @@
-import Phaser from 'phaser'
+import type { Scene } from 'phaser'
+import { GameObjects } from 'phaser'
 
 export interface ButtonListBuilderConfig<SupportedImages extends string = string> {
   textureKey: SupportedImages
@@ -12,7 +13,7 @@ export interface ButtonListBuilderConfig<SupportedImages extends string = string
 }
 
 export class ButtonListBuilderV3<SupportedImages extends string = string> {
-  protected scene: Phaser.Scene
+  protected scene: Scene
   private textureKey: SupportedImages
   public position: { x: number; y: number }
   private depth: number
@@ -20,14 +21,14 @@ export class ButtonListBuilderV3<SupportedImages extends string = string> {
   public height: number
   private distance: number
   private orientation: 'vertical' | 'horizontal'
-  public buttons: Phaser.GameObjects.Container[]
-  private container: Phaser.GameObjects.Container
+  public buttons: GameObjects.Container[]
+  private container: GameObjects.Container
   private currentX: number
   private currentY: number
   private hoverTint: number
   private config: ButtonListBuilderConfig<SupportedImages>
 
-  constructor(scene: Phaser.Scene, config: ButtonListBuilderConfig<SupportedImages>) {
+  constructor(scene: Scene, config: ButtonListBuilderConfig<SupportedImages>) {
     this.config = config
 
     this.scene = scene
@@ -39,7 +40,7 @@ export class ButtonListBuilderV3<SupportedImages extends string = string> {
     this.distance = config.distance || 10
     this.orientation = config.orientation || 'vertical'
     this.buttons = []
-    this.container = new Phaser.GameObjects.Container(this.scene)
+    this.container = new GameObjects.Container(this.scene)
     this.currentX = this.position.x
     this.currentY = this.position.y
     this.hoverTint = config.hoverTint || 0xffff00 // Default hover tint to yellow
@@ -62,7 +63,7 @@ export class ButtonListBuilderV3<SupportedImages extends string = string> {
       .setOrigin(0.5, 0.5)
 
     // Create container for button and text
-    const container = new Phaser.GameObjects.Container(this.scene, this.currentX, this.currentY, [
+    const container = new GameObjects.Container(this.scene, this.currentX, this.currentY, [
       buttonImage,
       buttonText,
     ])
@@ -99,7 +100,7 @@ export class ButtonListBuilderV3<SupportedImages extends string = string> {
     this.container.add(container)
   }
 
-  build(): Phaser.GameObjects.Container {
+  build(): GameObjects.Container {
     this.scene.add.existing(this.container)
     return this.container
   }

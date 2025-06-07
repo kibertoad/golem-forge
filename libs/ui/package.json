@@ -3,9 +3,14 @@
     "version": "2.0.0",
     "description": "potato golem game lib UI module",
     "type": "module",
-
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
     "exports": {
-        ".": "./dist/index.js",
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
         "./package.json": "./package.json"
     },
     "private": false,
@@ -24,14 +29,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/kibertoad/potato-golem.git"
+        "url": "git+https://github.com/kibertoad/golem-forge.git"
     },
     "author": "kibertoad",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/kibertoad/potato-golem/issues"
+        "url": "https://github.com/kibertoad/golem-forge/issues"
     },
-    "homepage": "https://github.com/kibertoad/potato-golem#readme",
+    "homepage": "https://github.com/kibertoad/golem-forge#readme",
     "peerDependencies": {
         "@potato-golem/core": "*",
         "phaser": "^4.0.0-rc.4"

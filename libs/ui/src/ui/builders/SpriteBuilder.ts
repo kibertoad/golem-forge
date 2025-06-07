@@ -1,15 +1,14 @@
+import type { GameObjects, Types as PhaserTypes } from 'phaser'
 import { validateString } from 'validation-utils'
 import type { PotatoScene } from '../common/PotatoScene.ts'
 import { AbstractUIBuilder } from './AbstractUIBuilder.ts'
-import Sprite = Phaser.GameObjects.Sprite
-import Phaser from 'phaser'
 
 /**
  * Create a static image
  */
 export class SpriteBuilder extends AbstractUIBuilder {
   private textureKey?: string
-  private interactiveConfig?: Phaser.Types.Input.InputConfiguration
+  private interactiveConfig?: PhaserTypes.Input.InputConfiguration
 
   constructor(scene: PotatoScene) {
     super(scene)
@@ -22,12 +21,12 @@ export class SpriteBuilder extends AbstractUIBuilder {
     return this
   }
 
-  public setInteractive(config: Phaser.Types.Input.InputConfiguration) {
+  public setInteractive(config: PhaserTypes.Input.InputConfiguration) {
     this.interactiveConfig = config
     return this
   }
 
-  build(): Sprite {
+  build(): GameObjects.Sprite {
     const sprite = this.scene.add
       .sprite(this.getX(), this.getY(), validateString(this.textureKey))
       .setDepth(this.depth ?? 0)

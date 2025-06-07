@@ -1,0 +1,51 @@
+{
+    "name": "@potato-golem/prefab-scenes",
+    "version": "2.0.0",
+    "description": "potato golem reusable scenes",
+    "type": "module",
+    "module": "./dist/index.js",
+
+    "exports": {
+        ".": "./dist/index.js",
+        "./package.json": "./package.json"
+    },
+    "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
+
+    "files": ["dist", "LICENSE"],
+    "scripts": {
+        "build": "rimraf dist && tsc --project tsconfig.build.json",
+        "lint": "biome check . && tsc",
+        "lint:fix": "biome check --write",
+        "test:ci": "vitest",
+        "publish-current": "npm publish --access public",
+        "publish-minor": "npm version minor && npm run publish-current",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kibertoad/golem-forge.git"
+    },
+    "author": "kibertoad",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kibertoad/potato-golem/issues"
+    },
+    "homepage": "https://github.com/kibertoad/potato-golem#readme",
+    "dependencies": {},
+    "peerDependencies": {
+        "@potato-golem/core": "^*",
+        "@potato-golem/ui": "*",
+        "phaser": "^4.0.0-rc.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
+        "@potato-golem/ui": "2.0.0",
+        "@types/node": "^22.15.30",
+        "rimraf": "^6.0.1",
+        "vitest": "^3.2.2",
+        "typescript": "^5.8.3"
+    }
+}

@@ -1,5 +1,4 @@
-import type { Scene } from 'phaser'
-import type Phaser from 'phaser'
+import type { GameObjects, Scene } from 'phaser'
 import { validateNumber, validateString } from 'validation-utils'
 import type { Dimensions, Position } from '../common/CommonUITypes.ts'
 import type { PotatoScene } from '../common/PotatoScene.ts'
@@ -18,7 +17,7 @@ export class TextBuilder {
   #positionX: number
   #positionY: number
 
-  textChild?: Phaser.GameObjects.Text
+  textChild?: GameObjects.Text
 
   readonly #scene: Scene
   readonly #targetChildrenList?: AbstractUIElementLite[]

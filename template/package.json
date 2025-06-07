@@ -1,0 +1,38 @@
+{
+    "name": "game-template",
+    "version": "1.0.0",
+    "description": "Game Template",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kibertoad/golem-forge.git"
+    },
+    "author": "kibertoad",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/kibertoad/golem-forge/issues"
+    },
+    "homepage": "https://github.com/kibertoad/golem-forge#readme",
+
+    "scripts": {
+        "build": "tsc",
+        "dev": "turbo build && vite --config vite/config.dev.mjs",
+        "build:prod": "turbo build && vite build --config vite/config.prod.mjs",
+        "lint": "biome check . && tsc --noEmit",
+        "lint:fix": "biome check --write"
+    },
+    "dependencies": {
+        "@potato-golem/core": "*",
+        "@potato-golem/ui": "*",
+        "@potato-golem/prefab-scenes": "*",
+        "awilix": "^12.0.5",
+        "emitix": "^2.3.2",
+        "phaser": "^4.0.0-rc.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
+        "@lokalise/biome-config": "^2.0.0",
+        "terser": "^5.39.0",
+        "typescript": "~5.8.3",
+        "vite": "^6.3.5"
+    }
+}

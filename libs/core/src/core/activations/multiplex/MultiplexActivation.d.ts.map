@@ -1,0 +1,1 @@
+{"version":3,"file":"MultiplexActivation.d.ts","sourceRoot":"","sources":["MultiplexActivation.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,UAAU,EAAE,kBAAkB,EAAE,MAAM,sBAAsB,CAAA;AAE1E;;GAEG;AACH,qBAAa,mBAAoB,YAAW,UAAU;IACpD,OAAO,CAAC,QAAQ,CAAC,WAAW,CAAc;gBAE9B,WAAW,EAAE,UAAU,EAAE;IAIrC,QAAQ,IAAI,IAAI;WAMF,aAAa,CAAC,WAAW,EAAE,kBAAkB,EAAE,GAAG,kBAAkB;CAOnF"}

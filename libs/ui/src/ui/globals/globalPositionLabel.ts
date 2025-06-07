@@ -1,8 +1,8 @@
-import type Phaser from 'phaser'
+import type { GameObjects } from 'phaser'
 import type { Scene } from 'phaser'
 import { activeDraggedItem, dragCoords, globalTrackers } from './globalState.ts'
 
-export function updateGlobalPositionLabel(label: Phaser.GameObjects.Text) {
+export function updateGlobalPositionLabel(label: GameObjects.Text) {
   if (!activeDraggedItem) {
     label.setText('No dragged item')
     return
@@ -13,7 +13,7 @@ export function updateGlobalPositionLabel(label: Phaser.GameObjects.Text) {
   )
 }
 
-export function updateGlobalTrackerLabel(label: Phaser.GameObjects.Text) {
+export function updateGlobalTrackerLabel(label: GameObjects.Text) {
   let composedString = ''
   for (const tracker of globalTrackers) {
     composedString += `${tracker()} `

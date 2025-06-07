@@ -1,13 +1,13 @@
 import type { Activation, ActivationCallback } from '@potato-golem/core'
-import type Phaser from 'phaser'
+import type { GameObjects } from 'phaser'
 import { validateNotNil } from 'validation-utils'
 import type { UIContainer } from '../ui/elements/UIContainer.ts'
 
 export class SetTextActivation implements Activation {
   private newText: string
-  private targetObject: UIContainer<Phaser.GameObjects.Text>
+  private targetObject: UIContainer<GameObjects.Text>
 
-  private constructor(targetObject: UIContainer<Phaser.GameObjects.Text>, newText: string) {
+  private constructor(targetObject: UIContainer<GameObjects.Text>, newText: string) {
     this.targetObject = targetObject
     this.newText = newText
   }
@@ -17,7 +17,7 @@ export class SetTextActivation implements Activation {
   }
 
   public static build(
-    targetObject: UIContainer<Phaser.GameObjects.Text>,
+    targetObject: UIContainer<GameObjects.Text>,
     newText: string,
   ): ActivationCallback {
     validateNotNil(targetObject, 'targetObject cannot be null')

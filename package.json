@@ -5,7 +5,7 @@
   "workspaces": [
     "games/*",
     "libs/*",
-    "templates/*"
+    "template"
   ],
   "scripts": {
     "clean": "turbo run clean",
