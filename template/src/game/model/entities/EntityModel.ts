@@ -1,31 +1,37 @@
-import { type EventSink, type TurnProcessor, generateUuid } from '@potato-golem/core'
+import { type TurnProcessor, generateUuid } from '@potato-golem/core'
 import type { CommonEntity } from '@potato-golem/core'
+import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
+import { type BoardEmitter, eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import type { EntityDefinition } from '../definitions/entityDefinitions.ts'
-import { EntityTypeRegistry } from '../registries/entityTypeRegistry.ts'
 
 export type CardModelParams = {
   definition: EntityDefinition
-  parentEventSink: EventSink
 }
 
 export class EntityModel implements TurnProcessor, CommonEntity {
   type = EntityTypeRegistry.DEFAULT
 
-  private readonly parentEventSink: EventSink
+  private readonly boardEventSink: BoardEmitter
   readonly name: string
   readonly definition: EntityDefinition
 
-  id: string
+  uuid: string
 
   constructor(params: CardModelParams) {
-    this.id = generateUuid()
+    this.uuid = generateUuid()
     this.definition = params.definition
     this.name = this.definition.name
-    this.parentEventSink = params.parentEventSink
+    this.boardEventSink = eventEmitters.boardEmitter
+  }
+
+  get id() {
+    return this.definition.id
   }
 
   destroy() {
-    this.parentEventSink.emit('DESTROY', this)
+    this.boardEventSink.emit('destroyEntity', {
+      entityUuid: this.uuid,
+    })
   }
 
   processTurn(): void {}

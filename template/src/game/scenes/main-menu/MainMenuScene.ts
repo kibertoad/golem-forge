@@ -1,6 +1,6 @@
 import { PrefabMainMenuScene } from '@potato-golem/prefab-scenes'
-import { imageRegistry } from '../registries/imageRegistry.ts'
-import { type SceneId, sceneRegistry } from '../registries/sceneRegistry.ts'
+import { imageRegistry } from '../../registries/imageRegistry.ts'
+import { type SceneId, sceneRegistry } from '../../registries/sceneRegistry.ts'
 
 const _isMusicEnabled = false
 

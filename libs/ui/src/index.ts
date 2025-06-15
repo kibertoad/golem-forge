@@ -1,5 +1,6 @@
 export { ButtonBuilder } from './ui/builders/ButtonBuilder.ts'
 export { ButtonListBuilderV3 } from './ui/builders/ButtonListBuilderV3.ts'
+export { ButtonListBuilder } from './ui/builders/ButtonListBuilderV5.ts'
 export { TextWithBackgroundBuilder } from './ui/builders/TextWithBackgroundBuilder.ts'
 export { StateListBuilder } from './ui/builders/StateListBuilder.ts'
 export { TextBuilder } from './ui/builders/TextBuilder.ts'

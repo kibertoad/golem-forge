@@ -2,6 +2,9 @@ import { EventEmitter } from 'eventemitter3'
 
 export type COMMON_EVENT_TYPES = 'DESTROY' | 'CREATE' | 'MOVE' | 'CHANGE_STATE'
 
+export type TypedEventEmitter<EventTypes extends string = COMMON_EVENT_TYPES> =
+  EventSink<EventTypes> & EventSource<EventTypes>
+
 /**
  * Event target
  */

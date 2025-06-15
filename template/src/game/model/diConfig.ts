@@ -1,6 +1,6 @@
 import { Lifetime, type NameAndRegistrationPair, asClass, asValue, createContainer } from 'awilix'
-import { MainMenuScene } from '../scenes/MainMenuScene.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
+import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
 

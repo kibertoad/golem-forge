@@ -56,6 +56,7 @@ export { DescribedTargettedAsyncMultiplexActivation } from './src/core/activatio
 export { type Coords, type Dimensions, copyCoords } from './src/core/primitives/Coords.ts'
 export type { EntityOwner } from './src/core/interfaces/EntityOwner.ts'
 export {
+  type TypedEventEmitter,
   type EventSink,
   type EventSource,
   type COMMON_EVENT_TYPES,
@@ -99,5 +100,5 @@ export {
   type CommonPreconditionMetadata,
 } from './src/core/preconditions/PreconditionWithMetadata.ts'
 
-export type { RegistryEntityId } from './src/core/registries/RegistryUtils.ts'
+export type { RegistryEntityId } from './src/core/registries/registryUtils.ts'
 export { allConditionsPass } from './src/core/preconditions/preconditionUtils.ts'

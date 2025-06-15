@@ -5,8 +5,13 @@ export type SpawnEntityParams = {
   entityId: EntityId
 }
 
+export type DestroyEntityParams = {
+  entityUuid: string
+}
+
 const boardEmitter = new EventEmitter<{
   spawnEntity: [SpawnEntityParams]
+  destroyEntity: [DestroyEntityParams]
 }>()
 
 export type BoardEmitter = typeof boardEmitter

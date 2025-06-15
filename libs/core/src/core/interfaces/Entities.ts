@@ -2,8 +2,16 @@ import type { EventSink } from '../messages/EventBus.ts'
 import type { Coords } from '../primitives/Coords.ts'
 import type { LimitedNumber } from '../primitives/LimitedNumber.ts'
 
+export interface TypeHolder {
+  type: string
+}
+
 export interface IdHolder {
   id: string
+}
+
+export interface UuidHolder {
+  uuid: string
 }
 
 export interface HPHolder {
@@ -34,16 +42,12 @@ export interface EventReceiver<T extends string = string> {
   eventSink: EventSink<T>
 }
 
-export interface TypeHolder {
-  type: string
-}
-
 export interface Destroyable {
   destroy: () => void
 }
 
-export interface CommonEntity extends IdHolder, TypeHolder {}
+export interface CommonEntity extends IdHolder, UuidHolder, TypeHolder {}
 
 export interface CommonView {
-  model: IdHolder
+  model: UuidHolder & IdHolder
 }

@@ -11,7 +11,7 @@ import {
 import { GameObjects } from 'phaser'
 import type { EntityModel } from '../../../model/entities/EntityModel.ts'
 import type { EndTurnProcessor } from '../../../model/processors/EndTurnProcessor.ts'
-import { EntityTypeRegistry } from '../../../model/registries/entityTypeRegistry.ts'
+import { EntityTypeRegistry } from '../../../registries/entityTypeRegistry.ts'
 import { imageRegistry } from '../../../registries/imageRegistry.ts'
 
 export type CardViewParams = {

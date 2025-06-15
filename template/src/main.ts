@@ -1,4 +1,4 @@
-import StartGame from './game/main.ts'
+import StartGame from './game/gameContainer.ts'
 
 document.addEventListener('DOMContentLoaded', () => {
   StartGame('game-container')

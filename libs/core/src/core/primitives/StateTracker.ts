@@ -1,4 +1,4 @@
-import type { RegistryEntityId } from '../registries/RegistryUtils.ts'
+import type { RegistryEntityId } from '../registries/registryUtils.ts'
 import { LimitedNumber } from './LimitedNumber.ts'
 
 export type StateValues<Registry extends Record<string, string>> = Record<
