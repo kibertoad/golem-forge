@@ -1,0 +1,48 @@
+{
+  "name": "clockwork-home",
+  "version": "1.0.0",
+  "description": "Clockwork Home",
+  "source": "./assets/html/index.html",
+  "targets": {
+    "default": {
+      "engines": {
+        "browsers": ">= 50%"
+      },
+      "context": "browser",
+      "isLibrary": false
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "turbo build && vite --config vite/config.dev.mjs",
+    "build:prod": "turbo build && vite build --config vite/config.prod.mjs",
+    "lint": "biome check . && tsc --noEmit",
+    "lint:fix": "biome check --write"
+
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kibertoad/potato-golem.git"
+  },
+  "author": "kibertoad",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kibertoad/potato-golem/issues"
+  },
+  "homepage": "https://github.com/kibertoad/potato-golem#readme",
+  "dependencies": {
+    "@potato-golem/core": "*",
+    "@potato-golem/ui": "*",
+    "@potato-golem/prefab-scenes": "*",
+    "awilix": "^12.0.5",
+    "emitix": "^2.3.2",
+    "phaser": "^4.0.0-rc.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@lokalise/biome-config": "^2.0.0",
+    "terser": "^5.43.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.0"
+  }
+}
