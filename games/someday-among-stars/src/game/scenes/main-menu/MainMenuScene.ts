@@ -9,7 +9,7 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
     super({
       buttonTextureKey: imageRegistry.ROCKET,
       credits: [],
-      gameStartScene: sceneRegistry.BOARD_SCENE,
+      gameStartScene: sceneRegistry.CHOICES_SCENE,
       mainMenuSceneId: sceneRegistry.MAIN_MENU_SCENE,
       subtitleText: 'Someday, Among Stars',
     })

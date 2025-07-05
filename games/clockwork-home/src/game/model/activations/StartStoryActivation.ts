@@ -1,6 +1,6 @@
 // Add activations here
 
-import { Activation } from '@potato-golem/core'
+import type { Activation } from '@potato-golem/core'
 
 export class StartStoryActivation implements Activation {
   private readonly storyId: string

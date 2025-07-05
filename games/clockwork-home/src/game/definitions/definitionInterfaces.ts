@@ -1,25 +1,27 @@
-import type {
-    EffectHolder, EffectsHolder,
-    OptionWithPreconditions,
-    RegistryEntityId,
-} from '@potato-golem/core'
-import type {ImageId} from "../registries/imageRegistry.ts";
+import type { EffectsHolder, OptionWithPreconditions, RegistryEntityId } from '@potato-golem/core'
+import type { ImageId } from '../registries/imageRegistry.ts'
 
 export type MenuItem = {
-    name: string
-    image: ImageId
+  name: string
+  image: ImageId
 }
 
 export type ChoiceDefinition<Registry extends Record<string, string> = Record<string, string>> = {
-    id: RegistryEntityId<Registry>
-    description: string
-} & OptionWithPreconditions & EffectsHolder & MenuItem
+  id: RegistryEntityId<Registry>
+  description: string
+} & OptionWithPreconditions &
+  EffectsHolder &
+  MenuItem
 
-export type MaybeChoicesMaybeDirect = {
-    choices: ChoiceDefinition[]
-    effects?: never
-} | (EffectsHolder & { choices?: never })
+export type MaybeChoicesMaybeDirect =
+  | {
+      choices: ChoiceDefinition[]
+      effects?: never
+    }
+  | (EffectsHolder & { choices?: never })
 
 export type StoryDefinition<Registry extends Record<string, string> = Record<string, string>> = {
-    id: RegistryEntityId<Registry>
-} & OptionWithPreconditions & MaybeChoicesMaybeDirect & MenuItem
+  id: RegistryEntityId<Registry>
+} & OptionWithPreconditions &
+  MaybeChoicesMaybeDirect &
+  MenuItem

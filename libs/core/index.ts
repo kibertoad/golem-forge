@@ -19,6 +19,8 @@ export type {
 } from './src/core/interfaces/Processor.ts'
 export { executeTargettedActivation } from './src/core/activations/common/Activation.ts'
 export type {
+  MenuItem,
+  MenuTextItem,
   EffectHolder,
   EffectsHolder,
   AsyncActivation,

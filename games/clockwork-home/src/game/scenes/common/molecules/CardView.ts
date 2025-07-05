@@ -1,4 +1,4 @@
-import Phaser, { Scene } from 'phaser'
+import Phaser from 'phaser'
 import Container = Phaser.GameObjects.Container
 import type { IdHolder } from '@potato-golem/core'
 import {
@@ -6,12 +6,10 @@ import {
   type PotatoScene,
   SpriteBuilder,
   TextBuilder,
-  buildDragWithActivations,
   setEntityModel,
   setEntityType,
 } from '@potato-golem/ui'
 import type { ChoiceModel } from '../../../model/entities/narrative/ChoiceModel.ts'
-import type { EndTurnProcessor } from '../../../model/processors/EndTurnProcessor.ts'
 import { EntityTypeRegistry } from '../../../model/registries/entityTypeRegistry.ts'
 import { imageRegistry } from '../../../registries/imageRegistry.ts'
 
@@ -19,9 +17,7 @@ export type CardViewParams = {
   model: ChoiceModel
 } & Position
 
-export type CardViewDependencies = {
-
-}
+export type CardViewDependencies = {}
 
 const textOffsetX = 35
 const textOffsetY = 5

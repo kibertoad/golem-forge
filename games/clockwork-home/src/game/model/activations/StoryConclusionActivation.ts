@@ -1,7 +1,7 @@
 import type { Activation } from '@potato-golem/core'
-import type {ImageId} from "../../registries/imageRegistry.ts";
-import type {StateDelta} from "../../definitions/state/StateDefinition.ts";
-import {worldModel} from "../entities/WorldModel.ts";
+import type { StateDelta } from '../../definitions/state/StateDefinition.ts'
+import type { ImageId } from '../../registries/imageRegistry.ts'
+import { worldModel } from '../entities/WorldModel.ts'
 
 export type StoryConclusionActivationParams = {
   image: ImageId
@@ -15,13 +15,11 @@ export class StoryConclusionActivation implements Activation {
   private stateChanges: StateDelta
 
   constructor(params: StoryConclusionActivationParams) {
-    this.image = params.image,
-    this.text = params.text
+    ;(this.image = params.image), (this.text = params.text)
     this.stateChanges = params.stateChanges
   }
 
   activate(): void {
     worldModel.playerStateTracker.applyDelta(this.stateChanges)
   }
-
 }

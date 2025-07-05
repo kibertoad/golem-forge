@@ -1,7 +1,7 @@
 import { type EventSink, generateUuid } from '@potato-golem/core'
 import type { CommonEntity } from '@potato-golem/core'
+import type { ChoiceDefinition } from '../../../definitions/definitionInterfaces.ts'
 import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
-import type {ChoiceDefinition} from "../../../definitions/definitionInterfaces.ts";
 
 export type CardModelParams = {
   definition: ChoiceDefinition
@@ -20,7 +20,7 @@ export class ChoiceModel implements CommonEntity {
   readonly name: string
   readonly definition: ChoiceDefinition
 
-  uuid: string;
+  uuid: string
   id: string
 
   constructor(params: CardModelParams) {
@@ -30,7 +30,6 @@ export class ChoiceModel implements CommonEntity {
     this.name = this.definition.name
     this.parentEventSink = params.parentEventSink
   }
-
 
   destroy() {
     this.parentEventSink.emit('DESTROY', this)

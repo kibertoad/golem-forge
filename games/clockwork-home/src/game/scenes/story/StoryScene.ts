@@ -7,15 +7,15 @@ import {
 import Phaser from 'phaser'
 
 import { createGlobalTrackerLabel, updateGlobalTrackerLabel } from '@potato-golem/ui'
-import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
+import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import Sprite = Phaser.GameObjects.Sprite
+import type { ChoicesDirector } from '../../model/director/ChoicesDirector.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../model/registries/depthRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { ChoicesView } from '../common/organisms/ChoicesView.ts'
-import type {ChoicesDirector} from "../../model/director/ChoicesDirector.ts";
 
 export class StoryScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -26,7 +26,7 @@ export class StoryScene extends PotatoScene {
   private backgroundImage: Sprite
   private readonly endTurnProcessor: EndTurnProcessor
   private choicesView: ChoicesView
-  private readonly choicesDirector: ChoicesDirector;
+  private readonly choicesDirector: ChoicesDirector
 
   constructor({ worldModel, endTurnProcessor, choicesDirector }: Dependencies) {
     super(sceneRegistry.BOARD_SCENE)
@@ -37,10 +37,14 @@ export class StoryScene extends PotatoScene {
   }
 
   init() {
-    this.choicesView = new ChoicesView(this, {}, {
-      worldModel: this.worldModel,
-      choicesDirector: this.choicesDirector
-    })
+    this.choicesView = new ChoicesView(
+      this,
+      {},
+      {
+        worldModel: this.worldModel,
+        choicesDirector: this.choicesDirector,
+      },
+    )
     this.choicesView.init()
   }
 

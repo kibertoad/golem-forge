@@ -1,7 +1,14 @@
-import type { ImageId } from '../../registries/imageRegistry.ts'
 import type { RegistryEntityId } from '@potato-golem/core'
+import type { ImageId } from '../../registries/imageRegistry.ts'
 
-export type StateGroup = 'physical' | 'emotional' | 'rumours' | 'knowledge' | 'assets' | 'reputation' | 'environment'
+export type StateGroup =
+  | 'physical'
+  | 'emotional'
+  | 'rumours'
+  | 'knowledge'
+  | 'assets'
+  | 'reputation'
+  | 'environment'
 
 export type StateDefinition = {
   name: string
@@ -27,7 +34,7 @@ export const stateRegistry = {
   GLOW_CHARMS: 'glow_charms',
   PLASTIC_SIGILS: 'plastic_sigils',
 
-  RESTRICTED_MOVEMENT: 'restricted_movement' // set to positive value if in environment from which cannot leave
+  RESTRICTED_MOVEMENT: 'restricted_movement', // set to positive value if in environment from which cannot leave
 } as const
 
 export const stateDefinitions = {
@@ -36,14 +43,14 @@ export const stateDefinitions = {
     description: 'Being able to act',
     group: 'physical',
     image: 'rocket',
-    maxAmount: 10
+    maxAmount: 10,
   },
   health: {
     name: 'Health',
     description: 'How well are you feeling',
     group: 'physical',
     image: 'rocket',
-    maxAmount: 10
+    maxAmount: 10,
   },
   sanity: {
     name: 'Sanity',
@@ -58,7 +65,7 @@ export const stateDefinitions = {
     description: 'Spirit brokenness',
     group: 'physical',
     image: 'rocket',
-    maxAmount: 100
+    maxAmount: 100,
   },
   traumas: {
     name: 'Traumas',
@@ -84,21 +91,24 @@ export const stateDefinitions = {
   },
   power_cells: {
     name: 'Power cells',
-    description: 'Power - real or symbolic - is sacred. Even dead ones are used in rituals to “fuel” a request or blessing.',
+    description:
+      'Power - real or symbolic - is sacred. Even dead ones are used in rituals to “fuel” a request or blessing.',
     group: 'assets',
     image: 'rocket',
     maxAmount: 10000,
   },
   glow_charms: {
     name: 'Glow charms',
-    description: 'Pieces of LED tech—bike lights, glowsticks, keyboard backlights. They offer brief light in darkness. Some believe they "remember" joy from festivals and gatherings',
+    description:
+      'Pieces of LED tech—bike lights, glowsticks, keyboard backlights. They offer brief light in darkness. Some believe they "remember" joy from festivals and gatherings',
     group: 'assets',
     image: 'rocket',
     maxAmount: 10000,
   },
   plastic_sigils: {
     name: 'Plastic sigils',
-    description: 'Credit cards, loyalty cards, metro passes—often cracked or faded. Each one carries a unique design - the logo or numbers are interpreted like tarot cards.',
+    description:
+      'Credit cards, loyalty cards, metro passes—often cracked or faded. Each one carries a unique design - the logo or numbers are interpreted like tarot cards.',
     group: 'assets',
     image: 'rocket',
     maxAmount: 10000,
@@ -111,5 +121,4 @@ export const stateDefinitions = {
     image: 'rocket',
     maxAmount: 1,
   },
-
 } as const satisfies Record<RegistryEntityId<typeof stateRegistry>, StateDefinition>

@@ -1,12 +1,8 @@
-import {
-  removeFromArrayById,
-  StateTracker,
-  type StateValues,
-} from '@potato-golem/core'
-import type { ChoiceModel } from './narrative/ChoiceModel.ts'
-import type {ZoneBundle} from "../../definitions/zones/common/ZoneBundle.ts";
-import type {LocationDefinition} from "../../definitions/zones/common/LocationDefinition.ts";
+import { StateTracker, type StateValues, removeFromArrayById } from '@potato-golem/core'
 import { stateDefinitions, stateRegistry } from '../../definitions/state/StateDefinition.ts'
+import type { LocationDefinition } from '../../definitions/zones/common/LocationDefinition.ts'
+import type { ZoneBundle } from '../../definitions/zones/common/ZoneBundle.ts'
+import type { ChoiceModel } from './narrative/ChoiceModel.ts'
 
 export class WorldModel {
   public currentZone: ZoneBundle

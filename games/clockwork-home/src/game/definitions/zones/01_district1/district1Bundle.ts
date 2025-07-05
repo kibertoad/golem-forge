@@ -1,6 +1,6 @@
 import type { ZoneBundle } from '../common/ZoneBundle.ts'
-import {district1StoryDefinitions} from "./district1StoryDefinitions.ts";
-import {district1LocationDefinitions} from "./district1LocationDefinitions.ts";
+import { district1LocationDefinitions } from './district1LocationDefinitions.ts'
+import { district1StoryDefinitions } from './district1StoryDefinitions.ts'
 
 export const district1Bundle = {
   id: 'junkyard',

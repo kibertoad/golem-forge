@@ -13,10 +13,10 @@ import { EntityModel } from '../../model/entities/EntityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
+import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { EntityView } from './molecules/EntityView.js'
-import {eventEmitters} from "../../registries/eventEmitterRegistry.ts";
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -37,9 +37,7 @@ export class BoardScene extends PotatoScene {
   init() {
     this.addEntity()
 
-    eventEmitters.boardEmitter.on('destroyEntity', ({
-      entityUuid
-    }) => {
+    eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
       /*
       if (entity.type === EntityTypeRegistry.DEFAULT) {
         this.worldModel.removeEntity(entity.id)
@@ -95,4 +93,3 @@ export class BoardScene extends PotatoScene {
     this.globalTrackerLabel = createGlobalTrackerLabel(this)
   }
 }
-

@@ -1,7 +1,7 @@
-import {type EventSink, generateUuid} from '@potato-golem/core'
+import { type EventSink, generateUuid } from '@potato-golem/core'
 import type { CommonEntity } from '@potato-golem/core'
+import type { StoryDefinition } from '../../../definitions/definitionInterfaces.ts'
 import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
-import type {StoryDefinition} from "../../../definitions/definitionInterfaces.ts";
 
 export type CardModelParams = {
   definition: StoryDefinition
@@ -19,8 +19,8 @@ export class StoryModel implements CommonEntity {
   private readonly parentEventSink: EventSink
   readonly name: string
   readonly definition: StoryDefinition
-  uuid: string;
-  id: string;
+  uuid: string
+  id: string
 
   constructor(params: CardModelParams) {
     this.uuid = generateUuid()

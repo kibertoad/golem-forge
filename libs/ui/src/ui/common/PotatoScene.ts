@@ -1,10 +1,8 @@
-import { Scene } from 'phaser'
-import * as Phaser from 'phaser'
-import type { ViewParent } from './CommonUITypes.ts'
-import {
-  removeFromArrayById,
-} from '@potato-golem/core'
+import { removeFromArrayById } from '@potato-golem/core'
 import type { Destroyable, IdHolder } from '@potato-golem/core'
+import { Scene } from 'phaser'
+import type * as Phaser from 'phaser'
+import type { ViewParent } from './CommonUITypes.ts'
 
 export class PotatoScene extends Scene {
   rexUI!: any

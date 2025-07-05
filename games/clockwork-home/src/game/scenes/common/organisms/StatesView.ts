@@ -1,5 +1,5 @@
-import { PotatoContainer, type PotatoScene, StateListBuilder } from '@potato-golem/ui'
 import { LimitedNumber } from '@potato-golem/core'
+import { PotatoContainer, type PotatoScene, StateListBuilder } from '@potato-golem/ui'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 
 export type StatesViewDependencies = {
@@ -7,13 +7,9 @@ export type StatesViewDependencies = {
 }
 
 export class StatesView extends PotatoContainer {
+  private readonly worldModel: WorldModel
 
-  private readonly worldModel: WorldModel;
-
-  constructor(
-    scene: PotatoScene,
-    dependencies: StatesViewDependencies
-  ) {
+  constructor(scene: PotatoScene, dependencies: StatesViewDependencies) {
     super(scene, {})
     this.worldModel = dependencies.worldModel
 
@@ -25,17 +21,17 @@ export class StatesView extends PotatoContainer {
     const stateListBuilder = StateListBuilder.instance(this.scene, {
       startTextX: 900,
       startTextY: 200,
-      offsetY: 100
+      offsetY: 100,
     })
 
     stateListBuilder
       .add({
         labelText: 'Item 1',
-        value: new LimitedNumber(0, 100, false, 'euro')
+        value: new LimitedNumber(0, 100, false, 'euro'),
       })
       .add({
         labelText: 'Item 2',
-        value: new LimitedNumber(0, 100, false, 'cred')
+        value: new LimitedNumber(0, 100, false, 'cred'),
       })
     const stateListContainer = stateListBuilder.build()
     this.scene.add.existing(stateListContainer)

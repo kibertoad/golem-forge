@@ -1,50 +1,61 @@
-import type {WorldModel} from "../entities/WorldModel";
-import type {Dependencies} from "../diConfig";
-import type {OptionWithPreconditions} from "@potato-golem/core";
-import type {ZoneBundle} from "../../definitions/zones/common/ZoneBundle.ts";
-import type {StoryDefinition} from "../../definitions/definitionInterfaces.ts";
-import type {LocationDefinition} from "../../definitions/zones/common/LocationDefinition.ts";
+import { AbstractChoicesDirector } from '@potato-golem/prefab-scenes'
+import type { StoryDefinition } from '../../definitions/definitionInterfaces.ts'
+import type { LocationDefinition } from '../../definitions/zones/common/LocationDefinition.ts'
+import type { Dependencies } from '../diConfig.ts'
+import type { WorldModel } from '../entities/WorldModel.ts'
 
-function isOptionShown(option: OptionWithPreconditions): boolean {
-    if (!option.conditionsToShow) {
-        return true
-    }
-
-    for (const precondition of option.conditionsToShow) {
-        if (!precondition.isSatisfied()) return false
-    }
-
-    return true
+export type ResolvedChoices = {
+  stories: StoryDefinition[]
+  locations: LocationDefinition[]
 }
 
-export class ChoicesDirector {
-    private readonly worldModel: WorldModel
+export class ChoicesDirector extends AbstractChoicesDirector<WorldModel, ResolvedChoices> {
+  constructor({ worldModel }: Dependencies) {
+    super(worldModel)
+  }
 
-    constructor({ worldModel }: Dependencies) {
-        this.worldModel = worldModel;
+  resolveAvailableChoices(): ResolvedChoices {
+    return {
+      locations: this.resolveAvailableLocations(),
+      stories: this.resolveAvailableStories(),
+    }
+  }
+
+  resolveAvailableStories(): StoryDefinition[] {
+    const availableStories: StoryDefinition[] = []
+
+    if (location) {
+      const locationChoices = location.stories.filter((option) => this.isOptionShown(option))
+      availableStories.push(...locationChoices)
     }
 
-    resolveAvailableStories(_zone: ZoneBundle, location?: LocationDefinition): StoryDefinition[] {
-        const availableStories: StoryDefinition[] = []
+    return availableStories
+  }
 
-        if (location) {
-            const locationChoices = location.stories.filter(isOptionShown)
-            availableStories.push(...locationChoices)
+  resolveAvailableLocations(): LocationDefinition[] {
+    const zone = this.worldModel.currentZone
+    const currentLocation = this.worldModel.currentLocation
+
+    const availableLocations = Object.values(zone.zoneLocations)
+      .filter((entry) => {
+        return (
+          (!currentLocation && !entry.parentLocation) ||
+          entry.parentLocation === currentLocation!.id
+        )
+      })
+      .filter((option) => this.isOptionShown(option))
+
+    /*
+        if (this.worldModel.currentLocation && this.worldModel.playerStates.restricted_movement.value === 0) {
+            this.addOption({
+                image: 'rocket',
+                name: 'Leave',
+                effects: [new LeaveLocationActivation()]
+            })
         }
 
-        return availableStories
-    }
+         */
 
-    resolveAvailableLocations(zone: ZoneBundle, currentLocation?: LocationDefinition): LocationDefinition[] {
-        const availableLocations = Object.values(zone.zoneLocations)
-          .filter((entry) => {
-              return (
-                (!currentLocation && !entry.parentLocation) ||
-                (entry.parentLocation === currentLocation!.id)
-              )
-          })
-          .filter(isOptionShown)
-
-        return availableLocations
-    }
+    return availableLocations
+  }
 }

@@ -1,8 +1,8 @@
 import { PrefabMainMenuScene } from '@potato-golem/prefab-scenes'
+import { worldModel } from '../model/entities/WorldModel.ts'
+import { populateStartGame } from '../model/populators/StartGamePopulator.ts'
 import { imageRegistry } from '../registries/imageRegistry.ts'
 import { type SceneId, sceneRegistry } from '../registries/sceneRegistry.ts'
-import { populateStartGame } from '../model/populators/StartGamePopulator.ts'
-import { worldModel } from '../model/entities/WorldModel.ts'
 
 const isMusicEnabled = false
 
@@ -16,7 +16,7 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
       subtitleText: 'Clockwork Home',
       worldModelPopulator: () => {
         populateStartGame(worldModel)
-      }
+      },
     })
   }
 

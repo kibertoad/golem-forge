@@ -1,6 +1,6 @@
 import type { RegistryEntityId } from '@potato-golem/core'
+import type { StoryDefinition } from '../../definitionInterfaces.ts'
 import type { LocationDefinition } from './LocationDefinition.ts'
-import type {StoryDefinition} from "../../definitionInterfaces.ts";
 
 export const zoneRegistry = {
   Cattery: 'cattery',
@@ -9,7 +9,7 @@ export const zoneRegistry = {
   GrayBeach: 'gray_beach',
   BigBlue: 'big_blue',
   Junkyard: 'junkyard',
-  Labyrinth: 'labyrinth'
+  Labyrinth: 'labyrinth',
 } as const
 
 export type ZoneBundle = {

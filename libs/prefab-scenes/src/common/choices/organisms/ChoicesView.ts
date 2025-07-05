@@ -1,46 +1,48 @@
 import {
   ActivationContainer,
-  type COMMON_EVENT_TYPES,
-  type CommonEntity,
   type EffectsHolder,
-  type EventSink,
-  type EventSource,
+  type MenuTextItem,
   type OptionWithPreconditions,
   allConditionsPass,
 } from '@potato-golem/core'
 import { ButtonGridBuilder, PotatoContainer, type PotatoScene } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
-import type { MenuItem } from '../../../definitions/definitionInterfaces.ts'
-import type { LocationDefinition } from '../../../definitions/zones/common/LocationDefinition.ts'
-import { LeaveLocationActivation } from '../../../model/activations/LeaveLocationActivation.ts'
-import type { ChoicesDirector } from '../../../model/director/ChoicesDirector.ts'
-import type { WorldModel } from '../../../model/entities/WorldModel.ts'
-import { EntityTypeRegistry } from '../../../model/registries/entityTypeRegistry.ts'
-import { choicesViewEventBus } from '../../../registries/eventEmitterRegistry.ts'
-import type { ImageId } from '../../../registries/imageRegistry.ts'
+import type {
+  AbstractChoicesDirector,
+  CommonResolvedChoices,
+} from '../processors/AbstractChoicesDirector.js'
 
-export type CardViewParams = {}
+export type ChoicesViewParams = {
+  buttonTextureKey: string
+}
 
-export type ChoicesViewDependencies = {
+export type ChoicesViewDependencies<WorldModel, ResolvedChoices extends CommonResolvedChoices> = {
   worldModel: WorldModel
-  choicesDirector: ChoicesDirector
+  choicesDirector: AbstractChoicesDirector<WorldModel, ResolvedChoices>
 }
 
 /**
  * Displays stories and locations of a zone, and potentially a location
  */
-export class ChoicesView extends PotatoContainer {
-  protected readonly eventBus: EventSink & EventSource<COMMON_EVENT_TYPES | 'REFRESH'>
-  protected buttonGridBuilder: ButtonGridBuilder<ImageId>
-  private readonly choicesDirector: ChoicesDirector
+export class ChoicesView<
+  WorldModel,
+  ResolvedChoices extends CommonResolvedChoices,
+> extends PotatoContainer {
+  protected buttonGridBuilder!: ButtonGridBuilder
+  private readonly choicesDirector: AbstractChoicesDirector<WorldModel, ResolvedChoices>
   private readonly worldModel: WorldModel
-  private choicesContainer: GameObjects.Container
+  private choicesContainer!: GameObjects.Container
+  private readonly params: ChoicesViewParams
 
-  constructor(scene: PotatoScene, params: CardViewParams, dependencies: ChoicesViewDependencies) {
+  constructor(
+    scene: PotatoScene,
+    params: ChoicesViewParams,
+    dependencies: ChoicesViewDependencies<WorldModel, ResolvedChoices>,
+  ) {
     super(scene, {})
     this.choicesDirector = dependencies.choicesDirector
     this.worldModel = dependencies.worldModel
-    this.eventBus = choicesViewEventBus
+    this.params = params
 
     this.x = 300
     this.y = 100
@@ -52,7 +54,7 @@ export class ChoicesView extends PotatoContainer {
     }
 
     this.buttonGridBuilder = new ButtonGridBuilder(this.scene, {
-      textureKey: 'card_background',
+      textureKey: this.params.buttonTextureKey,
       rowSize: 4,
       rowSpacingOffset: 10,
 
@@ -68,35 +70,27 @@ export class ChoicesView extends PotatoContainer {
       },
     })
 
-    const availableStories = this.choicesDirector.resolveAvailableStories(
-      this.worldModel.currentZone,
-      this.worldModel.currentLocation,
-    )
+    const availableChoices = this.choicesDirector.resolveAvailableChoices()
+
+    for (const choice of availableChoices.choices) {
+      this.addOption(choice)
+    }
+
+    /*
+    const availableStories = this.choicesDirector.resolveAvailableStories(this.worldModel.currentZone, this.worldModel.currentLocation)
 
     // FixMe this is broken
     for (const story of availableStories) {
       this.addOption(story)
     }
 
-    const availableLocations = this.choicesDirector.resolveAvailableLocations(
-      this.worldModel.currentZone,
-      this.worldModel.currentLocation,
-    )
+    const availableLocations = this.choicesDirector.resolveAvailableLocations(this.worldModel.currentZone, this.worldModel.currentLocation)
 
     for (const location of availableLocations) {
       this.addLocation(location)
     }
 
-    if (
-      this.worldModel.currentLocation &&
-      this.worldModel.playerStates.restricted_movement.value === 0
-    ) {
-      this.addOption({
-        image: 'rocket',
-        name: 'Leave',
-        effects: [new LeaveLocationActivation()],
-      })
-    }
+     */
 
     this.choicesContainer = this.buttonGridBuilder.build()
   }
@@ -104,6 +98,8 @@ export class ChoicesView extends PotatoContainer {
   init() {
     this.refreshChoices()
 
+    // FixMe
+    /*
     this.eventBus.on('DESTROY', (entity: CommonEntity) => {
       if (entity.type === EntityTypeRegistry.DEFAULT) {
         this.destroyChildByModelId(entity.id)
@@ -113,9 +109,11 @@ export class ChoicesView extends PotatoContainer {
     this.eventBus.on('REFRESH', () => {
       this.refreshChoices()
     })
+
+     */
   }
 
-  addOption(option: MenuItem & EffectsHolder & OptionWithPreconditions) {
+  addOption(option: MenuTextItem & EffectsHolder & OptionWithPreconditions) {
     /*
     const choiceModel = new ChoiceModel({
       parentEventSink: this.eventBus,
@@ -135,6 +133,8 @@ export class ChoicesView extends PotatoContainer {
     console.log('added button')
   }
 
+  // FixMe
+  /*
   addLocation(option: LocationDefinition) {
     this.buttonGridBuilder.addButton(option.name, () => {
       console.log(`Clicked location ${option.name}`)
@@ -148,4 +148,6 @@ export class ChoicesView extends PotatoContainer {
     })
     console.log('added location')
   }
+
+   */
 }

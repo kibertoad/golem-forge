@@ -1,7 +1,7 @@
 import { type EventSink, generateUuid } from '@potato-golem/core'
 import type { CommonEntity } from '@potato-golem/core'
-import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
 import type { LocationDefinition } from '../../../definitions/zones/common/LocationDefinition.ts'
+import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
 
 export type CardModelParams = {
   definition: LocationDefinition

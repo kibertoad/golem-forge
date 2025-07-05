@@ -1,32 +1,23 @@
-import { allConditionsPass, CommonEntity, EventSink, EventSource } from '@potato-golem/core'
+import type { EventSink, EventSource } from '@potato-golem/core'
 import { ButtonGridBuilder, PotatoContainer, type PotatoScene } from '@potato-golem/ui'
 import Phaser from 'phaser'
 import { district1ChoiceDefinitions } from '../../../definitions/zones/01_district1/district1ChoiceDefinitions.ts'
-import { ChoiceModel } from '../../../model/entities/narrative/ChoiceModel.ts'
 import EventEmitter = Phaser.Events.EventEmitter
-import { EntityTypeRegistry } from '../../../model/registries/entityTypeRegistry.ts'
-import type { ImageId } from '../../../registries/imageRegistry.ts'
-import { ZoneBundle } from '../../../definitions/zones/common/ZoneBundle.ts'
 import { district1Bundle } from '../../../definitions/zones/01_district1/district1Bundle.ts'
+import type { ZoneBundle } from '../../../definitions/zones/common/ZoneBundle.ts'
 import { LocationModel } from '../../../model/entities/narrative/LocationModel.ts'
+import type { ImageId } from '../../../registries/imageRegistry.ts'
 
-export type CardViewParams = {
-}
+export type CardViewParams = {}
 
-export type CardViewDependencies = {
-}
+export type CardViewDependencies = {}
 
 export class LocationsView extends PotatoContainer {
-
   protected readonly eventBus: EventSink & EventSource
   protected buttonGridBuilder: ButtonGridBuilder<ImageId>
   protected zone: ZoneBundle
 
-  constructor(
-    scene: PotatoScene,
-    params: CardViewParams,
-    dependencies: CardViewDependencies
-  ) {
+  constructor(scene: PotatoScene, params: CardViewParams, dependencies: CardViewDependencies) {
     super(scene, {})
     this.eventBus = new EventEmitter()
     this.zone = district1Bundle
