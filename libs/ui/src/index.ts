@@ -53,6 +53,7 @@ export {
 export type { UIGroup, AbstractUIElement } from './ui/elements/UIGroup.ts'
 
 export { ChangeSceneActivation } from './activations/ChangeSceneActivation.ts'
+export { ChangeSceneActivation2 } from './activations/ChangeSceneActivation2.ts'
 export { SetTextActivation } from './activations/SetTextActivation.ts'
 
 export type {

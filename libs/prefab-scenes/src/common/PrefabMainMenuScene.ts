@@ -8,7 +8,8 @@ import {
 import { GameObjects } from 'phaser'
 import type { Types as PhaserTypes, Scene } from 'phaser'
 
-import type { ActivationCallback } from '@potato-golem/core'
+import type { ActivationCallback, GlobalSceneEvents } from '@potato-golem/core'
+import type { EventEmitter } from 'emitix'
 
 export type CreditsEntry = {
   position: string
@@ -32,12 +33,14 @@ export abstract class PrefabMainMenuScene<Scenes extends string = string> extend
   private cursors!: PhaserTypes.Input.Keyboard.CursorKeys
   private subTitle!: UIContainer<GameObjects.Text>
 
-  constructor(params: MainMenuParams<Scenes>) {
-    super(params.mainMenuSceneId)
+  constructor(globalSceneEmitter: EventEmitter<GlobalSceneEvents>, params: MainMenuParams<Scenes>) {
+    super(globalSceneEmitter, params.mainMenuSceneId)
     this.params = params
   }
 
-  init() {}
+  override init() {
+    super.init()
+  }
 
   abstract preloadImages(): void
 

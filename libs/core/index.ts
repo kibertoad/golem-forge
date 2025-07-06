@@ -19,8 +19,6 @@ export type {
 } from './src/core/interfaces/Processor.ts'
 export { executeTargettedActivation } from './src/core/activations/common/Activation.ts'
 export type {
-  MenuItem,
-  MenuTextItem,
   EffectHolder,
   EffectsHolder,
   AsyncActivation,
@@ -62,6 +60,8 @@ export {
   type EventSink,
   type EventSource,
   type COMMON_EVENT_TYPES,
+  type COMMON_EVENTS,
+  type GlobalSceneEvents,
   globalEventEmitter,
 } from './src/core/messages/EventBus.ts'
 export type {
@@ -102,5 +102,15 @@ export {
   type CommonPreconditionMetadata,
 } from './src/core/preconditions/PreconditionWithMetadata.ts'
 
-export type { RegistryEntityId } from './src/core/registries/registryUtils.ts'
+export type {
+  RegistryEntityId,
+  RegistryEntityIdValues,
+} from './src/core/registries/registryUtils.ts'
 export { allConditionsPass } from './src/core/preconditions/preconditionUtils.ts'
+
+export type {
+  ChoiceDefinition,
+  MenuItem,
+  MenuTextItem,
+} from './src/core/activations/prefabs/fallenlikes/ChoiceTypes.js'
+export { MainStateActivation } from './src/core/activations/common/StateActivation.ts'

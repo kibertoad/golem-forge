@@ -16,16 +16,6 @@ export type EffectsHolder<T = unknown> = {
   effects: AnyActivation<T>[]
 }
 
-export type MenuItem = {
-  name: string // user-displayed text
-  image: string // imageId
-}
-
-export type MenuTextItem = {
-  name: string // user-displayed text
-  image?: string // imageId
-}
-
 export type Prioritized = {
   isExclusive?: boolean // if true, this will only trigger if no other activations were triggered
   priority: number // higher numbers means higher execution priority

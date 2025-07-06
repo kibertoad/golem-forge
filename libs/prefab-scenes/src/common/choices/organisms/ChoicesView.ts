@@ -3,6 +3,7 @@ import {
   type EffectsHolder,
   type MenuTextItem,
   type OptionWithPreconditions,
+  type StateHolder,
   allConditionsPass,
 } from '@potato-golem/core'
 import { ButtonGridBuilder, PotatoContainer, type PotatoScene } from '@potato-golem/ui'
@@ -16,7 +17,10 @@ export type ChoicesViewParams = {
   buttonTextureKey: string
 }
 
-export type ChoicesViewDependencies<WorldModel, ResolvedChoices extends CommonResolvedChoices> = {
+export type ChoicesViewDependencies<
+  WorldModel extends StateHolder<string>,
+  ResolvedChoices extends CommonResolvedChoices,
+> = {
   worldModel: WorldModel
   choicesDirector: AbstractChoicesDirector<WorldModel, ResolvedChoices>
 }
@@ -25,7 +29,7 @@ export type ChoicesViewDependencies<WorldModel, ResolvedChoices extends CommonRe
  * Displays stories and locations of a zone, and potentially a location
  */
 export class ChoicesView<
-  WorldModel,
+  WorldModel extends StateHolder<any, any>,
   ResolvedChoices extends CommonResolvedChoices,
 > extends PotatoContainer {
   protected buttonGridBuilder!: ButtonGridBuilder
@@ -126,8 +130,11 @@ export class ChoicesView<
       console.log(`Clicked ${option.name}`)
       //console.log(`Definition: ${JSON.stringify(choiceDefinition)}`)
       if (allConditionsPass(option.conditionsToEnable)) {
+        console.log(`All conditions passed for ${option.name}`)
         const effectContainer = ActivationContainer.fromEffectList(option.effects)
         effectContainer.activateOnlySync()
+      } else {
+        console.log(`Some conditions failed for ${option.name}`)
       }
     })
     console.log('added button')

@@ -1,6 +1,12 @@
 import { EventEmitter } from 'eventemitter3'
 
-export type COMMON_EVENT_TYPES = 'DESTROY' | 'CREATE' | 'MOVE' | 'CHANGE_STATE'
+export type COMMON_EVENT_TYPES = 'DESTROY' | 'CREATE' | 'MOVE'
+
+export type COMMON_EVENTS = {
+  DESTROY: [{ entityUUID: string }]
+  MOVE: [{ entityUUID: string }]
+  CREATE: [{ entityID: string }]
+}
 
 export type TypedEventEmitter<EventTypes extends string = COMMON_EVENT_TYPES> =
   EventSink<EventTypes> & EventSource<EventTypes>
@@ -27,3 +33,7 @@ export type EventSource<EventTypes extends string = COMMON_EVENT_TYPES, Context 
 }
 
 export const globalEventEmitter = new EventEmitter() satisfies EventSink<any> & EventSource<any>
+
+export type GlobalSceneEvents = {
+  CHANGE_SCENE: [string]
+}

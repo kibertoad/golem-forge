@@ -1,4 +1,9 @@
-import type { EffectsHolder, MenuTextItem, OptionWithPreconditions } from '@potato-golem/core'
+import type {
+  ChoiceDefinition,
+  EffectsHolder,
+  MenuTextItem,
+  OptionWithPreconditions,
+} from '@potato-golem/core'
 
 export type CommonChoice = MenuTextItem & EffectsHolder & OptionWithPreconditions
 
@@ -14,6 +19,10 @@ export abstract class AbstractChoicesDirector<
 
   constructor(worldModel: WorldModel) {
     this.worldModel = worldModel
+  }
+
+  public filterRelevantChoices(choices: Record<string, ChoiceDefinition>): CommonChoice[] {
+    return Object.values(choices).filter((entry) => this.isOptionShown(entry))
   }
 
   public isOptionShown(option: OptionWithPreconditions): boolean {

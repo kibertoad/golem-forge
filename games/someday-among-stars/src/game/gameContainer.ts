@@ -13,6 +13,12 @@ const resolution = GameResolutions.default
 
 const container = instantiateContainer()
 
+const scenes = [
+  container.cradle.mainMenuScene,
+  container.cradle.spaceScene,
+  container.cradle.choicesScene,
+]
+
 const config: PhaserTypes.Core.GameConfig = {
   type: AUTO,
   scale: {
@@ -23,17 +29,12 @@ const config: PhaserTypes.Core.GameConfig = {
   width: resolution.width,
   height: resolution.height,
   plugins: {},
-  scene: [
-    container.cradle.mainMenuScene,
-    container.cradle.boardScene,
-    container.cradle.choicesScene,
-  ],
+  scene: scenes,
 }
 
 const StartGame = (parent: string) => {
   return new Game({ ...config, parent })
 }
 
-// this must be provided by a main file
-// biome-ignore lint/style/noDefaultExport: <explanation>
+// biome-ignore lint/style/noDefaultExport: This is required by Phaser
 export default StartGame

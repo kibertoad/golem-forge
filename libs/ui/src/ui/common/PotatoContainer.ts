@@ -1,34 +1,26 @@
 import * as Phaser from 'phaser'
 import Container = Phaser.GameObjects.Container
-import {
-  type COMMON_EVENT_TYPES,
-  type Destroyable,
-  type EventSink,
-  type EventSource,
-  type IdHolder,
-  removeFromArrayById,
-} from '@potato-golem/core'
-import EventEmitter = Phaser.Events.EventEmitter
+import { type Destroyable, type IdHolder, removeFromArrayById } from '@potato-golem/core'
+
 import type { PotatoScene } from './PotatoScene.ts'
 
 export type CommmonContainerParams = {
   isShown?: boolean // default is true
 }
 
+/**
+ * Encapsulates a group of Phaser objects that are supposed to move together
+ */
 export abstract class PotatoContainer<
-  SupportedEvents extends string = COMMON_EVENT_TYPES,
   ContainerParams extends CommmonContainerParams = CommmonContainerParams,
 > extends Container {
   protected readonly potatoScene: PotatoScene
   protected readonly viewObjects: Array<IdHolder & Destroyable>
 
-  protected readonly eventBus: EventSink<SupportedEvents> & EventSource<SupportedEvents>
-
   constructor(scene: PotatoScene, containerParams: ContainerParams) {
     super(scene)
     this.potatoScene = scene
     this.viewObjects = []
-    this.eventBus = new EventEmitter()
 
     this.scene.add.existing(this)
 

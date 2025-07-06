@@ -1,4 +1,6 @@
+import type { GlobalSceneEvents, StateHolder } from '@potato-golem/core'
 import { PotatoScene } from '@potato-golem/ui'
+import type { EventEmitter } from 'emitix'
 import { ChoicesView } from './organisms/ChoicesView.js'
 import type {
   AbstractChoicesDirector,
@@ -14,12 +16,13 @@ export type ChoicesSceneDependencies<
   WorldModel,
   ResolvedChoices extends CommonResolvedChoices = CommonResolvedChoices,
 > = {
+  globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
   worldModel: WorldModel
   choicesDirector: AbstractChoicesDirector<WorldModel, ResolvedChoices>
 }
 
 export abstract class PrefabChoicesScene<
-  WorldModel,
+  WorldModel extends StateHolder<any, any>,
   ResolvedChoices extends CommonResolvedChoices = CommonResolvedChoices,
 > extends PotatoScene {
   private readonly params: ChoicesSceneParams
@@ -31,13 +34,16 @@ export abstract class PrefabChoicesScene<
     params: ChoicesSceneParams,
     dependencies: ChoicesSceneDependencies<WorldModel, ResolvedChoices>,
   ) {
-    super(params.choicesSceneId)
+    super(dependencies.globalSceneEventEmitter, params.choicesSceneId)
     this.params = params
     this.worldModel = dependencies.worldModel
     this.choicesDirector = dependencies.choicesDirector
   }
 
-  init() {
+  override init() {
+    super.init()
+    console.log(`Current state: ${JSON.stringify(this.worldModel.state)}`)
+
     this.choicesView = new ChoicesView(
       this,
       {

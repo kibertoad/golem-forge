@@ -27,8 +27,8 @@ export class BoardScene extends PotatoScene {
   private backgroundImage!: GameObjects.Sprite
   private readonly endTurnProcessor: EndTurnProcessor
 
-  constructor({ worldModel, endTurnProcessor }: Dependencies) {
-    super(sceneRegistry.BOARD_SCENE)
+  constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
+    super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
 
     this.worldModel = worldModel
     this.endTurnProcessor = endTurnProcessor

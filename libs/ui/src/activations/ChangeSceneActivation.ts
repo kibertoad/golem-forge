@@ -1,11 +1,11 @@
 import type { Activation, ActivationCallback } from '@potato-golem/core'
 import type { Scene } from 'phaser'
 
-export class ChangeSceneActivation implements Activation {
-  readonly #newScene: Scene | string
+export class ChangeSceneActivation<Scenes extends string = string> implements Activation {
+  readonly #newScene: Scene | Scenes
   readonly #currentScene: Scene
 
-  private constructor(currentScene: Scene, newScene: Scene | string) {
+  private constructor(currentScene: Scene, newScene: Scene | Scenes) {
     this.#currentScene = currentScene
     this.#newScene = newScene
   }
