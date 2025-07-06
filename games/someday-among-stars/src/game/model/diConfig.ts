@@ -14,6 +14,8 @@ import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { SpaceScene } from '../scenes/space/SpaceScene.ts'
 import { type WorldModel, getWorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
+import {StarmapScene} from "../scenes/starmap/StarmapScene.ts";
+import {StarmapUIScene} from "../scenes/starmap/StarmapUIScene.ts";
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -21,6 +23,8 @@ type DiConfig = NameAndRegistrationPair<Dependencies>
 export interface Dependencies {
   worldModel: WorldModel
   spaceScene: SpaceScene
+  starmapScene: StarmapScene
+  starmapUIScene: StarmapUIScene
   mainMenuScene: MainMenuScene
   choicesScene: ChoiceScene
   endTurnProcessor: EndTurnProcessor
@@ -40,6 +44,8 @@ export function instantiateContainer() {
     ),
     worldModel: asValue(getWorldModel()),
     spaceScene: asClass(SpaceScene, SINGLETON_CONFIG),
+    starmapScene: asClass(StarmapScene, SINGLETON_CONFIG),
+    starmapUIScene: asClass(StarmapUIScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     choicesScene: asClass(ChoiceScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),

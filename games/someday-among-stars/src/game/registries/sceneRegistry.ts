@@ -4,7 +4,8 @@ export type SceneId = RegistryEntityId<typeof sceneRegistry>
 
 export const sceneRegistry = {
   MAIN_MENU_SCENE: 'mainMenu',
-  BOARD_SCENE: 'board',
   CHOICES_SCENE: 'choices',
   SPACE_SCENE: 'space',
+  STARMAP_SCENE: 'starmap',
+  STARMAP_UI_SCENE: 'starmapUI',
 } as const
