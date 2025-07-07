@@ -1,6 +1,7 @@
 import { PotatoScene } from "@potato-golem/ui";
 import type { Dependencies } from "../../model/diConfig.ts";
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
+import Phaser from "phaser";
 
 // Star data interface
 interface Star {
@@ -20,9 +21,11 @@ export class StarmapScene extends PotatoScene {
     private dragStart = { x: 0, y: 0 };
     private cameraStart = { x: 0, y: 0 };
 
-    // Player position (fixed for now)
     private readonly playerX: number = 0;
     private readonly playerY: number = 0;
+
+    private selectedStar: Star | null = null;
+    private lineGraphics!: Phaser.GameObjects.Graphics;
 
     constructor(dependencies: Dependencies) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE });
@@ -38,33 +41,61 @@ export class StarmapScene extends PotatoScene {
         this.cameras.main.setZoom(1);
         this.starGroup = this.add.group();
 
-        // --- Mouse drag for panning ---
+        // Dashed line graphics, drawn on top of all
+        this.lineGraphics = this.add.graphics().setDepth(1000);
+
+        // --- Mouse drag for panning (middle mouse only) ---
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.rightButtonDown()) return;
-            this.isDragging = true;
-            this.dragStart.x = pointer.x;
-            this.dragStart.y = pointer.y;
-            this.cameraStart.x = this.cameras.main.scrollX;
-            this.cameraStart.y = this.cameras.main.scrollY;
-            this.input.setDefaultCursor('grabbing');
-            // Hide overlay on drag
-            this.hideOverlay();
+            if (pointer.middleButtonDown()) {
+                // Only allow dragging with mouse wheel/middle button
+                this.isDragging = true;
+                this.dragStart.x = pointer.x;
+                this.dragStart.y = pointer.y;
+                this.cameraStart.x = this.cameras.main.scrollX;
+                this.cameraStart.y = this.cameras.main.scrollY;
+                this.input.setDefaultCursor('grabbing');
+                this.hideOverlay();
+                return;
+            }
+
+            if (pointer.rightButtonDown()) return; // skip right-click
+
+            // Check for star under pointer (left click only)
+            const objectsUnderPointer = this.input.hitTestPointer(pointer) as Phaser.GameObjects.GameObject[];
+            const arc = objectsUnderPointer.find(obj =>
+                obj instanceof Phaser.GameObjects.Arc &&
+                this.starGroup.contains(obj)
+            ) as Phaser.GameObjects.Arc | undefined;
+
+            if (arc) {
+                const star = this.stars.find(s => s.display === arc);
+                if (star) {
+                    this.selectedStar = star;
+                    console.log("Selected star:", star); // DEBUG
+                    return;
+                }
+            }
+
+            // Deselect star if clicking empty space
+            this.selectedStar = null;
         });
 
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-            if (!this.isDragging) {
-                this.handleStarHover(pointer);
-            } else {
+            if (this.isDragging) {
                 const cam = this.cameras.main;
                 cam.scrollX = this.cameraStart.x - (pointer.x - this.dragStart.x) / cam.zoom;
                 cam.scrollY = this.cameraStart.y - (pointer.y - this.dragStart.y) / cam.zoom;
-                this.hideOverlay(); // hide overlay while dragging
+                this.hideOverlay();
+            } else {
+                this.handleStarHover(pointer);
             }
         });
 
-        this.input.on('pointerup', () => {
-            this.isDragging = false;
-            this.input.setDefaultCursor('default');
+        this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+            if (this.isDragging && pointer.middleButtonReleased()) {
+                this.isDragging = false;
+                this.input.setDefaultCursor('default');
+            }
         });
 
         // --- Mouse wheel for zooming ---
@@ -90,19 +121,8 @@ export class StarmapScene extends PotatoScene {
                 Phaser.Math.Between(-1000, 1000)
             );
         }
-
-        // --- Click to add a star ---
-        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (pointer.rightButtonDown()) return; // skip right-click
-            if (this.isDragging) return; // skip if dragging
-            const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-            this.addStar(worldPoint.x, worldPoint.y);
-        });
     }
 
-    /**
-     * Add a new star at (x, y) with name, color, and distance from player
-     */
     addStar(x: number, y: number) {
         const color = this.getRandomStarColor();
         const name = this.getStarName();
@@ -118,17 +138,14 @@ export class StarmapScene extends PotatoScene {
         this.stars.push({ x, y, color, name, distance, display: star });
     }
 
-    /**
-     * On pointer move, check if hovering a star. If so, show overlay in UI Scene.
-     */
     handleStarHover(pointer: Phaser.Input.Pointer) {
-        // Use Phaser's input hit test to find stars under pointer
-        const starsUnderPointer = this.input.hitTestPointer(pointer, this.starGroup.getChildren()) as Phaser.GameObjects.Arc[];
+        const objectsUnderPointer = this.input.hitTestPointer(pointer) as Phaser.GameObjects.GameObject[];
+        const arc = objectsUnderPointer.find(obj =>
+            obj instanceof Phaser.GameObjects.Arc &&
+            this.starGroup.contains(obj)
+        ) as Phaser.GameObjects.Arc | undefined;
 
-        // If any star is hit, show overlay for the topmost (first) one
-        if (starsUnderPointer.length > 0) {
-            const arc = starsUnderPointer[0];
-            // Find the star data matching this display object
+        if (arc) {
             const star = this.stars.find(s => s.display === arc);
             if (star) {
                 const distance = this.calcDistanceToPlayer(star.x, star.y);
@@ -139,7 +156,7 @@ export class StarmapScene extends PotatoScene {
                 if (uiScene?.showOverlay) {
                     uiScene.showOverlay(pointer.x, pointer.y, text);
                 }
-                return; // Overlay handled
+                return;
             }
         }
 
@@ -201,6 +218,39 @@ export class StarmapScene extends PotatoScene {
     }
 
     update() {
-        // Twinkle or animations could go here!
+        this.lineGraphics.clear();
+
+        if (this.selectedStar) {
+            // Draw in world coordinates, NOT screen coordinates!
+            this.lineGraphics.fillStyle(0xff0000, 1);
+            this.lineGraphics.fillCircle(this.playerX, this.playerY, 4);
+
+            this.lineGraphics.fillStyle(0x00ff00, 1);
+            this.lineGraphics.fillCircle(this.selectedStar.x, this.selectedStar.y, 4);
+
+            const dashLength = 12;
+            const gapLength = 8;
+            const dx = this.selectedStar.x - this.playerX;
+            const dy = this.selectedStar.y - this.playerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            let drawn = 0;
+
+            this.lineGraphics.lineStyle(2, 0xffffff, 0.85);
+
+            while (drawn < dist - 1) {
+                const x1 = this.playerX + Math.cos(angle) * drawn;
+                const y1 = this.playerY + Math.sin(angle) * drawn;
+                drawn += dashLength;
+                if (drawn > dist) drawn = dist;
+                const x2 = this.playerX + Math.cos(angle) * drawn;
+                const y2 = this.playerY + Math.sin(angle) * drawn;
+                this.lineGraphics.moveTo(x1, y1);
+                this.lineGraphics.lineTo(x2, y2);
+                drawn += gapLength;
+            }
+
+            this.lineGraphics.strokePath();
+        }
     }
 }
