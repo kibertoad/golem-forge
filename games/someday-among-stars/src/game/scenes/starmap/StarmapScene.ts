@@ -3,7 +3,6 @@ import type { Dependencies } from "../../model/diConfig.ts";
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
 import Phaser from "phaser";
 
-// Star data interface
 interface Star {
     x: number;
     y: number;
@@ -21,11 +20,15 @@ export class StarmapScene extends PotatoScene {
     private dragStart = { x: 0, y: 0 };
     private cameraStart = { x: 0, y: 0 };
 
-    private readonly playerX: number = 0;
-    private readonly playerY: number = 0;
+    private travelSpeed: number = 40; // units per second (adjust as you wish)
+
+    private playerX: number = 0;
+    private playerY: number = 0;
 
     private selectedStar: Star | null = null;
     private lineGraphics!: Phaser.GameObjects.Graphics;
+
+    private isTraveling: boolean = false;
 
     constructor(dependencies: Dependencies) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE });
@@ -41,13 +44,21 @@ export class StarmapScene extends PotatoScene {
         this.cameras.main.setZoom(1);
         this.starGroup = this.add.group();
 
-        // Dashed line graphics, drawn on top of all
         this.lineGraphics = this.add.graphics().setDepth(1000);
 
-        // --- Mouse drag for panning (middle mouse only) ---
+        // Respond to travel/stop button via event (no closure bugs!)
+        this.events.on("travelButtonClicked", () => {
+            if (this.isTraveling) {
+                this.isTraveling = false;
+                this.showTravelButtonIfAvailable();
+            } else if (this.selectedStar) {
+                this.isTraveling = true;
+                this.showTravelButtonIfAvailable();
+            }
+        });
+
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (pointer.middleButtonDown()) {
-                // Only allow dragging with mouse wheel/middle button
                 this.isDragging = true;
                 this.dragStart.x = pointer.x;
                 this.dragStart.y = pointer.y;
@@ -57,10 +68,9 @@ export class StarmapScene extends PotatoScene {
                 this.hideOverlay();
                 return;
             }
+            if (pointer.rightButtonDown()) return;
 
-            if (pointer.rightButtonDown()) return; // skip right-click
-
-            // Check for star under pointer (left click only)
+            // Select star on left click
             const objectsUnderPointer = this.input.hitTestPointer(pointer) as Phaser.GameObjects.GameObject[];
             const arc = objectsUnderPointer.find(obj =>
                 obj instanceof Phaser.GameObjects.Arc &&
@@ -71,13 +81,12 @@ export class StarmapScene extends PotatoScene {
                 const star = this.stars.find(s => s.display === arc);
                 if (star) {
                     this.selectedStar = star;
-                    console.log("Selected star:", star); // DEBUG
+                    this.showTravelButtonIfAvailable();
                     return;
                 }
             }
-
-            // Deselect star if clicking empty space
             this.selectedStar = null;
+            this.hideTravelButton();
         });
 
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -98,23 +107,12 @@ export class StarmapScene extends PotatoScene {
             }
         });
 
-        // --- Mouse wheel for zooming ---
-        this.input.on(
-            'wheel',
-            (
-                pointer: Phaser.Input.Pointer,
-                gameObjects: any,
-                deltaX: number,
-                deltaY: number,
-                deltaZ: number
-            ) => {
-                const cam = this.cameras.main;
-                let newZoom = Phaser.Math.Clamp(cam.zoom - deltaY * 0.001, 0.2, 5);
-                cam.setZoom(newZoom);
-            }
-        );
+        this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+            const cam = this.cameras.main;
+            let newZoom = Phaser.Math.Clamp(cam.zoom - deltaY * 0.001, 0.2, 5);
+            cam.setZoom(newZoom);
+        });
 
-        // --- Initial random stars ---
         for (let i = 0; i < 100; i++) {
             this.addStar(
                 Phaser.Math.Between(-1000, 1000),
@@ -134,7 +132,6 @@ export class StarmapScene extends PotatoScene {
             .setInteractive({ cursor: 'pointer' });
 
         this.starGroup.add(star);
-
         this.stars.push({ x, y, color, name, distance, display: star });
     }
 
@@ -159,8 +156,6 @@ export class StarmapScene extends PotatoScene {
                 return;
             }
         }
-
-        // If no star under pointer, hide overlay
         const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any;
         if (uiScene?.hideOverlay) uiScene.hideOverlay();
     }
@@ -168,6 +163,24 @@ export class StarmapScene extends PotatoScene {
     hideOverlay() {
         const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any;
         if (uiScene?.hideOverlay) uiScene.hideOverlay();
+    }
+
+    private onShipArrivedAtDestination(): void {
+       console.log("Ship arrived at destination!");
+    }
+
+    showTravelButtonIfAvailable() {
+        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any;
+        if (this.selectedStar && uiScene?.showTravelButton) {
+            uiScene.showTravelButton(true, this.isTraveling ? "Stop" : "Travel to destination");
+        }
+    }
+
+    hideTravelButton() {
+        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any;
+        if (uiScene?.showTravelButton) {
+            uiScene.showTravelButton(false);
+        }
     }
 
     getRandomStarColor(): number {
@@ -217,16 +230,36 @@ export class StarmapScene extends PotatoScene {
         return Phaser.Math.Distance.Between(this.playerX, this.playerY, x, y) / 10;
     }
 
-    update() {
+    update(time: number, delta: number) {
         this.lineGraphics.clear();
 
+        // Move the ship if traveling
+        if (this.isTraveling && this.selectedStar) {
+            const dx = this.selectedStar.x - this.playerX;
+            const dy = this.selectedStar.y - this.playerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Arrive if close enough
+            if (dist < this.travelSpeed * (delta / 1000)) {
+                this.playerX = this.selectedStar.x;
+                this.playerY = this.selectedStar.y;
+                this.isTraveling = false;
+                this.showTravelButtonIfAvailable();
+                this.onShipArrivedAtDestination(); // <-- Call the new method
+            } else {
+                const angle = Math.atan2(dy, dx);
+                const step = this.travelSpeed * (delta / 1000);
+                this.playerX += Math.cos(angle) * step;
+                this.playerY += Math.sin(angle) * step;
+            }
+        }
+
         if (this.selectedStar) {
-            // Draw in world coordinates, NOT screen coordinates!
             this.lineGraphics.fillStyle(0xff0000, 1);
-            this.lineGraphics.fillCircle(this.playerX, this.playerY, 4);
+            this.lineGraphics.fillCircle(this.playerX, this.playerY, 6);
 
             this.lineGraphics.fillStyle(0x00ff00, 1);
-            this.lineGraphics.fillCircle(this.selectedStar.x, this.selectedStar.y, 4);
+            this.lineGraphics.fillCircle(this.selectedStar.x, this.selectedStar.y, 6);
 
             const dashLength = 12;
             const gapLength = 8;
@@ -251,6 +284,10 @@ export class StarmapScene extends PotatoScene {
             }
 
             this.lineGraphics.strokePath();
+        }
+
+        if (this.isTraveling) {
+            this.cameras.main.centerOn(this.playerX, this.playerY);
         }
     }
 }

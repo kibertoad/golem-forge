@@ -1,15 +1,14 @@
-import { PotatoScene } from "@potato-golem/ui";
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
-import { Scene } from "phaser";
-import {Dependencies} from "../../model/diConfig.ts";
+import Phaser from "phaser";
 
-// Very basic UI scene. Use the same dependencies if needed.
-export class StarmapUIScene extends Scene {
+export class StarmapUIScene extends Phaser.Scene {
     private overlayBg!: Phaser.GameObjects.Rectangle;
     private overlayText!: Phaser.GameObjects.Text;
     private overlayBox!: Phaser.GameObjects.Container;
+    private travelButton!: Phaser.GameObjects.Text;
+    private buttonText: string = "Travel to destination";
 
-    constructor(dependencies: Dependencies) {
+    constructor() {
         super(sceneRegistry.STARMAP_UI_SCENE);
     }
 
@@ -26,15 +25,36 @@ export class StarmapUIScene extends Scene {
         this.overlayBox = this.add.container(0, 0, [this.overlayBg, this.overlayText])
             .setDepth(1000)
             .setVisible(false);
+
+        this.travelButton = this.add.text(24, 24, this.buttonText, {
+            fontSize: '18px',
+            color: '#ffff66',
+            backgroundColor: '#222233',
+            fontFamily: 'monospace',
+            padding: { x: 14, y: 10 }
+        })
+            .setDepth(1000)
+            .setInteractive({ cursor: 'pointer' })
+            .setVisible(false);
+
+        // Always emit event to main scene, never use closure
+        this.travelButton.on('pointerdown', () => {
+            // Defensive: check if parent scene exists
+            const main = this.scene.get(sceneRegistry.STARMAP_SCENE);
+            if (main) main.events.emit("travelButtonClicked");
+        });
+    }
+
+    showTravelButton(show: boolean, text?: string) {
+        if (text) this.buttonText = text;
+        this.travelButton.setText(this.buttonText);
+        this.travelButton.setInteractive({ cursor: 'pointer' }); // update after text change!
+        this.travelButton.setVisible(show);
     }
 
     showOverlay(x: number, y: number, text: string) {
-        if (!this.overlayBox) return
-
         this.overlayText.setText(text);
         this.overlayBg.setSize(this.overlayText.width + 12, this.overlayText.height + 8);
-
-        // Clamp to window as before
         const margin = 4;
         const boxW = this.overlayBg.width;
         const boxH = this.overlayBg.height;
@@ -48,7 +68,6 @@ export class StarmapUIScene extends Scene {
         }
         if (overlayX < margin) overlayX = margin;
         if (overlayY < margin) overlayY = margin;
-
         this.overlayBox.setPosition(overlayX, overlayY);
         this.overlayBox.setVisible(true);
     }
