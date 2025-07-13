@@ -10,7 +10,8 @@ export const COMMON_SPACE_CHOICES = {
     id: 'CHART_COURSE',
     name: 'Chart the course',
     effects: [
-      new ChangeSceneActivation2<SceneId>(getWorldModel().globalSceneEventEmitter, sceneRegistry.STARMAP_SCENE),
+      // new ChangeSceneActivation2<SceneId>(getWorldModel().globalSceneEventEmitter, sceneRegistry.STARMAP_SCENE),
+      new ChangeSceneActivation2<SceneId>(getWorldModel().globalSceneEventEmitter, sceneRegistry.SPACE_COMBAT),
     ],
   },
 } as const satisfies Record<string, ChoiceDefinition>
