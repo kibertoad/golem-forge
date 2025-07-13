@@ -177,22 +177,22 @@ export class SpaceCombatScene extends PotatoScene {
             playerDiceY += 30; // slightly more vertical gap after section title
 
             section.dice.forEach((d, i) => {
-                // Just add space between dice horizontally:
-                const x = 110 + i * 120; // more room (old was 70 + i*92)
+                const x = 110 + i * 120;
                 const y = playerDiceY;
-
                 const idx = diceIdx;
                 const sprite = this.add.sprite(x, y, DICE_SPRITESHEET_KEY, d.faces[0].frame)
                     .setScale(4)
-                    .setInteractive({ cursor: d.enabled ? 'pointer' : 'not-allowed' })
+                    .setInteractive({
+                        cursor: (pointer: Phaser.Input.Pointer) =>
+                            pointer.rightButtonDown() ? 'pointer' : (d.enabled ? 'pointer' : 'not-allowed')
+                    })
                     .setData("diceSection", sectionIdx)
                     .setData("diceIndex", i)
                     .setData("enabled", d.enabled)
                     .on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-                        if (!d.enabled) return;
                         if (pointer.rightButtonDown()) {
                             this.showUnravel(d, x, y);
-                        } else {
+                        } else if (d.enabled) {
                             this.playerDiceSelected[idx] = !this.playerDiceSelected[idx];
                             sprite.setAlpha(this.playerDiceSelected[idx] ? 1.0 : 0.7);
                             console.log(`[DICE SELECT] Player dice ${d.name} selected = ${this.playerDiceSelected[idx]}`);
@@ -203,7 +203,6 @@ export class SpaceCombatScene extends PotatoScene {
                     });
                 this.playerDiceSprites.push(sprite);
 
-                // Dice label, give more gap (was y+48)
                 this.add.text(x, y + 60, d.name, {
                     fontSize: "15px", color: d.enabled ? "#baffc0" : "#aaaabb", fontFamily: "monospace"
                 }).setOrigin(0.5, 0);
@@ -213,6 +212,9 @@ export class SpaceCombatScene extends PotatoScene {
 
             playerDiceY += 98; // more vertical room per section (was 84)
         });
+
+        this.playerDiceSelected = this.playerDiceSprites.map(() => false);
+        this.playerDiceSprites.forEach(sprite => sprite.setAlpha(0.7));
 
         // --- ROLL BUTTON & REST UNCHANGED ---
         this.rollButton = this.add.text(
@@ -463,5 +465,8 @@ export class SpaceCombatScene extends PotatoScene {
                 }
             });
         });
+
+        this.playerDiceSelected = this.playerDiceSprites.map(() => false);
+        this.playerDiceSprites.forEach(sprite => sprite.setAlpha(0.7));
     }
 }
