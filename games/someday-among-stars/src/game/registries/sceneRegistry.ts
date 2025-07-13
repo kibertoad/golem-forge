@@ -8,4 +8,5 @@ export const sceneRegistry = {
   SPACE_SCENE: 'space',
   STARMAP_SCENE: 'starmap',
   STARMAP_UI_SCENE: 'starmapUI',
+  SPACE_COMBAT: 'spaceCombat',
 } as const

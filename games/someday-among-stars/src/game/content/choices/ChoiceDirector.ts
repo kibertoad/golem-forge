@@ -3,7 +3,7 @@ import {
   type CommonChoice,
   type CommonResolvedChoices,
 } from '@potato-golem/prefab-scenes'
-import type { Dependencies } from '../../model/diConfig.ts'
+import type { Dependencies } from '../../diConfig.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { COMMON_PLANET_CHOICES } from './planets/CommonPlanetChoices.ts'
 import { COMMON_SPACE_CHOICES } from './space/CommonSpaceChoices.ts'

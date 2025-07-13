@@ -8,14 +8,15 @@ import {
   createContainer,
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
-import { ChoiceDirector } from '../content/choices/ChoiceDirector.ts'
-import { ChoiceScene } from '../scenes/choices/ChoiceScene.ts'
-import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
-import { SpaceScene } from '../scenes/space/SpaceScene.ts'
-import { type WorldModel, getWorldModel } from './entities/WorldModel.ts'
-import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
-import {StarmapScene} from "../scenes/starmap/StarmapScene.ts";
-import {StarmapUIScene} from "../scenes/starmap/StarmapUIScene.ts";
+import { ChoiceDirector } from './content/choices/ChoiceDirector.ts'
+import { ChoiceScene } from './scenes/choices/ChoiceScene.ts'
+import { MainMenuScene } from './scenes/main-menu/MainMenuScene.ts'
+import { SpaceScene } from './scenes/space/SpaceScene.ts'
+import { type WorldModel, getWorldModel } from './model/entities/WorldModel.ts'
+import { TravelTurnProcessor } from './model/processors/TravelTurnProcessor.ts'
+import {StarmapScene} from "./scenes/starmap/StarmapScene.ts";
+import {StarmapUIScene} from "./scenes/starmap/StarmapUIScene.ts";
+import {SpaceCombatScene} from "./scenes/space-combat/SpaceCombatScene.ts";
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -25,9 +26,10 @@ export interface Dependencies {
   spaceScene: SpaceScene
   starmapScene: StarmapScene
   starmapUIScene: StarmapUIScene
+  spaceCombatScene: SpaceCombatScene
   mainMenuScene: MainMenuScene
   choicesScene: ChoiceScene
-  endTurnProcessor: EndTurnProcessor
+  travelTurnProcessor: TravelTurnProcessor
   choicesDirector: ChoiceDirector
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
 }
@@ -46,9 +48,10 @@ export function instantiateContainer() {
     spaceScene: asClass(SpaceScene, SINGLETON_CONFIG),
     starmapScene: asClass(StarmapScene, SINGLETON_CONFIG),
     starmapUIScene: asClass(StarmapUIScene, SINGLETON_CONFIG),
+    spaceCombatScene: asClass(SpaceCombatScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     choicesScene: asClass(ChoiceScene, SINGLETON_CONFIG),
-    endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
+    travelTurnProcessor: asClass(TravelTurnProcessor, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoiceDirector, SINGLETON_CONFIG),
   }
 

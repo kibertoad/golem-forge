@@ -1,5 +1,5 @@
 import { PrefabMainMenuScene } from '@potato-golem/prefab-scenes'
-import type { Dependencies } from '../../model/diConfig.ts'
+import type { Dependencies } from '../../diConfig.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { type SceneId, sceneRegistry } from '../../registries/sceneRegistry.ts'
 

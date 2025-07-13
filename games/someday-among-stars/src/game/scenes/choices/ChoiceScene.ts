@@ -1,5 +1,5 @@
 import { PrefabChoicesScene } from '@potato-golem/prefab-scenes'
-import type { Dependencies } from '../../model/diConfig.ts'
+import type { Dependencies } from '../../diConfig.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'

@@ -1,5 +1,5 @@
 import { PotatoScene } from "@potato-golem/ui";
-import type { Dependencies } from "../../model/diConfig.ts";
+import type { Dependencies } from "../../diConfig.ts";
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
 import Phaser from "phaser";
 import {DEFAULT_ZOOM, STAR_AMOUNT, STAR_COLOURS} from "./internal/starmapConstants.ts";
@@ -8,6 +8,8 @@ import {imageRegistry} from "../../registries/imageRegistry.ts";
 import {PlanetOverlayData, StarmapUIScene} from "./StarmapUIScene.ts";
 import {WorldModel} from "../../model/entities/WorldModel.ts";
 import {PlanetModel} from "../../model/entities/PlanetModel.ts";
+import {TravelTurnProcessor} from "../../model/processors/TravelTurnProcessor.ts";
+import {ActivationContainer, ChoiceDefinition} from "@potato-golem/core";
 
 interface Star {
     x: number;
@@ -20,6 +22,9 @@ interface Star {
 
 export class StarmapScene extends PotatoScene {
     private readonly worldModel: WorldModel
+    private readonly travelTurnProcessor: TravelTurnProcessor
+
+    private starmapUIScene: StarmapUIScene
     private stars: Star[] = [];
     private starGroup!: Phaser.GameObjects.Group;
 
@@ -42,6 +47,8 @@ export class StarmapScene extends PotatoScene {
     constructor(dependencies: Dependencies) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE });
         this.worldModel = dependencies.worldModel
+        this.travelTurnProcessor = dependencies.travelTurnProcessor
+        this.starmapUIScene = dependencies.starmapUIScene
     }
 
     preload() {}
@@ -60,6 +67,12 @@ export class StarmapScene extends PotatoScene {
         this.playerShipSprite = this.add.image(this.playerX, this.playerY, imageRegistry.ROCKET)
             .setOrigin(0.5, 0.5)
             .setDepth(1001); // on top of everything
+
+        this.events.on('encounter_choice_selected', (choice: ChoiceDefinition) => {
+            console.log(`Processing choice ${choice.id}`)
+            const effectContainer = ActivationContainer.fromEffectList(choice.effects)
+            effectContainer.activateOnlySync()
+        })
 
         this.events.on("travelButtonClicked", () => {
             if (this.isTraveling) {
@@ -299,6 +312,12 @@ export class StarmapScene extends PotatoScene {
 
                 // Rotate ship toward destination as it moves
                 this.playerShipSprite.setRotation(angle + Phaser.Math.DegToRad(90));
+
+                const encounter = this.travelTurnProcessor.processTurn()
+                if (encounter) {
+                    this.isTraveling = false;
+                    this.starmapUIScene.showEncounterOverlay(encounter)
+                }
             }
         }
 

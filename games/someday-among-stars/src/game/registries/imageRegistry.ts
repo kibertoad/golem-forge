@@ -6,4 +6,5 @@ export const imageRegistry = {
   ROCKET: 'rocket',
   PLAYER_SHIP: 'rocket',
   ABOVE_PLANET_BACKGROUND: 'rocket',
+  ENCOUNTER_BACKGROUND: 'rocket',
 } as const

@@ -1,6 +1,6 @@
 import { AUTO, Game, Scale } from 'phaser'
 import type { Types as PhaserTypes } from 'phaser'
-import { instantiateContainer } from './model/diConfig.ts'
+import { instantiateContainer } from './diConfig.ts'
 
 const GameResolutions = {
   default: {
@@ -18,7 +18,8 @@ const scenes = [
   container.cradle.spaceScene,
   container.cradle.choicesScene,
   container.cradle.starmapScene,
-  container.cradle.starmapUIScene
+  container.cradle.starmapUIScene,
+  container.cradle.spaceCombatScene
 ]
 
 const config: PhaserTypes.Core.GameConfig = {
