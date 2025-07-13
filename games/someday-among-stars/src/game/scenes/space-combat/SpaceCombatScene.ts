@@ -123,6 +123,7 @@ export class SpaceCombatScene extends PotatoScene {
         console.log("[PRELOAD] Sprite sheet queued for loading.");
     }
 
+
     create() {
         // --- ROLLING ANIMATION SETUP ---
         if (!this.anims.exists("dice-roll")) {
@@ -143,11 +144,11 @@ export class SpaceCombatScene extends PotatoScene {
         this.add.rectangle(midX, this.scale.height/2, 2, this.scale.height, 0x2a2a2a, 0.6);
 
         // --- ENEMY (RIGHT) ---
-        const enemyAreaX = midX + 64;
+        const enemyAreaX = midX + 80; // add margin to right
         this.enemyDiceSprites = [];
         for (let i = 0; i < exampleEnemyDice.length; i++) {
             const d = exampleEnemyDice[i];
-            const x = enemyAreaX + i * 86;
+            const x = enemyAreaX + i * 110; // more spacing between dice
             const y = 140;
             const sprite = this.add.sprite(x, y, DICE_SPRITESHEET_KEY, d.faces[0].frame)
                 .setScale(4)
@@ -157,14 +158,14 @@ export class SpaceCombatScene extends PotatoScene {
                 .on('pointerdown', () => this.showUnravel(d, x, y));
             this.enemyDiceSprites.push(sprite);
 
-            // Dice label
-            this.add.text(x, y + 48, d.name, {
+            // Dice label (lower to y+60 so it's not touching dice)
+            this.add.text(x, y + 60, d.name, {
                 fontSize: "15px", color: "#eaeaff", fontFamily: "monospace"
             }).setOrigin(0.5, 0);
         }
 
         // --- PLAYER (LEFT) ---
-        let playerDiceY = 84; // Give more room for indicators
+        let playerDiceY = 84; // room for indicators
         let diceIdx = 0;
         this.playerDiceSprites = [];
         this.playerDiceSelected = [];
@@ -173,11 +174,14 @@ export class SpaceCombatScene extends PotatoScene {
             this.add.text(40, playerDiceY, section.label, {
                 fontSize: "20px", color: "#fff9c0", fontStyle: "bold", fontFamily: "monospace"
             });
-            playerDiceY += 26;
+            playerDiceY += 30; // slightly more vertical gap after section title
+
             section.dice.forEach((d, i) => {
-                const x = 70 + i * 92;
+                // Just add space between dice horizontally:
+                const x = 110 + i * 120; // more room (old was 70 + i*92)
                 const y = playerDiceY;
-                const idx = diceIdx; // << LOCAL SCOPE
+
+                const idx = diceIdx;
                 const sprite = this.add.sprite(x, y, DICE_SPRITESHEET_KEY, d.faces[0].frame)
                     .setScale(4)
                     .setInteractive({ cursor: d.enabled ? 'pointer' : 'not-allowed' })
@@ -199,18 +203,18 @@ export class SpaceCombatScene extends PotatoScene {
                     });
                 this.playerDiceSprites.push(sprite);
 
-                // Dice label...
-                this.add.text(x, y + 48, d.name, {
+                // Dice label, give more gap (was y+48)
+                this.add.text(x, y + 60, d.name, {
                     fontSize: "15px", color: d.enabled ? "#baffc0" : "#aaaabb", fontFamily: "monospace"
                 }).setOrigin(0.5, 0);
 
                 diceIdx++;
             });
 
-            playerDiceY += 84;
+            playerDiceY += 98; // more vertical room per section (was 84)
         });
 
-        // --- ROLL BUTTON ---
+        // --- ROLL BUTTON & REST UNCHANGED ---
         this.rollButton = this.add.text(
             this.scale.width / 2, this.scale.height - 56,
             "Roll dice",
@@ -227,24 +231,18 @@ export class SpaceCombatScene extends PotatoScene {
             .on("pointerdown", () => this.startRolling())
             .setDepth(20);
 
-        // --- UNRAVEL TOOLTIP (hidden at first) ---
         this.unravelTooltip = this.add.text(0, 0, "", {
             fontSize: "16px", color: "#fff8c0", backgroundColor: "#2a2a50", padding: { x: 8, y: 4 }, wordWrap: { width: 200 }
         }).setDepth(40).setVisible(false);
 
-        // Hide overlay when clicking elsewhere
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, currentlyOver: any[]) => {
-            // Only hide if not clicking a dice or overlay
-            if (!currentlyOver.length) {
-                this.hideUnravel();
-            }
+            if (!currentlyOver.length) this.hideUnravel();
         });
 
         // --- SHIP INDICATORS ---
         this.renderShipIndicators(midX);
 
         console.log("[CREATE] Scene created. Dice and roll button initialized.");
-
     }
 
     // --- SHIP INDICATOR LOGIC ---
@@ -377,8 +375,8 @@ export class SpaceCombatScene extends PotatoScene {
             }
         }
         if (!selectedSprites.length) {
-            this.rolling = false;
-            console.warn("[ROLL] No dice selected to roll.");
+            // No player dice selected, but still roll enemy dice
+            this.rollEnemyDice();
             return;
         }
 
