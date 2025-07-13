@@ -105,10 +105,10 @@ export class SpaceCombatScene extends PotatoScene {
     private rolling = false;
 
     // For ship indicator demo
-    private playerHullPct: number = 0.7; // 70%
-    private playerShieldPct: number = 0.55;
-    private enemyHullPct: number = 0.4;
-    private enemyShieldPct: number = 0.2;
+    private playerHull: number = 0.9;
+    private playerShield: number = 0.7;
+    private enemyHull: number = 0.6;
+    private enemyShield: number = 0.35;
 
     constructor(dependencies: any) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.SPACE_COMBAT });
@@ -250,40 +250,61 @@ export class SpaceCombatScene extends PotatoScene {
     // --- SHIP INDICATOR LOGIC ---
     private renderShipIndicators(midX: number) {
         // Player ship (left)
-        const playerShipX = 100;
         const shipY = this.scale.height - 96;
 
-        this.drawShipIndicator(playerShipX, shipY, this.playerHullPct, this.playerShieldPct, true);
-
-        // Enemy ship (right)
-        const enemyShipX = this.scale.width - 100;
-        this.drawShipIndicator(enemyShipX, shipY, this.enemyHullPct, this.enemyShieldPct, false);
+        this.drawShipIndicator(120, shipY, 40, this.playerHull, this.playerShield, true);
+        this.drawShipIndicator(this.scale.width - 120, shipY, 40, this.enemyHull, this.enemyShield, false);
     }
 
-    private drawShipIndicator(x: number, y: number, hullPct: number, shieldPct: number, isPlayer: boolean) {
-        // Ship rectangle
-        const shipRect = this.add.rectangle(x, y, 60, 34, isPlayer ? 0x224466 : 0x772244, 1).setOrigin(0.5);
-        shipRect.setStrokeStyle(2, 0xffffff, 1);
+    private drawShipIndicator(x: number, y: number, r: number, hullRatio: number, shieldRatio: number, isPlayer: boolean) {
+        const g = this.add.graphics();
+        g.setDepth(1); // below all interactive elements
 
-        // Hull arc
-        const hullArc = this.add.graphics({ x, y });
-        hullArc.lineStyle(7, 0xffea20, 0.8);
-        hullArc.beginPath();
-        hullArc.arc(0, 0, 38, Phaser.Math.DegToRad(210), Phaser.Math.DegToRad(330 * hullPct + 210), false);
-        hullArc.strokePath();
+        // Outer hull background
+        g.lineStyle(10, 0x444466, 1);
+        g.strokeCircle(x, y, r);
 
-        // Shield arc (drawn behind hull arc)
-        const shieldArc = this.add.graphics({ x, y });
-        shieldArc.lineStyle(7, 0x55caff, 0.5);
-        shieldArc.beginPath();
-        shieldArc.arc(0, 0, 45, Phaser.Math.DegToRad(210), Phaser.Math.DegToRad(330 * shieldPct + 210), false);
-        shieldArc.strokePath();
+        // Hull status
+        g.lineStyle(10, 0xcc3333, 1);
+        g.beginPath();
+        g.arc(x, y, r, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * hullRatio), false);
+        g.strokePath();
 
-        // Ship name
-        this.add.text(x, y + 28, isPlayer ? "YOU" : "ENEMY", {
-            fontSize: "13px", color: "#fff", fontFamily: "monospace"
-        }).setOrigin(0.5, 0);
+        // Shield status (outer ring)
+        g.lineStyle(5, 0x6ad5ff, 1);
+        g.beginPath();
+        g.arc(x, y, r + 7, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(-90 + 360 * shieldRatio), false);
+        g.strokePath();
+
+        // Ship "body"
+        g.fillStyle(isPlayer ? 0x2aabff : 0xcc3333, 1);
+        g.fillRect(x - 14, y - 20, 28, 40);
+
+        // Hull cracks
+        if (hullRatio < 0.8) {
+            g.lineStyle(2, 0x555555, 1);
+            g.beginPath();
+            g.moveTo(x - 8, y - 18); g.lineTo(x + 6, y + 18); g.strokePath();
+        }
+        if (hullRatio < 0.5) {
+            g.lineStyle(2, 0x333333, 1);
+            g.beginPath();
+            g.moveTo(x + 10, y - 12); g.lineTo(x - 10, y + 12); g.strokePath();
+        }
+
+        // Label
+        this.add.text(x, y + r + 12,
+            isPlayer ? `YOU\nHull: ${Math.round(hullRatio * 100)}%   Shield: ${Math.round(shieldRatio * 100)}%`
+                : `ENEMY\nHull: ${Math.round(hullRatio * 100)}%   Shield: ${Math.round(shieldRatio * 100)}%`,
+            {
+                fontSize: "14px",
+                color: "#aaaaff",
+                fontFamily: "monospace",
+                align: "center"
+            }
+        ).setOrigin(0.5, 0).setDepth(2);
     }
+
 
     // --- UNRAVEL OVERLAY ---
     showUnravel(dice: any, baseX: number, baseY: number) {
