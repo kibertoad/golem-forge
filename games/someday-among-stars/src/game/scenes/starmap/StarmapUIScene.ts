@@ -1,6 +1,9 @@
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
 import Phaser from "phaser";
 
+/**
+ * This is an overlay on top of map, which needs to be separated into its own scene to avoid being affected by camera zoom of the map itself
+ */
 export class StarmapUIScene extends Phaser.Scene {
     private overlayBg!: Phaser.GameObjects.Rectangle;
     private overlayText!: Phaser.GameObjects.Text;

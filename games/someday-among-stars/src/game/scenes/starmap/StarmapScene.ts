@@ -2,6 +2,9 @@ import { PotatoScene } from "@potato-golem/ui";
 import type { Dependencies } from "../../model/diConfig.ts";
 import { sceneRegistry } from "../../registries/sceneRegistry.ts";
 import Phaser from "phaser";
+import {DEFAULT_ZOOM, STAR_AMOUNT, STAR_COLOURS} from "./internal/starmapConstants.ts";
+import {getRandomStarColor, getStarName} from "./internal/starUtils.ts";
+import {imageRegistry} from "../../registries/imageRegistry.ts";
 
 interface Star {
     x: number;
@@ -20,7 +23,7 @@ export class StarmapScene extends PotatoScene {
     private dragStart = { x: 0, y: 0 };
     private cameraStart = { x: 0, y: 0 };
 
-    private travelSpeed: number = 40; // units per second (adjust as you wish)
+    private travelSpeed: number = 40;
 
     private playerX: number = 0;
     private playerY: number = 0;
@@ -29,6 +32,8 @@ export class StarmapScene extends PotatoScene {
     private lineGraphics!: Phaser.GameObjects.Graphics;
 
     private isTraveling: boolean = false;
+
+    private playerShipSprite!: Phaser.GameObjects.Image; // <--- ADDED
 
     constructor(dependencies: Dependencies) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE });
@@ -41,12 +46,16 @@ export class StarmapScene extends PotatoScene {
             this.scene.launch(sceneRegistry.STARMAP_UI_SCENE);
         }
 
-        this.cameras.main.setZoom(1);
+        this.cameras.main.setZoom(DEFAULT_ZOOM);
         this.starGroup = this.add.group();
 
         this.lineGraphics = this.add.graphics().setDepth(1000);
 
-        // Respond to travel/stop button via event (no closure bugs!)
+        // Add the ship image sprite
+        this.playerShipSprite = this.add.image(this.playerX, this.playerY, imageRegistry.ROCKET)
+            .setOrigin(0.5, 0.5)
+            .setDepth(1001); // on top of everything
+
         this.events.on("travelButtonClicked", () => {
             if (this.isTraveling) {
                 this.isTraveling = false;
@@ -70,7 +79,6 @@ export class StarmapScene extends PotatoScene {
             }
             if (pointer.rightButtonDown()) return;
 
-            // Select star on left click
             const objectsUnderPointer = this.input.hitTestPointer(pointer) as Phaser.GameObjects.GameObject[];
             const arc = objectsUnderPointer.find(obj =>
                 obj instanceof Phaser.GameObjects.Arc &&
@@ -113,17 +121,18 @@ export class StarmapScene extends PotatoScene {
             cam.setZoom(newZoom);
         });
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < STAR_AMOUNT; i++) {
             this.addStar(
                 Phaser.Math.Between(-1000, 1000),
                 Phaser.Math.Between(-1000, 1000)
             );
         }
+        this.cameras.main.centerOn(this.playerX, this.playerY);
     }
 
     addStar(x: number, y: number) {
-        const color = this.getRandomStarColor();
-        const name = this.getStarName();
+        const color = getRandomStarColor();
+        const name = getStarName();
         const distance = this.calcDistanceToPlayer(x, y);
 
         const star = this.add
@@ -166,7 +175,7 @@ export class StarmapScene extends PotatoScene {
     }
 
     private onShipArrivedAtDestination(): void {
-       console.log("Ship arrived at destination!");
+        console.log("Ship arrived at destination!");
     }
 
     showTravelButtonIfAvailable() {
@@ -183,51 +192,69 @@ export class StarmapScene extends PotatoScene {
         }
     }
 
-    getRandomStarColor(): number {
-        type StarColorType = { rgb: [number, number, number]; weight: number };
-        const starColors: StarColorType[] = [
-            { rgb: [180, 220, 255], weight: 1 }, // Blue (O/B)
-            { rgb: [240, 240, 255], weight: 2 }, // White (A/F)
-            { rgb: [255, 255, 220], weight: 3 }, // Yellow (G)
-            { rgb: [255, 200, 150], weight: 4 }, // Orange (K)
-            { rgb: [255, 160, 120], weight: 7 }, // Red (M)
-        ];
-
-        const weighted: [number, number, number][] = [];
-        for (const entry of starColors) {
-            for (let i = 0; i < entry.weight; i++) weighted.push(entry.rgb);
-        }
-        const baseRgb = Phaser.Utils.Array.GetRandom(weighted);
-
-        const jitter = (v: number) => Phaser.Math.Clamp(v + Phaser.Math.Between(-10, 10), 0, 255);
-        const [r, g, b] = baseRgb.map(jitter);
-
-        return Phaser.Display.Color.GetColor(r, g, b);
-    }
-
-    getStarName(): string {
-        const greek = [
-            'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta',
-            'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho',
-            'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega'
-        ];
-        const latin = [
-            'Centauri', 'Leonis', 'Cygni', 'Andromedae', 'Cassiopeiae', 'Pegasi',
-            'Draconis', 'Ursae', 'Majoris', 'Minoris', 'Aquilae', 'Aurigae',
-            'Canis', 'Lyrae', 'Orionis', 'Piscium', 'Sagittarii', 'Scorpii'
-        ];
-
-        if (Math.random() < 0.4) {
-            const g = Phaser.Utils.Array.GetRandom(greek);
-            const l = Phaser.Utils.Array.GetRandom(latin);
-            return `${g} ${l}`;
-        } else {
-            return `HD ${Phaser.Math.Between(10000, 999999)}`;
-        }
-    }
-
     calcDistanceToPlayer(x: number, y: number): number {
         return Phaser.Math.Distance.Between(this.playerX, this.playerY, x, y) / 10;
+    }
+
+    drawDestinationLine(): void {
+        this.lineGraphics.fillStyle(0xff0000, 1);
+        this.lineGraphics.fillCircle(this.playerX, this.playerY, 6);
+
+        this.lineGraphics.fillStyle(0x00ff00, 1);
+        this.lineGraphics.fillCircle(this.selectedStar!.x, this.selectedStar!.y, 6);
+
+        const dashLength = 12;
+        const gapLength = 8;
+        const dx = this.selectedStar!.x - this.playerX;
+        const dy = this.selectedStar!.y - this.playerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx);
+        let drawn = 0;
+
+        this.lineGraphics.lineStyle(2, 0xffffff, 0.85);
+
+        while (drawn < dist - 1) {
+            const x1 = this.playerX + Math.cos(angle) * drawn;
+            const y1 = this.playerY + Math.sin(angle) * drawn;
+            drawn += dashLength;
+            if (drawn > dist) drawn = dist;
+            const x2 = this.playerX + Math.cos(angle) * drawn;
+            const y2 = this.playerY + Math.sin(angle) * drawn;
+            this.lineGraphics.moveTo(x1, y1);
+            this.lineGraphics.lineTo(x2, y2);
+            drawn += gapLength;
+        }
+
+        this.lineGraphics.strokePath();
+
+        // --- Arrowhead at destination ---
+        if (dist > 1) {
+            const arrowLength = 12;
+            const arrowAngle = Phaser.Math.DegToRad(25);
+
+            // End position of the line is the star
+            const destX = this.selectedStar!.x;
+            const destY = this.selectedStar!.y;
+
+            // Draw left side
+            this.lineGraphics.lineStyle(2, 0xffffff, 1);
+            this.lineGraphics.beginPath();
+            this.lineGraphics.moveTo(destX, destY);
+            this.lineGraphics.lineTo(
+                destX - Math.cos(angle - arrowAngle) * arrowLength,
+                destY - Math.sin(angle - arrowAngle) * arrowLength
+            );
+            this.lineGraphics.strokePath();
+
+            // Draw right side
+            this.lineGraphics.beginPath();
+            this.lineGraphics.moveTo(destX, destY);
+            this.lineGraphics.lineTo(
+                destX - Math.cos(angle + arrowAngle) * arrowLength,
+                destY - Math.sin(angle + arrowAngle) * arrowLength
+            );
+            this.lineGraphics.strokePath();
+        }
     }
 
     update(time: number, delta: number) {
@@ -245,45 +272,24 @@ export class StarmapScene extends PotatoScene {
                 this.playerY = this.selectedStar.y;
                 this.isTraveling = false;
                 this.showTravelButtonIfAvailable();
-                this.onShipArrivedAtDestination(); // <-- Call the new method
+                this.onShipArrivedAtDestination();
             } else {
                 const angle = Math.atan2(dy, dx);
                 const step = this.travelSpeed * (delta / 1000);
                 this.playerX += Math.cos(angle) * step;
                 this.playerY += Math.sin(angle) * step;
+
+                // Rotate ship toward destination as it moves
+                this.playerShipSprite.setRotation(angle + Phaser.Math.DegToRad(90));
             }
         }
 
+        // Always keep ship sprite on player coords
+        this.playerShipSprite.setPosition(this.playerX, this.playerY);
+
+        // paint line towards destination
         if (this.selectedStar) {
-            this.lineGraphics.fillStyle(0xff0000, 1);
-            this.lineGraphics.fillCircle(this.playerX, this.playerY, 6);
-
-            this.lineGraphics.fillStyle(0x00ff00, 1);
-            this.lineGraphics.fillCircle(this.selectedStar.x, this.selectedStar.y, 6);
-
-            const dashLength = 12;
-            const gapLength = 8;
-            const dx = this.selectedStar.x - this.playerX;
-            const dy = this.selectedStar.y - this.playerY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx);
-            let drawn = 0;
-
-            this.lineGraphics.lineStyle(2, 0xffffff, 0.85);
-
-            while (drawn < dist - 1) {
-                const x1 = this.playerX + Math.cos(angle) * drawn;
-                const y1 = this.playerY + Math.sin(angle) * drawn;
-                drawn += dashLength;
-                if (drawn > dist) drawn = dist;
-                const x2 = this.playerX + Math.cos(angle) * drawn;
-                const y2 = this.playerY + Math.sin(angle) * drawn;
-                this.lineGraphics.moveTo(x1, y1);
-                this.lineGraphics.lineTo(x2, y2);
-                drawn += gapLength;
-            }
-
-            this.lineGraphics.strokePath();
+            this.drawDestinationLine()
         }
 
         if (this.isTraveling) {
