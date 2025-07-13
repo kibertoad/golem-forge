@@ -1,3 +1,7 @@
+# Someday, Among Stars
+
+This game uses "Dice Roll" spritesheet by Kicked-in-Teeth (Creative Commons license under CC-by-sa)
+
 # Phaser Vite TypeScript Template
 
 This is a Phaser 3 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow, includes TypeScript support and scripts to generate production-ready builds.
