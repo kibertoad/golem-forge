@@ -6,6 +6,9 @@ import {
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
 import type { EntityModel } from './EntityModel.ts'
+import {RaceModel} from "./RaceModel.ts";
+import {PlanetModel} from "./PlanetModel.ts";
+import {generatePlanet} from "../generators/PlanetGenerator.ts";
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'planet' | 'space'
@@ -16,6 +19,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly entities: EntityModel[] = []
   public readonly globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
 
+  public readonly races: RaceModel[]
+  public readonly planets: PlanetModel[]
+
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
     this.globalSceneEventEmitter = globalSceneEventEmitter
     this.state = {
@@ -24,6 +30,12 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
         isAlive: true,
       },
     }
+    this.races = [{
+      name: 'Terrans'
+    }]
+    this.planets = [
+        generatePlanet(this.races[0])
+    ]
   }
 
   addEntity(cardModel: EntityModel) {

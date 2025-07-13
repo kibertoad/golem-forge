@@ -5,6 +5,9 @@ import Phaser from "phaser";
 import {DEFAULT_ZOOM, STAR_AMOUNT, STAR_COLOURS} from "./internal/starmapConstants.ts";
 import {getRandomStarColor, getStarName} from "./internal/starUtils.ts";
 import {imageRegistry} from "../../registries/imageRegistry.ts";
+import {PlanetOverlayData, StarmapUIScene} from "./StarmapUIScene.ts";
+import {WorldModel} from "../../model/entities/WorldModel.ts";
+import {PlanetModel} from "../../model/entities/PlanetModel.ts";
 
 interface Star {
     x: number;
@@ -16,6 +19,7 @@ interface Star {
 }
 
 export class StarmapScene extends PotatoScene {
+    private readonly worldModel: WorldModel
     private stars: Star[] = [];
     private starGroup!: Phaser.GameObjects.Group;
 
@@ -37,6 +41,7 @@ export class StarmapScene extends PotatoScene {
 
     constructor(dependencies: Dependencies) {
         super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE });
+        this.worldModel = dependencies.worldModel
     }
 
     preload() {}
@@ -174,12 +179,25 @@ export class StarmapScene extends PotatoScene {
         if (uiScene?.hideOverlay) uiScene.hideOverlay();
     }
 
+    private toOverlayData(planet: PlanetModel): PlanetOverlayData {
+        return {
+            biome: planet.biome.name,
+            colonized: !!planet.race,
+            government: 'dummy',
+            name: planet.name,
+            onMission: false
+        }
+    }
+
     private onShipArrivedAtDestination(): void {
         console.log("Ship arrived at destination!");
+        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as StarmapUIScene;
+
+        uiScene.showPlanetOverlay(this.toOverlayData(this.worldModel.planets[0]))
     }
 
     showTravelButtonIfAvailable() {
-        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any;
+        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as StarmapUIScene;
         if (this.selectedStar && uiScene?.showTravelButton) {
             uiScene.showTravelButton(true, this.isTraveling ? "Stop" : "Travel to destination");
         }
