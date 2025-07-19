@@ -9,9 +9,15 @@
 </head>
 
 <body>
-    <div id="app">
-        <div id="game-container"></div>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
+<div id="app">
+    <div id="game-container"></div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+<script>
+    // Disable right-click everywhere
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    });
+</script>
 </body>
 </html>

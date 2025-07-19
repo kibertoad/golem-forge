@@ -12,6 +12,7 @@ import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { type WorldModel, getWorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
+import {ChoicesDirector} from "../content/choices/ChoicesDirector.ts";
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -22,6 +23,7 @@ export interface Dependencies {
   mainMenuScene: MainMenuScene
   endTurnProcessor: EndTurnProcessor
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
+  choicesDirector: ChoicesDirector
 }
 
 export function instantiateContainer() {
@@ -38,6 +40,7 @@ export function instantiateContainer() {
     boardScene: asClass(BoardScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
+    choicesDirector: asClass(ChoicesDirector, SINGLETON_CONFIG),
   }
 
   diContainer.register(diConfig)
