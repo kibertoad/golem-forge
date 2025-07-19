@@ -8,11 +8,12 @@ import {
   createContainer,
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
+import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
+import { OverviewScene } from '../scenes/overview/OverviewScene.ts'
 import { type WorldModel, getWorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
-import {ChoicesDirector} from "../content/choices/ChoicesDirector.ts";
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -20,6 +21,7 @@ type DiConfig = NameAndRegistrationPair<Dependencies>
 export interface Dependencies {
   worldModel: WorldModel
   boardScene: BoardScene
+  overviewScene: OverviewScene
   mainMenuScene: MainMenuScene
   endTurnProcessor: EndTurnProcessor
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
@@ -37,8 +39,11 @@ export function instantiateContainer() {
       SINGLETON_CONFIG,
     ),
     worldModel: asValue(getWorldModel()),
+
     boardScene: asClass(BoardScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
+    overviewScene: asClass(OverviewScene, SINGLETON_CONFIG),
+
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoicesDirector, SINGLETON_CONFIG),
   }

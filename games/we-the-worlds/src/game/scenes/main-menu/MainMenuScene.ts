@@ -10,7 +10,7 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
     super(dependencies.globalSceneEventEmitter, {
       buttonTextureKey: imageRegistry.ROCKET,
       credits: [],
-      gameStartScene: sceneRegistry.BOARD_SCENE,
+      gameStartScene: sceneRegistry.OVERVIEW_SCENE,
       mainMenuSceneId: sceneRegistry.MAIN_MENU_SCENE,
       subtitleText: 'We, The Worlds',
     })

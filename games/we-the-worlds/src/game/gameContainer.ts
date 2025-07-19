@@ -23,7 +23,11 @@ const config: PhaserTypes.Core.GameConfig = {
   width: resolution.width,
   height: resolution.height,
   plugins: {},
-  scene: [container.cradle.mainMenuScene, container.cradle.boardScene],
+  scene: [
+    container.cradle.mainMenuScene,
+    container.cradle.boardScene,
+    container.cradle.overviewScene,
+  ],
 }
 
 const StartGame = (parent: string) => {
