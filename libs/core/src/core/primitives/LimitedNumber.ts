@@ -1,7 +1,9 @@
+import type { ValueHolder } from './CommonPrimitives.js'
+
 /**
  * Numeric value that can have a max limit and optionally negativity constraint
  */
-export class LimitedNumber {
+export class LimitedNumber implements ValueHolder {
   public value: number
   public maxValue: number
   public referenceId?: string // allows to identify what the number is pointing at

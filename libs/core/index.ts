@@ -114,3 +114,7 @@ export type {
   MenuTextItem,
 } from './src/core/activations/prefabs/fallenlikes/ChoiceTypes.js'
 export { MainStateActivation } from './src/core/activations/common/StateActivation.ts'
+
+export {Computable, ComputationContext, SingleInputFactor} from './src/core/primitives/Computable.ts'
+export type { InputValueExtractor, SingleInputFactorTier, FactorImpactType } from './src/core/primitives/Computable.ts'
+export type { ValueHolder } from './src/core/primitives/CommonPrimitives.ts'

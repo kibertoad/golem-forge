@@ -45,8 +45,9 @@
         "@potato-golem/library-tsconfig": "1.2.0",
         "@potato-golem/library-vite-config": "1.1.0",
         "@types/node": "^22.15.30",
+        "@vitest/coverage-v8": "^3.2.4",
         "rimraf": "^6.0.1",
         "typescript": "^5.8.3",
-        "vitest": "^3.2.2"
+        "vitest": "^3.2.4"
     }
 }
