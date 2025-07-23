@@ -9,14 +9,14 @@ import {
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
 import { ChoiceDirector } from './content/choices/ChoiceDirector.ts'
-import { ChoiceScene } from './scenes/choices/ChoiceScene.ts'
-import { MainMenuScene } from './scenes/main-menu/MainMenuScene.ts'
-import { SpaceScene } from './scenes/space/SpaceScene.ts'
 import { type WorldModel, getWorldModel } from './model/entities/WorldModel.ts'
 import { TravelTurnProcessor } from './model/processors/TravelTurnProcessor.ts'
-import {StarmapScene} from "./scenes/starmap/StarmapScene.ts";
-import {StarmapUIScene} from "./scenes/starmap/StarmapUIScene.ts";
-import {SpaceCombatScene} from "./scenes/space-combat/SpaceCombatScene.ts";
+import { ChoiceScene } from './scenes/choices/ChoiceScene.ts'
+import { MainMenuScene } from './scenes/main-menu/MainMenuScene.ts'
+import { SpaceCombatScene } from './scenes/space-combat/SpaceCombatScene.ts'
+import { SpaceScene } from './scenes/space/SpaceScene.ts'
+import { StarmapScene } from './scenes/starmap/StarmapScene.ts'
+import { StarmapUIScene } from './scenes/starmap/StarmapUIScene.ts'
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>

@@ -5,10 +5,10 @@ import {
   removeFromArrayById,
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
+import { generatePlanet } from '../generators/PlanetGenerator.ts'
 import type { EntityModel } from './EntityModel.ts'
-import {RaceModel} from "./RaceModel.ts";
-import {PlanetModel} from "./PlanetModel.ts";
-import {generatePlanet} from "../generators/PlanetGenerator.ts";
+import type { PlanetModel } from './PlanetModel.ts'
+import type { RaceModel } from './RaceModel.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'planet' | 'space'
@@ -30,12 +30,12 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
         isAlive: true,
       },
     }
-    this.races = [{
-      name: 'Terrans'
-    }]
-    this.planets = [
-        generatePlanet(this.races[0])
+    this.races = [
+      {
+        name: 'Terrans',
+      },
     ]
+    this.planets = [generatePlanet(this.races[0])]
   }
 
   addEntity(cardModel: EntityModel) {

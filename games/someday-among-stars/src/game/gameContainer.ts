@@ -19,7 +19,7 @@ const scenes = [
   container.cradle.choicesScene,
   container.cradle.starmapScene,
   container.cradle.starmapUIScene,
-  container.cradle.spaceCombatScene
+  container.cradle.spaceCombatScene,
 ]
 
 const config: PhaserTypes.Core.GameConfig = {

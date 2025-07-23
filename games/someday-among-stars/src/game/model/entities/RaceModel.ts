@@ -1,3 +1,3 @@
 export class RaceModel {
-    name: string
+  name: string
 }
