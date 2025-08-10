@@ -9,6 +9,9 @@ import { generatePlanet } from '../generators/PlanetGenerator.ts'
 import type { EntityModel } from './EntityModel.ts'
 import type { PlanetModel } from './PlanetModel.ts'
 import type { RaceModel } from './RaceModel.ts'
+import {ShipModel} from "./ShipModel.ts";
+import {CommonComponentModel} from "./ComponentModel.ts";
+import {WEAPON_COMPONENTS} from "../../content/components/WeaponComponents.ts";
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'planet' | 'space'
@@ -16,11 +19,12 @@ export type MainStates = 'planet' | 'space'
 export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly state: State<StateFlags, MainStates>
 
-  public readonly entities: EntityModel[] = []
   public readonly globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
 
   public readonly races: RaceModel[]
   public readonly planets: PlanetModel[]
+
+  public readonly playerShip: ShipModel
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
     this.globalSceneEventEmitter = globalSceneEventEmitter
@@ -36,17 +40,10 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       },
     ]
     this.planets = [generatePlanet(this.races[0])]
-  }
 
-  addEntity(cardModel: EntityModel) {
-    this.entities.push(cardModel)
-  }
-
-  /**
-   * Remove entity by unique id
-   */
-  removeEntity(entityModelId: string): EntityModel | null {
-    return removeFromArrayById(this.entities, entityModelId)
+    this.playerShip = new ShipModel()
+    this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
+    this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
   }
 }
 

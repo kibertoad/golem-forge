@@ -7,4 +7,17 @@ export const imageRegistry = {
   PLAYER_SHIP: 'rocket',
   ABOVE_PLANET_BACKGROUND: 'rocket',
   ENCOUNTER_BACKGROUND: 'rocket',
+
+  SLOT: 'slot',
+
+    // slot sides
+  DAMAGE: 'damage',
+  CRITICAL: 'critical',
+  OVERHEAT: 'overheat',
+  COOLDOWN: 'cooldown',
+  SHIELD_RESTORE: 'shield_restore',
+  ARMOUR_RESTORE: 'armour_restore',
+  JAM: 'jam',
+  STUN: 'stun',
+  SHIELD_PIERCE: 'shield_pierce',
 } as const

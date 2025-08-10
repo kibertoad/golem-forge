@@ -29,10 +29,10 @@
         "phaser": "^4.0.0-rc.4"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "@lokalise/biome-config": "^2.0.0",
+        "@biomejs/biome": "^2.1.4",
+        "@lokalise/biome-config": "^3.1.0",
         "terser": "^5.43.1",
-        "typescript": "~5.8.3",
-        "vite": "^7.0.4"
+        "typescript": "~5.9.2",
+        "vite": "^7.1.1"
     }
 }

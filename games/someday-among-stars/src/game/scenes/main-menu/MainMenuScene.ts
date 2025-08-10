@@ -20,5 +20,14 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
     console.log('preloadImages')
     this.load.setPath('assets')
     this.load.image(imageRegistry.ROCKET, 'rocket.png')
+    this.load.image(imageRegistry.ARMOUR_RESTORE, 'sides/armour_restore.png')
+    this.load.image(imageRegistry.SHIELD_RESTORE, 'sides/shield_restore.png')
+    this.load.image(imageRegistry.DAMAGE, 'sides/damage.png')
+    this.load.image(imageRegistry.JAM, 'sides/jam.png')
+    this.load.image(imageRegistry.OVERHEAT, 'sides/overheat.png')
+    this.load.image(imageRegistry.COOLDOWN, 'sides/cooldown.png')
+    this.load.image(imageRegistry.SLOT, 'rolll_slot.png')
+
+
   }
 }
