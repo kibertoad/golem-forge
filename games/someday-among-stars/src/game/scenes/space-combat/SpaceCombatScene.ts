@@ -1,137 +1,110 @@
 import { PotatoScene } from '@potato-golem/ui'
 import Phaser from 'phaser'
+import type { Dependencies } from '../../diConfig.ts'
+import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { ShipIndicatorContainer } from './views/ShipIndicatorContainer.ts'
 
-// === DICE SPRITESHEET CONFIG ===
-const DICE_SPRITESHEET_KEY = 'SCIFI_DICE'
-const DICE_FRAME_WIDTH = 16
-const DICE_FRAME_HEIGHT = 16
-const DICE_COLUMNS = 6
-const DICE_ROWS = 15
-const DICE_FINAL_ROWS = 12
+// === SLOT MACHINE SPRITESHEET CONFIG ===
+const SLOT_SPRITESHEET_KEY = 'SLOT_MACHINE'
+const SLOT_FRAME_WIDTH = 64
+const SLOT_FRAME_HEIGHT = 64
+const SLOT_COLUMNS = 9
+const SLOT_ROWS = 1
 
-// Example dice data for demo
-const examplePlayerSections = [
-  {
-    label: 'Weapons',
-    dice: [
-      {
-        name: 'Laser',
-        colorIndex: 1,
-        faces: [
-          { frame: 1 * 6 + 0, description: 'Miss' },
-          { frame: 1 * 6 + 1, description: 'Hit' },
-          { frame: 1 * 6 + 2, description: 'Overhit' },
-          { frame: 1 * 6 + 3, description: 'Jam' },
-          { frame: 1 * 6 + 4, description: 'Crit' },
-          { frame: 1 * 6 + 5, description: 'Miss' },
-        ],
-        enabled: true,
-      },
-      {
-        name: 'Missile',
-        colorIndex: 2,
-        faces: [
-          { frame: 2 * 6 + 0, description: 'Hit' },
-          { frame: 2 * 6 + 1, description: 'Miss' },
-          { frame: 2 * 6 + 2, description: 'Hit' },
-          { frame: 2 * 6 + 3, description: 'Miss' },
-          { frame: 2 * 6 + 4, description: 'Hit' },
-          { frame: 2 * 6 + 5, description: 'Double Hit' },
-        ],
-        enabled: true,
-      },
-    ],
-  },
-  {
-    label: 'Shields',
-    dice: [
-      {
-        name: 'Barrier',
-        colorIndex: 3,
-        faces: [
-          { frame: 3 * 6 + 0, description: 'Block' },
-          { frame: 3 * 6 + 1, description: 'Block' },
-          { frame: 3 * 6 + 2, description: 'Leak' },
-          { frame: 3 * 6 + 3, description: 'Break' },
-          { frame: 3 * 6 + 4, description: 'Block' },
-          { frame: 3 * 6 + 5, description: 'Crit Block' },
-        ],
-        enabled: false,
-      },
-    ],
-  },
-]
-
-const exampleEnemyDice = [
+// Example enemy slots - will be replaced with dynamic enemy data later
+const exampleEnemySlots = [
   {
     name: 'Enemy Laser',
-    colorIndex: 5,
-    faces: [
-      { frame: 5 * 6 + 0, description: 'Miss' },
-      { frame: 5 * 6 + 1, description: 'Hit' },
-      { frame: 5 * 6 + 2, description: 'Hit' },
-      { frame: 5 * 6 + 3, description: 'Crit' },
-      { frame: 5 * 6 + 4, description: 'Miss' },
-      { frame: 5 * 6 + 5, description: 'Jam' },
+    reelSides: [
+      { frame: 0, description: 'Miss', image: 'jam' },
+      { frame: 1, description: 'Damage', image: 'damage' },
+      { frame: 2, description: 'Damage', image: 'damage' },
+      { frame: 3, description: 'Critical', image: 'critical' },
+      { frame: 4, description: 'Miss', image: 'jam' },
+      { frame: 5, description: 'Overheat', image: 'overheat' },
     ],
   },
   {
     name: 'Enemy Missile',
-    colorIndex: 6,
-    faces: [
-      { frame: 6 * 6 + 0, description: 'Hit' },
-      { frame: 6 * 6 + 1, description: 'Miss' },
-      { frame: 6 * 6 + 2, description: 'Double Hit' },
-      { frame: 6 * 6 + 3, description: 'Hit' },
-      { frame: 6 * 6 + 4, description: 'Crit' },
-      { frame: 6 * 6 + 5, description: 'Hit' },
+    reelSides: [
+      { frame: 0, description: 'Damage', image: 'damage' },
+      { frame: 1, description: 'Miss', image: 'jam' },
+      { frame: 2, description: 'Double Damage', image: 'damage' },
+      { frame: 3, description: 'Damage', image: 'damage' },
+      { frame: 4, description: 'Critical', image: 'critical' },
+      { frame: 5, description: 'Pierce', image: 'shield_pierce' },
     ],
   },
 ]
 
-// --- Sprite animation keys ---
-const DICE_ROLL_ROW = 14 // last row for animation
+// --- Slot machine animation keys ---
+const SLOT_ROLL_FRAMES = [0, 1, 2, 3, 4, 5, 6, 7, 8] // rolling animation frames
 
 export class SpaceCombatScene extends PotatoScene {
-  private playerDiceSprites: Phaser.GameObjects.Sprite[] = []
-  private playerDiceSelected: boolean[] = [] // index by flat list of all dice
+  private playerSlotSprites: Phaser.GameObjects.Image[] = []
+  private playerSlotsSelected: boolean[] = [] // index by flat list of all slots
 
-  private enemyDiceSprites: Phaser.GameObjects.Sprite[] = []
-  private unravelOverlay?: Phaser.GameObjects.Container
-  private unravelTooltip?: Phaser.GameObjects.Text
+  private enemySlotSprites: Phaser.GameObjects.Image[] = []
+  private slotSidesOverlay?: Phaser.GameObjects.Container
+  private slotSidesTooltip?: Phaser.GameObjects.Text
 
-  private rollButton!: Phaser.GameObjects.Text
-  private rolling = false
+  private spinButton!: Phaser.GameObjects.Text
+  private spinning = false
   private shipIndicatorContainer!: ShipIndicatorContainer
+  private worldModel: WorldModel
 
-  constructor(dependencies: any) {
+  constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.SPACE_COMBAT })
+    this.worldModel = dependencies.worldModel
+  }
+
+  private getPlayerWeaponSections() {
+    const weapons = this.worldModel.playerShip.weapons.map((weapon, index) => ({
+      name: weapon.definition.name,
+      reelSides: weapon.definition.defaultSlots.map((slot, slotIndex) => ({
+        frame: slotIndex,
+        description: slot.id,
+        image: slot.image,
+      })),
+      enabled: true,
+    }))
+
+    return [
+      {
+        label: 'Weapons',
+        slots: weapons,
+      },
+    ]
   }
 
   preload() {
     this.load.setPath('assets')
-    this.load.spritesheet(DICE_SPRITESHEET_KEY, 'six-sided-die.png', {
-      frameWidth: DICE_FRAME_WIDTH,
-      frameHeight: DICE_FRAME_HEIGHT,
+      /*
+    this.load.spritesheet(SLOT_SPRITESHEET_KEY, 'rolll_slot.png', {
+      frameWidth: SLOT_FRAME_WIDTH,
+      frameHeight: SLOT_FRAME_HEIGHT,
     })
-    console.log('[PRELOAD] Sprite sheet queued for loading.')
+
+       */
+    // Load individual slot side images
+    this.load.setPath('assets/sides')
+    console.log('[PRELOAD] Slot machine sprite sheet and side images queued for loading.')
   }
 
   create() {
-    // --- ROLLING ANIMATION SETUP ---
-    if (!this.anims.exists('dice-roll')) {
+    // --- SLOT SPINNING ANIMATION SETUP ---
+    if (!this.anims.exists('slot-spin')) {
       this.anims.create({
-        key: 'dice-roll',
-        frames: this.anims.generateFrameNumbers(DICE_SPRITESHEET_KEY, {
-          start: DICE_ROLL_ROW * DICE_COLUMNS,
-          end: DICE_ROLL_ROW * DICE_COLUMNS + DICE_COLUMNS - 1,
+        key: 'slot-spin',
+        frames: this.anims.generateFrameNumbers(SLOT_SPRITESHEET_KEY, {
+          start: 0,
+          end: SLOT_ROLL_FRAMES.length - 1,
         }),
-        frameRate: 18,
+        frameRate: 20,
         repeat: -1,
       })
-      console.log('[ANIM] Created dice-roll animation')
+      console.log('[ANIM] Created slot-spin animation')
     }
 
     // Divide screen
@@ -140,23 +113,23 @@ export class SpaceCombatScene extends PotatoScene {
 
     // --- ENEMY (RIGHT) ---
     const enemyAreaX = midX + 80 // add margin to right
-    this.enemyDiceSprites = []
-    for (let i = 0; i < exampleEnemyDice.length; i++) {
-      const d = exampleEnemyDice[i]
-      const x = enemyAreaX + i * 110 // more spacing between dice
+    this.enemySlotSprites = []
+    for (let i = 0; i < exampleEnemySlots.length; i++) {
+      const slot = exampleEnemySlots[i]
+      const x = enemyAreaX + i * 110 // more spacing between slots
       const y = 140
       const sprite = this.add
-        .sprite(x, y, DICE_SPRITESHEET_KEY, d.faces[0].frame)
-        .setScale(4)
+        .image(x, y, slot.reelSides[0].image)
+        .setScale(0.2)
         .setInteractive({ cursor: 'pointer' })
-        .setData('diceIndex', i)
+        .setData('slotIndex', i)
         .setData('isEnemy', true)
-        .on('pointerdown', () => this.showUnravel(d, x, y))
-      this.enemyDiceSprites.push(sprite)
+        .on('pointerdown', () => this.showSlotSides(slot, x, y))
+      this.enemySlotSprites.push(sprite)
 
-      // Dice label (lower to y+60 so it's not touching dice)
+      // Slot label (lower to y+60 so it's not touching slot)
       this.add
-        .text(x, y + 60, d.name, {
+        .text(x, y + 60, slot.name, {
           fontSize: '15px',
           color: '#eaeaff',
           fontFamily: 'monospace',
@@ -165,70 +138,71 @@ export class SpaceCombatScene extends PotatoScene {
     }
 
     // --- PLAYER (LEFT) ---
-    let playerDiceY = 84 // room for indicators
-    let diceIdx = 0
-    this.playerDiceSprites = []
-    this.playerDiceSelected = []
+    let playerSlotY = 84 // room for indicators
+    let slotIdx = 0
+    this.playerSlotSprites = []
+    this.playerSlotsSelected = []
 
-    examplePlayerSections.forEach((section, sectionIdx) => {
-      this.add.text(40, playerDiceY, section.label, {
+    const playerSections = this.getPlayerWeaponSections()
+    playerSections.forEach((section, sectionIdx) => {
+      this.add.text(40, playerSlotY, section.label, {
         fontSize: '20px',
         color: '#fff9c0',
         fontStyle: 'bold',
         fontFamily: 'monospace',
       })
-      playerDiceY += 30 // slightly more vertical gap after section title
+      playerSlotY += 30 // slightly more vertical gap after section title
 
-      section.dice.forEach((d, i) => {
+      section.slots.forEach((slot, i) => {
         const x = 110 + i * 120
-        const y = playerDiceY
-        const idx = diceIdx
+        const y = playerSlotY
+        const idx = slotIdx
         const sprite = this.add
-          .sprite(x, y, DICE_SPRITESHEET_KEY, d.faces[0].frame)
-          .setScale(4)
+          .image(x, y, slot.reelSides[0].image)
+          .setScale(0.2)
           .setInteractive({
             cursor: (pointer: Phaser.Input.Pointer) =>
-              pointer.rightButtonDown() ? 'pointer' : d.enabled ? 'pointer' : 'not-allowed',
+              pointer.rightButtonDown() ? 'pointer' : slot.enabled ? 'pointer' : 'not-allowed',
           })
-          .setData('diceSection', sectionIdx)
-          .setData('diceIndex', i)
-          .setData('enabled', d.enabled)
+          .setData('slotSection', sectionIdx)
+          .setData('slotIndex', i)
+          .setData('enabled', slot.enabled)
           .on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (pointer.rightButtonDown()) {
-              this.showUnravel(d, x, y)
-            } else if (d.enabled) {
-              this.playerDiceSelected[idx] = !this.playerDiceSelected[idx]
-              sprite.setAlpha(this.playerDiceSelected[idx] ? 1.0 : 0.7)
+              this.showSlotSides(slot, x, y)
+            } else if (slot.enabled) {
+              this.playerSlotsSelected[idx] = !this.playerSlotsSelected[idx]
+              sprite.setAlpha(this.playerSlotsSelected[idx] ? 1.0 : 0.7)
               console.log(
-                `[DICE SELECT] Player dice ${d.name} selected = ${this.playerDiceSelected[idx]}`,
+                `[SLOT SELECT] Player slot ${slot.name} selected = ${this.playerSlotsSelected[idx]}`,
               )
             }
           })
           .on('pointerup', (pointer: Phaser.Input.Pointer) => {
             if (pointer.rightButtonDown()) pointer.event.preventDefault()
           })
-        this.playerDiceSprites.push(sprite)
+        this.playerSlotSprites.push(sprite)
 
         this.add
-          .text(x, y + 60, d.name, {
+          .text(x, y + 60, slot.name, {
             fontSize: '15px',
-            color: d.enabled ? '#baffc0' : '#aaaabb',
+            color: slot.enabled ? '#baffc0' : '#aaaabb',
             fontFamily: 'monospace',
           })
           .setOrigin(0.5, 0)
 
-        diceIdx++
+        slotIdx++
       })
 
-      playerDiceY += 98 // more vertical room per section (was 84)
+      playerSlotY += 98 // more vertical room per section (was 84)
     })
 
-    this.playerDiceSelected = this.playerDiceSprites.map(() => false)
-    this.playerDiceSprites.forEach((sprite) => sprite.setAlpha(0.7))
+    this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
+    this.playerSlotSprites.forEach((sprite) => sprite.setAlpha(0.7))
 
-    // --- ROLL BUTTON & REST UNCHANGED ---
-    this.rollButton = this.add
-      .text(this.scale.width / 2, this.scale.height - 56, 'Roll dice', {
+    // --- SPIN BUTTON & REST UNCHANGED ---
+    this.spinButton = this.add
+      .text(this.scale.width / 2, this.scale.height - 56, 'Spin slots', {
         fontSize: '32px',
         color: '#e0ffbb',
         backgroundColor: '#222',
@@ -237,10 +211,10 @@ export class SpaceCombatScene extends PotatoScene {
       })
       .setOrigin(0.5, 0.5)
       .setInteractive({ cursor: 'pointer' })
-      .on('pointerdown', () => this.startRolling())
+      .on('pointerdown', () => this.startSpinning())
       .setDepth(20)
 
-    this.unravelTooltip = this.add
+    this.slotSidesTooltip = this.add
       .text(0, 0, '', {
         fontSize: '16px',
         color: '#fff8c0',
@@ -252,20 +226,20 @@ export class SpaceCombatScene extends PotatoScene {
       .setVisible(false)
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, currentlyOver: any[]) => {
-      if (!currentlyOver.length) this.hideUnravel()
+      if (!currentlyOver.length) this.hideSlotSides()
     })
 
     // --- SHIP INDICATORS ---
     this.shipIndicatorContainer = new ShipIndicatorContainer(this, { isShown: true })
     this.shipIndicatorContainer.renderShipIndicators(midX)
 
-    console.log('[CREATE] Scene created. Dice and roll button initialized.')
+    console.log('[CREATE] Scene created. Slots and spin button initialized.')
   }
 
-  // --- UNRAVEL OVERLAY ---
-  showUnravel(dice: any, baseX: number, baseY: number) {
-    this.hideUnravel()
-    console.log('[UNRAVEL] Showing unravel overlay for', dice.name)
+  // --- SLOT SIDES OVERLAY ---
+  showSlotSides(slot: any, baseX: number, baseY: number) {
+    this.hideSlotSides()
+    console.log('[SLOT SIDES] Showing slot sides overlay for', slot.name)
 
     // Container: 2 columns x 3 rows grid, 48px cells
     const rows = 3,
@@ -275,85 +249,111 @@ export class SpaceCombatScene extends PotatoScene {
     const overlayX = Math.min(baseX, this.scale.width - (cols * cell + padding * 2))
     const overlayY = Math.max(24, baseY - 40)
 
-    this.unravelOverlay = this.add.container(overlayX, overlayY).setDepth(30)
+    this.slotSidesOverlay = this.add.container(overlayX, overlayY).setDepth(30)
     // Background
     const bg = this.add
       .rectangle(0, 0, cols * cell + padding * 2, rows * cell + padding * 2, 0x222244, 0.98)
       .setOrigin(0, 0)
       .setStrokeStyle(2, 0xffffff, 0.8)
-    this.unravelOverlay.add(bg)
+    this.slotSidesOverlay.add(bg)
 
-    // Add dice faces in grid
-    for (let f = 0; f < 6; f++) {
-      const fx = padding + (f % cols) * cell
-      const fy = padding + Math.floor(f / cols) * cell
-      const face = this.add
-        .sprite(fx + cell / 2, fy + cell / 2, DICE_SPRITESHEET_KEY, dice.faces[f].frame)
-        .setScale(2.2)
+    // Add slot reel sides in grid
+    for (let s = 0; s < 6; s++) {
+      const sx = padding + (s % cols) * cell
+      const sy = padding + Math.floor(s / cols) * cell
+      const side = this.add
+        .image(sx + cell / 2, sy + cell / 2, slot.reelSides[s].image)
+        .setScale(0.15)
 
       // Tooltip logic
-      face
+      side
         .setInteractive({ cursor: 'pointer' })
         .on('pointerover', () => {
-          this.unravelTooltip!.setText(dice.faces[f].description)
-          this.unravelTooltip!.setPosition(overlayX + cols * cell + 26, overlayY + fy)
-          this.unravelTooltip!.setVisible(true)
-          console.log(`[UNRAVEL] Hovered on face ${f}: ${dice.faces[f].description}`)
+          this.slotSidesTooltip!.setText(slot.reelSides[s].description)
+          this.slotSidesTooltip!.setPosition(overlayX + cols * cell + 26, overlayY + sy)
+          this.slotSidesTooltip!.setVisible(true)
+          console.log(`[SLOT SIDES] Hovered on side ${s}: ${slot.reelSides[s].description}`)
         })
         .on('pointerout', () => {
-          this.unravelTooltip!.setVisible(false)
+          this.slotSidesTooltip!.setVisible(false)
         })
 
-      this.unravelOverlay.add(face)
+      this.slotSidesOverlay.add(side)
     }
     // Bring to front
-    this.children.bringToTop(this.unravelOverlay)
+    this.children.bringToTop(this.slotSidesOverlay)
   }
 
-  hideUnravel() {
-    if (this.unravelOverlay) {
-      this.unravelOverlay.destroy()
-      this.unravelOverlay = undefined
-      if (this.unravelTooltip) this.unravelTooltip.setVisible(false)
+  hideSlotSides() {
+    if (this.slotSidesOverlay) {
+      this.slotSidesOverlay.destroy()
+      this.slotSidesOverlay = undefined
+      if (this.slotSidesTooltip) this.slotSidesTooltip.setVisible(false)
     }
   }
 
-  // --- ROLLING LOGIC ---
-  startRolling() {
-    if (this.rolling) {
-      console.log('[ROLL] Already rolling, ignoring click.')
+  // --- SPINNING LOGIC ---
+  startSpinning() {
+    if (this.spinning) {
+      console.log('[SPIN] Already spinning, ignoring click.')
       return
     }
-    this.rolling = true
-    console.log('[ROLL] Rolling started!')
+    this.spinning = true
+    console.log('[SPIN] Spinning started!')
 
-    // Find which player dice are selected
-    const selectedSprites: Phaser.GameObjects.Sprite[] = []
+    // Find which player slots are selected
+    const selectedSprites: Phaser.GameObjects.Image[] = []
+    const playerSections = this.getPlayerWeaponSections()
     let idx = 0
-    for (const section of examplePlayerSections) {
-      for (const d of section.dice) {
-        if (this.playerDiceSelected[idx]) {
-          selectedSprites.push(this.playerDiceSprites[idx])
-          console.log(`[ROLL] Will roll player dice at idx ${idx}`)
+    for (const section of playerSections) {
+      for (const slot of section.slots) {
+        if (this.playerSlotsSelected[idx]) {
+          selectedSprites.push(this.playerSlotSprites[idx])
+          console.log(`[SPIN] Will spin player slot at idx ${idx}`)
         }
         idx++
       }
     }
     if (!selectedSprites.length) {
-      // No player dice selected, but still roll enemy dice
-      this.rollEnemyDice()
+      // No player slots selected, but still spin enemy slots
+      this.spinEnemySlots()
       return
     }
 
-    // --- ROLL player dice ---
-    let diceRollsDone = 0
+    // --- SPIN player slots ---
+    let slotSpinsDone = 0
     selectedSprites.forEach((sprite, i) => {
       if (!sprite) {
-        console.error(`[ROLL] Sprite at ${i} missing!`)
+        console.error(`[SPIN] Sprite at ${i} missing!`)
         return
       }
-      sprite.play('dice-roll')
-      console.log(`[ROLL] Started dice animation for sprite at idx ${i}`)
+      // Create spinning effect by rapidly changing the texture
+      let spinCount = 0
+      const spinInterval = this.time.addEvent({
+        delay: 100,
+        callback: () => {
+          const randomSideIdx = Phaser.Math.Between(0, 8)
+          const allSides = [
+            'damage',
+            'jam',
+            'critical',
+            'overheat',
+            'shield_pierce',
+            'shield_restore',
+            'cooldown',
+            'armour_restore',
+            'stun',
+          ]
+          sprite.setTexture(allSides[randomSideIdx])
+          spinCount++
+          if (spinCount >= 8) {
+            spinInterval.destroy()
+          }
+        },
+        repeat: 7,
+      })
+      console.log(`[SPIN] Started slot spinning for sprite at idx ${i}`)
+
       // Animate position a little (scatter)
       const startX = sprite.x
       const startY = sprite.y
@@ -368,12 +368,12 @@ export class SpaceCombatScene extends PotatoScene {
         ease: 'Sine.InOut',
       })
 
-      this.time.delayedCall(650 + i * 120, () => {
-        const diceIdx = this.playerDiceSprites.indexOf(sprite)
-        const dice = examplePlayerSections.flatMap((s) => s.dice)[diceIdx]
-        const resultFace = Phaser.Math.Between(0, 5)
-        sprite.setFrame(dice.faces[resultFace].frame)
-        sprite.stop()
+      this.time.delayedCall(950 + i * 120, () => {
+        const slotIdx = this.playerSlotSprites.indexOf(sprite)
+        const playerSections = this.getPlayerWeaponSections()
+        const slot = playerSections.flatMap((s) => s.slots)[slotIdx]
+        const resultSide = Phaser.Math.Between(0, 5)
+        sprite.setTexture(slot.reelSides[resultSide].image)
         this.tweens.add({
           targets: sprite,
           x: startX,
@@ -381,24 +381,48 @@ export class SpaceCombatScene extends PotatoScene {
           duration: 180,
           ease: 'Sine.InOut',
         })
-        diceRollsDone++
+        slotSpinsDone++
         console.log(
-          `[ROLL] Player dice at idx ${i} stopped at face ${resultFace} (frame ${dice.faces[resultFace].frame})`,
+          `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
         )
-        if (diceRollsDone === selectedSprites.length) {
-          // After all player dice roll, roll enemy
-          this.rollEnemyDice()
+        if (slotSpinsDone === selectedSprites.length) {
+          // After all player slots spin, spin enemy slots
+          this.spinEnemySlots()
         }
       })
     })
   }
 
-  rollEnemyDice() {
-    // Roll all enemy dice at once, animation similar to player dice
+  spinEnemySlots() {
+    // Spin all enemy slots at once, animation similar to player slots
     let done = 0
-    this.enemyDiceSprites.forEach((sprite, idx) => {
-      sprite.play('dice-roll')
-      console.log(`[ENEMY] Rolling enemy dice at idx ${idx}`)
+    this.enemySlotSprites.forEach((sprite, idx) => {
+      // Create spinning effect for enemy slots
+      let spinCount = 0
+      const spinInterval = this.time.addEvent({
+        delay: 120,
+        callback: () => {
+          const randomSideIdx = Phaser.Math.Between(0, 8)
+          const allSides = [
+            'damage',
+            'jam',
+            'critical',
+            'overheat',
+            'shield_pierce',
+            'shield_restore',
+            'cooldown',
+            'armour_restore',
+            'stun',
+          ]
+          sprite.setTexture(allSides[randomSideIdx])
+          spinCount++
+          if (spinCount >= 7) {
+            spinInterval.destroy()
+          }
+        },
+        repeat: 6,
+      })
+      console.log(`[ENEMY] Spinning enemy slot at idx ${idx}`)
       const startX = sprite.x
       const startY = sprite.y
       const offsetX = Phaser.Math.Between(-16, 16)
@@ -410,11 +434,10 @@ export class SpaceCombatScene extends PotatoScene {
         duration: 260,
         ease: 'Sine.InOut',
       })
-      this.time.delayedCall(800 + idx * 140, () => {
-        const dice = exampleEnemyDice[idx]
-        const resultFace = Phaser.Math.Between(0, 5)
-        sprite.setFrame(dice.faces[resultFace].frame)
-        sprite.stop()
+      this.time.delayedCall(900 + idx * 140, () => {
+        const slot = exampleEnemySlots[idx]
+        const resultSide = Phaser.Math.Between(0, 5)
+        sprite.setTexture(slot.reelSides[resultSide].image)
         this.tweens.add({
           targets: sprite,
           x: startX,
@@ -424,16 +447,16 @@ export class SpaceCombatScene extends PotatoScene {
         })
         done++
         console.log(
-          `[ENEMY] Enemy dice at idx ${idx} stopped at face ${resultFace} (frame ${dice.faces[resultFace].frame})`,
+          `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
         )
-        if (done === this.enemyDiceSprites.length) {
-          this.rolling = false
-          console.log('[ENEMY] Enemy dice done. Rolling finished.')
+        if (done === this.enemySlotSprites.length) {
+          this.spinning = false
+          console.log('[ENEMY] Enemy slots done. Spinning finished.')
         }
       })
     })
 
-    this.playerDiceSelected = this.playerDiceSprites.map(() => false)
-    this.playerDiceSprites.forEach((sprite) => sprite.setAlpha(0.7))
+    this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
+    this.playerSlotSprites.forEach((sprite) => sprite.setAlpha(0.7))
   }
 }

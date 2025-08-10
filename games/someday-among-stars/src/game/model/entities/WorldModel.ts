@@ -37,7 +37,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
     this.playerShip = new ShipModel()
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
-    this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
+    this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
   }
 }
 

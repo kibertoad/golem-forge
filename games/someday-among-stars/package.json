@@ -14,7 +14,7 @@
     "homepage": "https://github.com/kibertoad/golem-forge#readme",
 
     "scripts": {
-        "build": "tsc",
+        "lint:tsc": "tsc",
         "dev": "turbo build && vite --config vite/config.dev.mjs",
         "build:prod": "turbo build && vite build --config vite/config.prod.mjs",
         "lint": "biome check . && tsc --noEmit",

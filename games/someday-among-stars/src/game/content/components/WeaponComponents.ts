@@ -13,7 +13,16 @@ export const WEAPON_COMPONENTS = {
     image: 'damage',
     maxSlots: 3,
     maxDurability: 100,
-    defaultSlots: [WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.DAMAGE],
+    defaultSlots: [WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.JAM],
     description: 'A laser cannon',
+  },
+  MISSILE: {
+    id: 'MISSILE',
+    name: 'Missile Launcher',
+    image: 'damage',
+    maxSlots: 3,
+    maxDurability: 80,
+    defaultSlots: [WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.STUN, WEAPON_SLOT_SIDES.CRITICAL],
+    description: 'A missile launcher with explosive warheads',
   },
 } as const satisfies Record<string, WeaponComponentDefinition>

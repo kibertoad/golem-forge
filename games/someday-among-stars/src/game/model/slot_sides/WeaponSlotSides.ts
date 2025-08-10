@@ -18,4 +18,24 @@ export const WEAPON_SLOT_SIDES = {
     image: 'jam',
     targetEffects: [],
   },
+  CRITICAL: {
+    id: 'CRITICAL',
+    image: 'critical',
+    targetEffects: [],
+  },
+  OVERHEAT: {
+    id: 'OVERHEAT',
+    image: 'overheat',
+    targetEffects: [],
+  },
+  SHIELD_PIERCE: {
+    id: 'SHIELD_PIERCE',
+    image: 'shield_pierce',
+    targetEffects: [],
+  },
+  STUN: {
+    id: 'STUN',
+    image: 'stun',
+    targetEffects: [],
+  },
 } as const satisfies Record<string, WeaponSlotSide>
