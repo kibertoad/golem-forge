@@ -80,7 +80,7 @@ export class SpaceCombatScene extends PotatoScene {
 
   preload() {
     this.load.setPath('assets')
-      /*
+    /*
     this.load.spritesheet(SLOT_SPRITESHEET_KEY, 'rolll_slot.png', {
       frameWidth: SLOT_FRAME_WIDTH,
       frameHeight: SLOT_FRAME_HEIGHT,
@@ -160,21 +160,29 @@ export class SpaceCombatScene extends PotatoScene {
         const sprite = this.add
           .image(x, y, slot.reelSides[0].image)
           .setScale(0.2)
-          .setInteractive({
-            cursor: (pointer: Phaser.Input.Pointer) =>
-              pointer.rightButtonDown() ? 'pointer' : slot.enabled ? 'pointer' : 'not-allowed',
-          })
+          .setInteractive({ cursor: 'pointer' })
           .setData('slotSection', sectionIdx)
           .setData('slotIndex', i)
           .setData('enabled', slot.enabled)
           .on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            console.log(`[CLICK DEBUG] Clicked on ${slot.name}`)
+            console.log(`[CLICK DEBUG] Right button: ${pointer.rightButtonDown()}`)
+            console.log(`[CLICK DEBUG] Slot enabled: ${slot.enabled}`)
+            console.log(`[CLICK DEBUG] Spinning: ${this.spinning}`)
+            console.log(`[CLICK DEBUG] Current selection state: ${this.playerSlotsSelected[idx]}`)
+
             if (pointer.rightButtonDown()) {
               this.showSlotSides(slot, x, y)
-            } else if (slot.enabled) {
+            } else if (slot.enabled && !this.spinning) {
+              console.log(`[CLICK DEBUG] Toggling selection for ${slot.name}`)
               this.playerSlotsSelected[idx] = !this.playerSlotsSelected[idx]
               sprite.setAlpha(this.playerSlotsSelected[idx] ? 1.0 : 0.7)
               console.log(
                 `[SLOT SELECT] Player slot ${slot.name} selected = ${this.playerSlotsSelected[idx]}`,
+              )
+            } else {
+              console.log(
+                `[CLICK DEBUG] Click ignored - slot enabled: ${slot.enabled}, spinning: ${this.spinning}`,
               )
             }
           })
@@ -197,6 +205,7 @@ export class SpaceCombatScene extends PotatoScene {
       playerSlotY += 98 // more vertical room per section (was 84)
     })
 
+    // Initialize selection state without overriding event listeners
     this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
     this.playerSlotSprites.forEach((sprite) => sprite.setAlpha(0.7))
 
@@ -372,8 +381,20 @@ export class SpaceCombatScene extends PotatoScene {
         const slotIdx = this.playerSlotSprites.indexOf(sprite)
         const playerSections = this.getPlayerWeaponSections()
         const slot = playerSections.flatMap((s) => s.slots)[slotIdx]
-        const resultSide = Phaser.Math.Between(0, 5)
-        sprite.setTexture(slot.reelSides[resultSide].image)
+
+        console.log(`[SPIN DEBUG] Player slot ${i}: slotIdx=${slotIdx}, slot exists=${!!slot}`)
+        let resultSide = 0
+        if (slot && slot.reelSides && slot.reelSides.length > 0) {
+          resultSide = Phaser.Math.Between(0, Math.min(5, slot.reelSides.length - 1))
+          console.log(
+            `[SPIN DEBUG] resultSide=${resultSide}, reelSides.length=${slot.reelSides.length}`,
+          )
+          sprite.setTexture(slot.reelSides[resultSide].image)
+        } else {
+          console.error(`[SPIN ERROR] Invalid slot data for slotIdx ${slotIdx}:`, slot)
+          // Fallback to default texture
+          sprite.setTexture('damage')
+        }
         this.tweens.add({
           targets: sprite,
           x: startX,
@@ -382,9 +403,13 @@ export class SpaceCombatScene extends PotatoScene {
           ease: 'Sine.InOut',
         })
         slotSpinsDone++
-        console.log(
-          `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
-        )
+        if (slot && slot.reelSides && slot.reelSides[resultSide]) {
+          console.log(
+            `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
+          )
+        } else {
+          console.log(`[SPIN] Player slot at idx ${i} stopped with fallback texture`)
+        }
         if (slotSpinsDone === selectedSprites.length) {
           // After all player slots spin, spin enemy slots
           this.spinEnemySlots()
@@ -395,6 +420,9 @@ export class SpaceCombatScene extends PotatoScene {
 
   spinEnemySlots() {
     // Spin all enemy slots at once, animation similar to player slots
+    console.log(
+      `[ENEMY] *** STARTING ENEMY SPIN - enemySlotSprites length: ${this.enemySlotSprites.length}`,
+    )
     let done = 0
     this.enemySlotSprites.forEach((sprite, idx) => {
       // Create spinning effect for enemy slots
@@ -434,10 +462,23 @@ export class SpaceCombatScene extends PotatoScene {
         duration: 260,
         ease: 'Sine.InOut',
       })
+      console.log(
+        `[ENEMY] Setting up delayed call for enemy slot ${idx} with delay ${900 + idx * 140}ms`,
+      )
       this.time.delayedCall(900 + idx * 140, () => {
+        console.log(`[ENEMY] *** DELAYED CALL EXECUTING for slot ${idx}`)
         const slot = exampleEnemySlots[idx]
-        const resultSide = Phaser.Math.Between(0, 5)
-        sprite.setTexture(slot.reelSides[resultSide].image)
+        console.log(
+          `[ENEMY DEBUG] slot exists=${!!slot}, reelSides exists=${!!(slot && slot.reelSides)}`,
+        )
+        let resultSide = 0
+        if (slot && slot.reelSides && slot.reelSides.length > 0) {
+          resultSide = Phaser.Math.Between(0, Math.min(5, slot.reelSides.length - 1))
+          sprite.setTexture(slot.reelSides[resultSide].image)
+        } else {
+          console.error(`[ENEMY ERROR] Invalid enemy slot data for idx ${idx}:`, slot)
+          sprite.setTexture('damage')
+        }
         this.tweens.add({
           targets: sprite,
           x: startX,
@@ -446,17 +487,69 @@ export class SpaceCombatScene extends PotatoScene {
           ease: 'Sine.InOut',
         })
         done++
-        console.log(
-          `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
-        )
+        if (slot && slot.reelSides && slot.reelSides[resultSide]) {
+          console.log(
+            `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
+          )
+        } else {
+          console.log(`[ENEMY] Enemy slot at idx ${idx} stopped with fallback texture`)
+        }
         if (done === this.enemySlotSprites.length) {
+          console.log('[ENEMY] *** ALL ENEMY SLOTS DONE - about to reset')
+          console.log('[ENEMY] *** spinning was:', this.spinning)
           this.spinning = false
+          console.log('[ENEMY] *** spinning now:', this.spinning)
           console.log('[ENEMY] Enemy slots done. Spinning finished.')
+          // Reset selection state after spinning is completely done
+          this.resetPlayerSlotSelection()
+          this.restoreEnemySlotTextures()
+          console.log('[ENEMY] *** FINISHED ALL RESETS')
         }
       })
     })
+  }
 
+  private resetPlayerSlotSelection() {
+    console.log(
+      '[RESET] *** STARTING RESET - playerSlotsSelected length:',
+      this.playerSlotsSelected.length,
+    )
+    console.log('[RESET] *** spinning state:', this.spinning)
+    console.log('[RESET] *** playerSlotSprites length:', this.playerSlotSprites.length)
+
+    // Reset selection state
     this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
-    this.playerSlotSprites.forEach((sprite) => sprite.setAlpha(0.7))
+
+    // Reset visual state and restore textures
+    const playerSections = this.getPlayerWeaponSections()
+    const flatSlots = playerSections.flatMap((s) => s.slots)
+
+    this.playerSlotSprites.forEach((sprite, spriteIndex) => {
+      console.log(`[RESET] Processing sprite ${spriteIndex}`)
+
+      // Reset visual state
+      sprite.setAlpha(0.7)
+
+      // Restore original weapon texture
+      const slot = flatSlots[spriteIndex]
+      if (slot?.reelSides?.[0]) {
+        sprite.setTexture(slot.reelSides[0].image)
+        console.log(
+          `[RESET] Restored texture for sprite ${spriteIndex}: ${slot.reelSides[0].image}`,
+        )
+      }
+    })
+
+    console.log('[RESET] *** RESET COMPLETE')
+  }
+
+  private restoreEnemySlotTextures() {
+    console.log('[RESTORE] Restoring enemy slot textures')
+    this.enemySlotSprites.forEach((sprite, spriteIndex) => {
+      const slot = exampleEnemySlots[spriteIndex]
+      if (slot?.reelSides?.[0]) {
+        sprite.setTexture(slot.reelSides[0].image)
+      }
+    })
   }
 }
