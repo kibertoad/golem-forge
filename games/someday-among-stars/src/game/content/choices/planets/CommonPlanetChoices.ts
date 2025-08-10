@@ -4,7 +4,7 @@ import {
   type RegistryEntityIdValues,
 } from '@potato-golem/core'
 import { ChangeSceneActivation2 } from '@potato-golem/ui'
-import { type MainStates, getWorldModel } from '../../../model/entities/WorldModel.ts'
+import { getWorldModel, type MainStates } from '../../../model/entities/WorldModel.ts'
 import type { SceneId } from '../../../registries/sceneRegistry.ts'
 
 export type CommonPlanetChoicesIds = RegistryEntityIdValues<typeof COMMON_PLANET_CHOICES>

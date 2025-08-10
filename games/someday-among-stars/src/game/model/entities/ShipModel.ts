@@ -1,9 +1,9 @@
-import {CommonComponentModel} from "./ComponentModel.ts";
+import type { CommonComponentModel } from './ComponentModel.ts'
 
 export class ShipModel {
-    public weapons: CommonComponentModel[]
+  public weapons: CommonComponentModel[]
 
-    constructor() {
-        this.weapons = []
-    }
+  constructor() {
+    this.weapons = []
+  }
 }

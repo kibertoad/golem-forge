@@ -7,9 +7,9 @@ import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { TravelTurnProcessor } from '../../model/processors/TravelTurnProcessor.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import type { PlanetOverlayData, StarmapUIScene } from './StarmapUIScene.ts'
-import { getRandomStarColor, getStarName } from './internal/starUtils.ts'
 import { DEFAULT_ZOOM, STAR_AMOUNT } from './internal/starmapConstants.ts'
+import { getRandomStarColor, getStarName } from './internal/starUtils.ts'
+import type { PlanetOverlayData, StarmapUIScene } from './StarmapUIScene.ts'
 
 interface Star {
   x: number

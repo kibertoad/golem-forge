@@ -1,17 +1,11 @@
-import {
-  type GlobalSceneEvents,
-  type State,
-  type StateHolder,
-  removeFromArrayById,
-} from '@potato-golem/core'
+import type { GlobalSceneEvents, State, StateHolder } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
+import { WEAPON_COMPONENTS } from '../../content/components/WeaponComponents.ts'
 import { generatePlanet } from '../generators/PlanetGenerator.ts'
-import type { EntityModel } from './EntityModel.ts'
+import { CommonComponentModel } from './ComponentModel.ts'
 import type { PlanetModel } from './PlanetModel.ts'
 import type { RaceModel } from './RaceModel.ts'
-import {ShipModel} from "./ShipModel.ts";
-import {CommonComponentModel} from "./ComponentModel.ts";
-import {WEAPON_COMPONENTS} from "../../content/components/WeaponComponents.ts";
+import { ShipModel } from './ShipModel.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'planet' | 'space'

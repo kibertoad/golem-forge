@@ -10,7 +10,7 @@ export const imageRegistry = {
 
   SLOT: 'slot',
 
-    // slot sides
+  // slot sides
   DAMAGE: 'damage',
   CRITICAL: 'critical',
   OVERHEAT: 'overheat',

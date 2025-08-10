@@ -1,20 +1,20 @@
 import type { GlobalSceneEvents } from '@potato-golem/core'
 import {
-  Lifetime,
-  type NameAndRegistrationPair,
   asClass,
   asFunction,
   asValue,
   createContainer,
+  Lifetime,
+  type NameAndRegistrationPair,
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
 import { ChoiceDirector } from './content/choices/ChoiceDirector.ts'
-import { type WorldModel, getWorldModel } from './model/entities/WorldModel.ts'
+import { getWorldModel, type WorldModel } from './model/entities/WorldModel.ts'
 import { TravelTurnProcessor } from './model/processors/TravelTurnProcessor.ts'
 import { ChoiceScene } from './scenes/choices/ChoiceScene.ts'
 import { MainMenuScene } from './scenes/main-menu/MainMenuScene.ts'
-import { SpaceCombatScene } from './scenes/space-combat/SpaceCombatScene.ts'
 import { SpaceScene } from './scenes/space/SpaceScene.ts'
+import { SpaceCombatScene } from './scenes/space-combat/SpaceCombatScene.ts'
 import { StarmapScene } from './scenes/starmap/StarmapScene.ts'
 import { StarmapUIScene } from './scenes/starmap/StarmapUIScene.ts'
 

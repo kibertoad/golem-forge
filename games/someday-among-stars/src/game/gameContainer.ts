@@ -1,5 +1,5 @@
-import { AUTO, Game, Scale } from 'phaser'
 import type { Types as PhaserTypes } from 'phaser'
+import { AUTO, Game, Scale } from 'phaser'
 import { instantiateContainer } from './diConfig.ts'
 
 const GameResolutions = {

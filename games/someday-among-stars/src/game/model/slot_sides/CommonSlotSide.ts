@@ -1,6 +1,6 @@
-import {ImageId} from "../../registries/imageRegistry.ts";
+import type { ImageId } from '../../registries/imageRegistry.ts'
 
 export type CommonSlotSide = {
-    id: string
-    image: ImageId
+  id: string
+  image: ImageId
 }

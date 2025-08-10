@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "./node_modules/@lokalise/biome-config/configs/biome-base.jsonc",
+    "./node_modules/@lokalise/biome-config/configs/biome-esm.jsonc"
+  ],
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUnusedFunctionParameters": "off",
+        "noUnusedPrivateClassMembers": "off",
+        "noUnusedVariables": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noConsole": "off"
+      }
+    }
+  }
+}
