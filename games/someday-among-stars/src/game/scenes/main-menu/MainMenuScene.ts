@@ -25,7 +25,9 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
     this.load.image(imageRegistry.DAMAGE, 'sides/damage.png')
     this.load.image(imageRegistry.JAM, 'sides/jam.png')
     this.load.image(imageRegistry.OVERHEAT, 'sides/overheat.png')
+    this.load.image(imageRegistry.CRITICAL, 'sides/critical.png')
     this.load.image(imageRegistry.COOLDOWN, 'sides/cooldown.png')
+      this.load.image(imageRegistry.STUN, 'sides/stun.png')
     this.load.image(imageRegistry.SLOT, 'rolll_slot.png')
   }
 }

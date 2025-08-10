@@ -249,25 +249,34 @@ export class SpaceCombatScene extends PotatoScene {
   showSlotSides(slot: any, baseX: number, baseY: number) {
     this.hideSlotSides()
     console.log('[SLOT SIDES] Showing slot sides overlay for', slot.name)
+    console.log('[SLOT SIDES] Available sides:', slot.reelSides?.length || 0)
 
-    // Container: 2 columns x 3 rows grid, 48px cells
-    const rows = 3,
-      cols = 2,
-      cell = 48,
-      padding = 18
+    // Guard against invalid slot data
+    if (!slot.reelSides || slot.reelSides.length === 0) {
+      console.warn('[SLOT SIDES] No reel sides available for', slot.name)
+      return
+    }
+
+    const numSides = slot.reelSides.length
+    // Dynamic grid sizing based on number of sides
+    const cols = Math.min(3, numSides) // Max 3 columns
+    const rows = Math.ceil(numSides / cols)
+    const cell = 48
+    const padding = 18
+
     const overlayX = Math.min(baseX, this.scale.width - (cols * cell + padding * 2))
     const overlayY = Math.max(24, baseY - 40)
 
     this.slotSidesOverlay = this.add.container(overlayX, overlayY).setDepth(30)
-    // Background
+    // Background sized to fit actual content
     const bg = this.add
       .rectangle(0, 0, cols * cell + padding * 2, rows * cell + padding * 2, 0x222244, 0.98)
       .setOrigin(0, 0)
       .setStrokeStyle(2, 0xffffff, 0.8)
     this.slotSidesOverlay.add(bg)
 
-    // Add slot reel sides in grid
-    for (let s = 0; s < 6; s++) {
+    // Add slot reel sides in grid - only the sides that exist
+    for (let s = 0; s < numSides; s++) {
       const sx = padding + (s % cols) * cell
       const sy = padding + Math.floor(s / cols) * cell
       const side = this.add
