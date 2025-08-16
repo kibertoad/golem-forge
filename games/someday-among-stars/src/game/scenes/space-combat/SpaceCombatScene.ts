@@ -207,7 +207,9 @@ export class SpaceCombatScene extends PotatoScene {
 
     // Initialize selection state without overriding event listeners
     this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
-    this.playerSlotSprites.forEach((sprite) => sprite.setAlpha(0.7))
+    this.playerSlotSprites.forEach((sprite) => {
+      sprite.setAlpha(0.7)
+    })
 
     // --- SPIN BUTTON & REST UNCHANGED ---
     this.spinButton = this.add

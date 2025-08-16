@@ -14,6 +14,9 @@
       "style": {
         "noNonNullAssertion": "off"
       },
+      "complexity": {
+        "useOptionalChain": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off",
         "noConsole": "off"
