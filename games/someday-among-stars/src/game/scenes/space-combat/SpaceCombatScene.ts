@@ -16,31 +16,7 @@ const SLOT_FRAME_HEIGHT = 64
 const SLOT_COLUMNS = 9
 const SLOT_ROWS = 1
 
-// Example enemy slots - will be replaced with dynamic enemy data later
-const exampleEnemySlots = [
-  {
-    name: 'Enemy Laser',
-    reelSides: [
-      { frame: 0, description: 'Miss', image: 'jam' },
-      { frame: 1, description: 'Damage', image: 'damage' },
-      { frame: 2, description: 'Damage', image: 'damage' },
-      { frame: 3, description: 'Critical', image: 'critical' },
-      { frame: 4, description: 'Miss', image: 'jam' },
-      { frame: 5, description: 'Overheat', image: 'overheat' },
-    ],
-  },
-  {
-    name: 'Enemy Missile',
-    reelSides: [
-      { frame: 0, description: 'Damage', image: 'damage' },
-      { frame: 1, description: 'Miss', image: 'jam' },
-      { frame: 2, description: 'Double Damage', image: 'damage' },
-      { frame: 3, description: 'Damage', image: 'damage' },
-      { frame: 4, description: 'Critical', image: 'critical' },
-      { frame: 5, description: 'Pierce', image: 'shield_pierce' },
-    ],
-  },
-]
+// Enemy slots are now dynamically generated from enemy ship weapon components
 
 // --- Slot machine animation keys ---
 const SLOT_ROLL_FRAMES = [0, 1, 2, 3, 4, 5, 6, 7, 8] // rolling animation frames
@@ -87,6 +63,26 @@ export class SpaceCombatScene extends PotatoScene {
     return [
       {
         label: 'Weapons',
+        slots: weapons,
+      },
+    ]
+  }
+
+  private getEnemyWeaponSections() {
+    const weapons = this.worldModel.enemyShip.weapons.map((weapon, index) => ({
+      name: weapon.definition.name,
+      reelSides: weapon.definition.defaultSlots.map((slot, slotIndex) => ({
+        frame: slotIndex,
+        description: slot.id,
+        image: slot.image,
+      })),
+      enabled: true,
+      energyUsage: weapon.definition.energyUsage,
+    }))
+
+    return [
+      {
+        label: 'Enemy Weapons',
         slots: weapons,
       },
     ]
@@ -307,13 +303,12 @@ export class SpaceCombatScene extends PotatoScene {
       sourceShip === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
 
     // Get the source component (weapon that's attacking)
-    let sourceComponent = null
+    let sourceComponent: any = null
     if (sourceShip === 'player' && weaponIndex < attackingShip.weapons.length) {
       sourceComponent = attackingShip.weapons[weaponIndex]
-    } else if (sourceShip === 'enemy') {
-      // For enemy, we don't have actual weapon components, so we'll create a mock one
-      // In a real implementation, enemy ships would also have weapon components
-      console.log(`[TARGET EFFECTS] Enemy attack - no specific weapon component available`)
+    } else if (sourceShip === 'enemy' && weaponIndex < attackingShip.weapons.length) {
+      sourceComponent = attackingShip.weapons[weaponIndex]
+      console.log(`[TARGET EFFECTS] Enemy attack using weapon component: ${sourceComponent.definition.name}`)
     }
 
     const source: ActivationSource | undefined = sourceComponent
@@ -515,22 +510,23 @@ export class SpaceCombatScene extends PotatoScene {
     // --- ENEMY (RIGHT) ---
     const enemyAreaX = midX + 80 // add margin to right
     this.enemySlotSprites = []
-    for (let i = 0; i < exampleEnemySlots.length; i++) {
-      const slot = exampleEnemySlots[i]
+    const enemyWeapons = this.worldModel.enemyShip.weapons
+    for (let i = 0; i < enemyWeapons.length; i++) {
+      const weapon = enemyWeapons[i]
       const x = enemyAreaX + i * 110 // more spacing between slots
       const y = 140
       const sprite = this.add
-        .image(x, y, slot.reelSides[0].image)
+        .image(x, y, weapon.definition.defaultSlots[0].image)
         .setScale(0.2)
         .setInteractive({ cursor: 'pointer' })
         .setData('slotIndex', i)
         .setData('isEnemy', true)
-        .on('pointerdown', () => this.showSlotSides(slot, x, y))
+        .on('pointerdown', () => this.showSlotSides(weapon, x, y))
       this.enemySlotSprites.push(sprite)
 
       // Slot label (lower to y+60 so it's not touching slot)
       this.add
-        .text(x, y + 60, slot.name, {
+        .text(x, y + 60, weapon.definition.name, {
           fontSize: '15px',
           color: '#eaeaff',
           fontFamily: 'monospace',
@@ -834,16 +830,21 @@ export class SpaceCombatScene extends PotatoScene {
   // --- SLOT SIDES OVERLAY ---
   showSlotSides(slot: any, baseX: number, baseY: number) {
     this.hideSlotSides()
-    console.log('[SLOT SIDES] Showing slot sides overlay for', slot.name)
-    console.log('[SLOT SIDES] Available sides:', slot.reelSides?.length || 0)
+    
+    // Handle both player slots (with reelSides) and enemy weapon components (with definition.defaultSlots)
+    const slotName = slot.name || slot.definition?.name
+    const slotSides = slot.reelSides || slot.definition?.defaultSlots
+    
+    console.log('[SLOT SIDES] Showing slot sides overlay for', slotName)
+    console.log('[SLOT SIDES] Available sides:', slotSides?.length || 0)
 
     // Guard against invalid slot data
-    if (!slot.reelSides || slot.reelSides.length === 0) {
-      console.warn('[SLOT SIDES] No reel sides available for', slot.name)
+    if (!slotSides || slotSides.length === 0) {
+      console.warn('[SLOT SIDES] No slot sides available for', slotName)
       return
     }
 
-    const numSides = slot.reelSides.length
+    const numSides = slotSides.length
     // Dynamic grid sizing based on number of sides
     const cols = Math.min(3, numSides) // Max 3 columns
     const rows = Math.ceil(numSides / cols)
@@ -865,18 +866,22 @@ export class SpaceCombatScene extends PotatoScene {
     for (let s = 0; s < numSides; s++) {
       const sx = padding + (s % cols) * cell
       const sy = padding + Math.floor(s / cols) * cell
+      const slotSide = slotSides[s]
+      const sideImage = slotSide.image
+      const sideDescription = slotSide.description || slotSide.id
+      
       const side = this.add
-        .image(sx + cell / 2, sy + cell / 2, slot.reelSides[s].image)
+        .image(sx + cell / 2, sy + cell / 2, sideImage)
         .setScale(0.15)
 
       // Tooltip logic
       side
         .setInteractive({ cursor: 'pointer' })
         .on('pointerover', () => {
-          this.slotSidesTooltip!.setText(slot.reelSides[s].description)
+          this.slotSidesTooltip!.setText(sideDescription)
           this.slotSidesTooltip!.setPosition(overlayX + cols * cell + 26, overlayY + sy)
           this.slotSidesTooltip!.setVisible(true)
-          console.log(`[SLOT SIDES] Hovered on side ${s}: ${slot.reelSides[s].description}`)
+          console.log(`[SLOT SIDES] Hovered on side ${s}: ${sideDescription}`)
         })
         .on('pointerout', () => {
           this.slotSidesTooltip!.setVisible(false)
@@ -1101,16 +1106,16 @@ export class SpaceCombatScene extends PotatoScene {
       )
       this.time.delayedCall(900 + idx * 140, () => {
         console.log(`[ENEMY] *** DELAYED CALL EXECUTING for slot ${idx}`)
-        const slot = exampleEnemySlots[idx]
+        const weapon = this.worldModel.enemyShip.weapons[idx]
         console.log(
-          `[ENEMY DEBUG] slot exists=${!!slot}, reelSides exists=${!!(slot && slot.reelSides)}`,
+          `[ENEMY DEBUG] weapon exists=${!!weapon}, defaultSlots exists=${!!(weapon && weapon.definition.defaultSlots)}`,
         )
         let resultSide = 0
-        if (slot && slot.reelSides && slot.reelSides.length > 0) {
-          resultSide = Phaser.Math.Between(0, Math.min(5, slot.reelSides.length - 1))
-          sprite.setTexture(slot.reelSides[resultSide].image)
+        if (weapon && weapon.definition.defaultSlots && weapon.definition.defaultSlots.length > 0) {
+          resultSide = Phaser.Math.Between(0, Math.min(5, weapon.definition.defaultSlots.length - 1))
+          sprite.setTexture(weapon.definition.defaultSlots[resultSide].image)
         } else {
-          console.error(`[ENEMY ERROR] Invalid enemy slot data for idx ${idx}:`, slot)
+          console.error(`[ENEMY ERROR] Invalid enemy weapon data for idx ${idx}:`, weapon)
           sprite.setTexture('damage')
         }
         this.tweens.add({
@@ -1121,9 +1126,9 @@ export class SpaceCombatScene extends PotatoScene {
           ease: 'Sine.InOut',
         })
         done++
-        if (slot && slot.reelSides && slot.reelSides[resultSide]) {
-          const slotSideId = slot.reelSides[resultSide].description
-          const weaponName = slot.name
+        if (weapon && weapon.definition.defaultSlots && weapon.definition.defaultSlots[resultSide]) {
+          const slotSideId = weapon.definition.defaultSlots[resultSide].id
+          const weaponName = weapon.definition.name
           console.log(
             `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slotSideId})`,
           )
@@ -1240,9 +1245,9 @@ export class SpaceCombatScene extends PotatoScene {
   private restoreEnemySlotTextures() {
     console.log('[RESTORE] Restoring enemy slot textures')
     this.enemySlotSprites.forEach((sprite, spriteIndex) => {
-      const slot = exampleEnemySlots[spriteIndex]
-      if (slot?.reelSides?.[0]) {
-        sprite.setTexture(slot.reelSides[0].image)
+      const weapon = this.worldModel.enemyShip.weapons[spriteIndex]
+      if (weapon?.definition?.defaultSlots?.[0]) {
+        sprite.setTexture(weapon.definition.defaultSlots[0].image)
       }
     })
   }

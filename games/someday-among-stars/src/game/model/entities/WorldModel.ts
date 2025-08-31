@@ -40,13 +40,15 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
 
-    // Initialize enemy ship with different stats
+    // Initialize enemy ship with different stats and weapons
     this.enemyShip = new ShipModel()
     this.enemyShip.maxEnergy = 4
     this.enemyShip.currentShield = 2
     this.enemyShip.maxShield = 2
     this.enemyShip.currentHull = 5
     this.enemyShip.maxHull = 5
+    this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
+    this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
   }
 }
 
