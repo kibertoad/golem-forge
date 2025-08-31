@@ -1,17 +1,18 @@
 import type { RegistryEntityIdValues } from '@potato-golem/core'
+import { DAMAGE_ACTIVATION, type TargettedActivation } from '../activations/activations.ts'
 import type { CommonSlotSide } from './CommonSlotSide.ts'
 
 export type WeaponSlotSidesIds = RegistryEntityIdValues<typeof WEAPON_SLOT_SIDES>
 
 export type WeaponSlotSide = CommonSlotSide & {
-  targetEffects: []
+  targetEffects: TargettedActivation[]
 }
 
 export const WEAPON_SLOT_SIDES = {
   DAMAGE: {
     id: 'DAMAGE',
     image: 'damage',
-    targetEffects: [],
+    targetEffects: [DAMAGE_ACTIVATION],
   },
   JAM: {
     id: 'JAM',
@@ -21,7 +22,7 @@ export const WEAPON_SLOT_SIDES = {
   CRITICAL: {
     id: 'CRITICAL',
     image: 'critical',
-    targetEffects: [],
+    targetEffects: [DAMAGE_ACTIVATION], // Critical also uses weapon damage, could add multiplier later
   },
   OVERHEAT: {
     id: 'OVERHEAT',

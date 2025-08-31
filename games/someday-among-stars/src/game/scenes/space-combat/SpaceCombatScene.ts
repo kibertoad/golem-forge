@@ -4,6 +4,8 @@ import Phaser from 'phaser'
 import type { Dependencies } from '../../diConfig.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
+import { WEAPON_SLOT_SIDES } from '../../model/slot_sides/WeaponSlotSides.ts'
+import type { ActivationResult, ActivationSource } from '../../model/activations/activations.ts'
 import { ShipIndicatorContainer } from './views/ShipIndicatorContainer.ts'
 
 // === SLOT MACHINE SPRITESHEET CONFIG ===
@@ -260,6 +262,65 @@ export class SpaceCombatScene extends PotatoScene {
       this.worldModel.enemyShip.maxHull
     )
     this.updateEnemyHullBar()
+  }
+
+  private executeTargetEffects(slotSideId: string, target: 'player' | 'enemy', sourceShip: 'player' | 'enemy', weaponIndex: number): ActivationResult[] {
+    console.log(`[TARGET EFFECTS] Executing effects for ${slotSideId} on ${target} from ${sourceShip} weapon ${weaponIndex}`)
+    
+    const slotSide = Object.values(WEAPON_SLOT_SIDES).find(side => side.id === slotSideId)
+    if (!slotSide || slotSide.targetEffects.length === 0) {
+      console.log(`[TARGET EFFECTS] No effects found for ${slotSideId}`)
+      return []
+    }
+
+    const targetShip = target === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
+    const attackingShip = sourceShip === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
+    
+    // Get the source component (weapon that's attacking)
+    let sourceComponent = null
+    if (sourceShip === 'player' && weaponIndex < attackingShip.weapons.length) {
+      sourceComponent = attackingShip.weapons[weaponIndex]
+    } else if (sourceShip === 'enemy') {
+      // For enemy, we don't have actual weapon components, so we'll create a mock one
+      // In a real implementation, enemy ships would also have weapon components
+      console.log(`[TARGET EFFECTS] Enemy attack - no specific weapon component available`)
+    }
+
+    const source: ActivationSource | undefined = sourceComponent ? {
+      sourceShip: attackingShip,
+      sourceComponent: sourceComponent
+    } : undefined
+
+    const results: ActivationResult[] = []
+
+    for (const effect of slotSide.targetEffects) {
+      const result = effect.execute(targetShip, source)
+      results.push(result)
+      console.log(`[TARGET EFFECTS] ${effect.type} effect: ${result.message}`)
+      
+      if (result.entityDestroyed) {
+        console.log(`[TARGET EFFECTS] ${target} ship destroyed!`)
+        // Update both bars to show the destruction
+        if (target === 'player') {
+          this.updateShieldBar()
+          this.updateHullBar()
+        } else {
+          this.updateEnemyShieldBar()
+          this.updateEnemyHullBar()
+        }
+      } else {
+        // Update bars to show damage
+        if (target === 'player') {
+          if (result.shieldDamage && result.shieldDamage > 0) this.updateShieldBar()
+          if (result.hullDamage && result.hullDamage > 0) this.updateHullBar()
+        } else {
+          if (result.shieldDamage && result.shieldDamage > 0) this.updateEnemyShieldBar()
+          if (result.hullDamage && result.hullDamage > 0) this.updateEnemyHullBar()
+        }
+      }
+    }
+
+    return results
   }
 
   private canSelectSlot(slotIndex: number): boolean {
@@ -625,9 +686,26 @@ export class SpaceCombatScene extends PotatoScene {
     this.input.keyboard?.on('keydown-T', () => {
       this.repairEnemyHull(1)
     })
+    
+    // Weapon damage testing
+    this.input.keyboard?.on('keydown-W', () => {
+      if (this.worldModel.playerShip.weapons.length > 0) {
+        const weapon = this.worldModel.playerShip.weapons[0]
+        weapon.durability.decrease(1)
+        console.log(`[WEAPON DAMAGE] Player weapon 0 damaged: ${weapon.durability.value}/${weapon.durability.maxValue}`)
+      }
+    })
+    this.input.keyboard?.on('keydown-Q', () => {
+      if (this.worldModel.playerShip.weapons.length > 0) {
+        const weapon = this.worldModel.playerShip.weapons[0]
+        weapon.durability.increase(1)
+        console.log(`[WEAPON REPAIR] Player weapon 0 repaired: ${weapon.durability.value}/${weapon.durability.maxValue}`)
+      }
+    })
 
     console.log('[CREATE] Scene created. Slots, spin button, and all bars initialized.')
-    console.log('[CREATE] Player: D=damage, S=shield, H=hull | Enemy: E=damage, R=shield, T=hull')
+    console.log('[CREATE] Player: D=damage, S=shield, H=hull, W=damage weapon, Q=repair weapon')
+    console.log('[CREATE] Enemy: E=damage, R=shield, T=hull')
 
     this.add.existing(this.energyBar)
   }
@@ -800,9 +878,18 @@ export class SpaceCombatScene extends PotatoScene {
         })
         slotSpinsDone++
         if (slot && slot.reelSides && slot.reelSides[resultSide]) {
+          const slotSideId = slot.reelSides[resultSide].description
           console.log(
-            `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
+            `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slotSideId})`,
           )
+          
+          // Execute target effects on enemy
+          // Find which weapon this slot belongs to
+          const weaponIndex = slotIdx // Since slots map directly to weapons in current implementation
+          const results = this.executeTargetEffects(slotSideId, 'enemy', 'player', weaponIndex)
+          if (results.length > 0) {
+            console.log(`[SPIN] Player weapon ${weaponIndex} ${slotSideId} hit enemy:`, results)
+          }
         } else {
           console.log(`[SPIN] Player slot at idx ${i} stopped with fallback texture`)
         }
@@ -884,9 +971,16 @@ export class SpaceCombatScene extends PotatoScene {
         })
         done++
         if (slot && slot.reelSides && slot.reelSides[resultSide]) {
+          const slotSideId = slot.reelSides[resultSide].description
           console.log(
-            `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slot.reelSides[resultSide].description})`,
+            `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slotSideId})`,
           )
+          
+          // Execute target effects on player
+          const results = this.executeTargetEffects(slotSideId, 'player', 'enemy', idx)
+          if (results.length > 0) {
+            console.log(`[ENEMY] Enemy weapon ${idx} ${slotSideId} hit player:`, results)
+          }
         } else {
           console.log(`[ENEMY] Enemy slot at idx ${idx} stopped with fallback texture`)
         }

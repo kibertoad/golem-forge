@@ -2,7 +2,9 @@ import type { RegistryEntityIdValues } from '@potato-golem/core'
 import { WEAPON_SLOT_SIDES, type WeaponSlotSide } from '../../model/slot_sides/WeaponSlotSides.ts'
 import type { CommonComponentDefinition } from './CommonComponents.ts'
 
-export type WeaponComponentDefinition = CommonComponentDefinition<WeaponSlotSide>
+export type WeaponComponentDefinition = CommonComponentDefinition<WeaponSlotSide> & {
+  baseDamage: number
+}
 
 export type WeaponComponentIds = RegistryEntityIdValues<typeof WEAPON_COMPONENTS>
 
@@ -16,6 +18,7 @@ export const WEAPON_COMPONENTS = {
     defaultSlots: [WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.JAM],
     description: 'A laser cannon',
     energyUsage: 1,
+    baseDamage: 2,
   },
   MISSILE: {
     id: 'MISSILE',
@@ -26,5 +29,6 @@ export const WEAPON_COMPONENTS = {
     defaultSlots: [WEAPON_SLOT_SIDES.DAMAGE, WEAPON_SLOT_SIDES.STUN, WEAPON_SLOT_SIDES.CRITICAL],
     description: 'A missile launcher with explosive warheads',
     energyUsage: 1,
+    baseDamage: 3,
   },
 } as const satisfies Record<string, WeaponComponentDefinition>
