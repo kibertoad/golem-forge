@@ -1,6 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "build:prod": {
+      "outputLogs": "new-only"
+    },
     "build": {
       "dependsOn": [
         "^build"
