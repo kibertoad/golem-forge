@@ -92,17 +92,29 @@ export abstract class AbstractUIBuilder {
     }
   }
 
+    /**
+     * Set the width and height of the object
+     * @param dimensions
+     */
   public setDimensions(dimensions: Dimensions) {
     this.height = dimensions.height
     this.width = dimensions.width
     return this
   }
 
+    /**
+     * Set the width of the object
+     * @param width
+     */
   public setWidth(width: number) {
     this.width = width
     return this
   }
 
+    /**
+     * Set the height of the object
+     * @param height
+     */
   public setHeight(height: number) {
     this.height = height
     return this

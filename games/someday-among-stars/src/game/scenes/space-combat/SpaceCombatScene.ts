@@ -1,4 +1,5 @@
-import { PotatoScene } from '@potato-golem/ui'
+import { PotatoScene, BarsBarBuilder } from '@potato-golem/ui'
+import { LimitedNumber } from '@potato-golem/core'
 import Phaser from 'phaser'
 import type { Dependencies } from '../../diConfig.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
@@ -53,6 +54,10 @@ export class SpaceCombatScene extends PotatoScene {
   private spinning = false
   private shipIndicatorContainer!: ShipIndicatorContainer
   private worldModel: WorldModel
+  private energyBar!: Phaser.GameObjects.Container
+  private energyUsage!: LimitedNumber
+  private weaponUsage!: LimitedNumber
+  private componentUsage!: LimitedNumber
 
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.SPACE_COMBAT })
@@ -68,6 +73,7 @@ export class SpaceCombatScene extends PotatoScene {
         image: slot.image,
       })),
       enabled: true,
+      energyUsage: weapon.definition.energyUsage,
     }))
 
     return [
@@ -76,6 +82,119 @@ export class SpaceCombatScene extends PotatoScene {
         slots: weapons,
       },
     ]
+  }
+
+  private updateEnergyBar() {
+    // Update the energy bar using BarsBarBuilder method
+    this.energyBar.destroy()
+    const energyBarBuilder = BarsBarBuilder.instance(this)
+    energyBarBuilder.setPosition({ x: 40, y: 40 })
+    energyBarBuilder.setMaxValue(this.worldModel.playerShip.maxEnergy)
+    energyBarBuilder.setValue(this.energyUsage.value)
+    energyBarBuilder.setColors({ fill: '#ffaa00', background: '#333333', border: '#ffffff' })
+    energyBarBuilder.setLabel('Energy Usage')
+    this.energyBar = energyBarBuilder.build()
+    this.energyBar.setDepth(1000)
+    this.energyBar.setVisible(true)
+    // Manual position override since builder setPosition might not work
+    this.energyBar.setPosition(40, 600)
+    // Add the new energy bar to the scene's display list
+    this.add.existing(this.energyBar)
+  }
+
+  private canSelectSlot(slotIndex: number): boolean {
+    const playerSections = this.getPlayerWeaponSections()
+    let currentSlotIndex = 0
+
+    for (const section of playerSections) {
+      for (const slot of section.slots) {
+        if (currentSlotIndex === slotIndex) {
+          const newUsage = this.energyUsage.value + slot.energyUsage
+          console.log(`[ENERGY DEBUG] Current: ${this.energyUsage.value}, Adding: ${slot.energyUsage}, New: ${newUsage}, Max: ${this.worldModel.playerShip.maxEnergy}`)
+          return newUsage <= this.worldModel.playerShip.maxEnergy
+        }
+        currentSlotIndex++
+      }
+    }
+
+    return false
+  }
+
+  private selectSlot(slotIndex: number): boolean {
+    const playerSections = this.getPlayerWeaponSections()
+    let currentSlotIndex = 0
+
+    for (const section of playerSections) {
+      for (const slot of section.slots) {
+        if (currentSlotIndex === slotIndex) {
+          if (this.energyUsage.value + slot.energyUsage <= this.worldModel.playerShip.maxEnergy) {
+            this.energyUsage.increase(slot.energyUsage)
+            // For weapons, also track weapon usage
+            if (section.label === 'Weapons') {
+              this.weaponUsage.increase(slot.energyUsage)
+            }
+            this.componentUsage.increase(slot.energyUsage)
+            this.updateEnergyBar()
+            return true
+          }
+          return false
+        }
+        currentSlotIndex++
+      }
+    }
+
+    return false
+  }
+
+  private deselectSlot(slotIndex: number): void {
+    const playerSections = this.getPlayerWeaponSections()
+    let currentSlotIndex = 0
+
+    for (const section of playerSections) {
+      for (const slot of section.slots) {
+        if (currentSlotIndex === slotIndex) {
+          this.energyUsage.decrease(slot.energyUsage)
+          // For weapons, also reduce weapon usage
+          if (section.label === 'Weapons') {
+            this.weaponUsage.decrease(slot.energyUsage)
+          }
+          this.componentUsage.decrease(slot.energyUsage)
+          this.updateEnergyBar()
+          return
+        }
+        currentSlotIndex++
+      }
+    }
+  }
+
+  private handleSlotSelection(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+    const isCurrentlySelected = this.playerSlotsSelected[slotIndex]
+
+    if (isCurrentlySelected) {
+      this.handleSlotDeselection(slotIndex, sprite, slot)
+    } else {
+      this.handleSlotSelectionAttempt(slotIndex, sprite, slot)
+    }
+  }
+
+  private handleSlotDeselection(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+    console.log(`[CLICK DEBUG] Deselecting ${slot.name}`)
+    this.playerSlotsSelected[slotIndex] = false
+    sprite.setAlpha(0.7)
+    this.deselectSlot(slotIndex)
+  }
+
+  private handleSlotSelectionAttempt(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+    if (this.canSelectSlot(slotIndex)) {
+      console.log(`[CLICK DEBUG] Selecting ${slot.name}`)
+      const success = this.selectSlot(slotIndex)
+      if (success) {
+        this.playerSlotsSelected[slotIndex] = true
+        sprite.setAlpha(1.0)
+      }
+    } else {
+      console.log(`[ENERGY] Cannot select ${slot.name} - would exceed energy limit`)
+    }
   }
 
   preload() {
@@ -174,9 +293,7 @@ export class SpaceCombatScene extends PotatoScene {
             if (pointer.rightButtonDown()) {
               this.showSlotSides(slot, x, y)
             } else if (slot.enabled && !this.spinning) {
-              console.log(`[CLICK DEBUG] Toggling selection for ${slot.name}`)
-              this.playerSlotsSelected[idx] = !this.playerSlotsSelected[idx]
-              sprite.setAlpha(this.playerSlotsSelected[idx] ? 1.0 : 0.7)
+              this.handleSlotSelection(idx, sprite, slot)
               console.log(
                 `[SLOT SELECT] Player slot ${slot.name} selected = ${this.playerSlotsSelected[idx]}`,
               )
@@ -244,7 +361,30 @@ export class SpaceCombatScene extends PotatoScene {
     this.shipIndicatorContainer = new ShipIndicatorContainer(this, { isShown: true })
     this.shipIndicatorContainer.renderShipIndicators(midX)
 
+    // --- ENERGY TRACKING ---
+    this.energyUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Energy Usage')
+    this.weaponUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Weapon Usage')
+    this.componentUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Component Usage')
+
+    // --- ENERGY BAR ---
+    console.log('[ENERGY BAR] Creating energy bar with max:', this.worldModel.playerShip.maxEnergy, 'current:', this.energyUsage.value)
+    const energyBarBuilder = BarsBarBuilder.instance(this)
+    energyBarBuilder.setPosition({ x: 40, y: 40 })
+    energyBarBuilder.setMaxValue(this.worldModel.playerShip.maxEnergy)
+    energyBarBuilder.setValue(this.energyUsage.value)
+    energyBarBuilder.setColors({ fill: '#ffaa00', background: '#333333', border: '#ffffff' })
+    energyBarBuilder.setLabel('Energy Usage')
+    this.energyBar = energyBarBuilder.build()
+    this.energyBar.setDepth(1000)
+    this.energyBar.setVisible(true)
+    // Manual position override since builder setPosition might not work
+    this.energyBar.setPosition(40, 600)
+    console.log('[ENERGY BAR] Energy bar created:', this.energyBar)
+    console.log('[ENERGY BAR] Energy bar children:', this.energyBar.list?.length || 0)
+
     console.log('[CREATE] Scene created. Slots and spin button initialized.')
+
+    this.add.existing(this.energyBar)
   }
 
   // --- SLOT SIDES OVERLAY ---

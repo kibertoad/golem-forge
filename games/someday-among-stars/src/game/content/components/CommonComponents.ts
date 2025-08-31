@@ -9,4 +9,5 @@ export type CommonComponentDefinition<SlotTypes extends CommonSlotSide> = {
   maxSlots: number
   maxDurability: number
   defaultSlots: SlotTypes[]
+  energyUsage: number
 }
