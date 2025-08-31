@@ -88,7 +88,7 @@ export class BarsBarBuilder extends AbstractUIBuilder {
    * Set the colors for the bars
    * @param colors Object containing fill, background, and optional border colors in hex format (e.g., '#ffaa00')
    * @param colors.fill Hex color for filled bars (e.g., '#ffaa00')
-   * @param colors.background Hex color for empty bars (e.g., '#333333') 
+   * @param colors.background Hex color for empty bars (e.g., '#333333')
    * @param colors.border Optional hex color for borders (e.g., '#ffffff'). If not provided, uses fill color
    */
   public setColors(colors: { fill: string; background: string; border?: string }) {
@@ -109,6 +109,10 @@ export class BarsBarBuilder extends AbstractUIBuilder {
     return this
   }
 
+    /**
+     * Creates an instance of bars.
+     * Note that they still need to be attached to the scene via "scene.add.existing(bars)"
+     */
   build() {
     const container = new Container(this.scene)
 

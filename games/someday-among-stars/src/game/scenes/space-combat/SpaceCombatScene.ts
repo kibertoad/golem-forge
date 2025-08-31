@@ -795,6 +795,13 @@ export class SpaceCombatScene extends PotatoScene {
     console.log('[RESET] *** spinning state:', this.spinning)
     console.log('[RESET] *** playerSlotSprites length:', this.playerSlotSprites.length)
 
+    // Reset energy usage
+    console.log(`[RESET] Energy before reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+    this.energyUsage.setValue(0)
+    this.weaponUsage.setValue(0)
+    this.componentUsage.setValue(0)
+    console.log(`[RESET] Energy after reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+
     // Reset selection state
     this.playerSlotsSelected = this.playerSlotSprites.map(() => false)
 
@@ -817,6 +824,9 @@ export class SpaceCombatScene extends PotatoScene {
         )
       }
     })
+
+    // Update energy bar to reflect reset values
+    this.updateEnergyBar()
 
     console.log('[RESET] *** RESET COMPLETE')
   }
