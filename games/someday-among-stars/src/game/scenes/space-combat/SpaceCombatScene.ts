@@ -55,6 +55,8 @@ export class SpaceCombatScene extends PotatoScene {
   private shipIndicatorContainer!: ShipIndicatorContainer
   private worldModel: WorldModel
   private energyBar!: Phaser.GameObjects.Container
+  private shieldBar!: Phaser.GameObjects.Container
+  private hullBar!: Phaser.GameObjects.Container
   private energyUsage!: LimitedNumber
   private weaponUsage!: LimitedNumber
   private componentUsage!: LimitedNumber
@@ -104,6 +106,82 @@ export class SpaceCombatScene extends PotatoScene {
     this.add.existing(this.energyBar)
     
     console.log(`[ENERGY BAR UPDATE] Energy bar recreated and added to scene - bars should be spaced horizontally`)
+  }
+
+  private updateShieldBar() {
+    console.log(`[SHIELD BAR UPDATE] Current shield: ${this.worldModel.playerShip.currentShield}/${this.worldModel.playerShip.maxShield}`)
+    
+    this.shieldBar.destroy()
+    const shieldBarBuilder = BarsBarBuilder.instance(this)
+    shieldBarBuilder.setPosition({ x: 40, y: 550 })
+    shieldBarBuilder.setMaxValue(this.worldModel.playerShip.maxShield)
+    shieldBarBuilder.setValue(this.worldModel.playerShip.currentShield)
+    shieldBarBuilder.setColors({ fill: '#0066ff', background: '#333333', border: '#ffffff' })
+    shieldBarBuilder.setLabel('Shield')
+    shieldBarBuilder.setOffsetX(5)
+    this.shieldBar = shieldBarBuilder.build()
+    this.shieldBar.setDepth(1000)
+    this.shieldBar.setVisible(true)
+    this.add.existing(this.shieldBar)
+    
+    console.log(`[SHIELD BAR UPDATE] Shield bar recreated and added to scene`)
+  }
+
+  private updateHullBar() {
+    console.log(`[HULL BAR UPDATE] Current hull: ${this.worldModel.playerShip.currentHull}/${this.worldModel.playerShip.maxHull}`)
+    
+    this.hullBar.destroy()
+    const hullBarBuilder = BarsBarBuilder.instance(this)
+    hullBarBuilder.setPosition({ x: 40, y: 500 })
+    hullBarBuilder.setMaxValue(this.worldModel.playerShip.maxHull)
+    hullBarBuilder.setValue(this.worldModel.playerShip.currentHull)
+    hullBarBuilder.setColors({ fill: '#ffdd00', background: '#333333', border: '#ffffff' })
+    hullBarBuilder.setLabel('Hull')
+    hullBarBuilder.setOffsetX(5)
+    this.hullBar = hullBarBuilder.build()
+    this.hullBar.setDepth(1000)
+    this.hullBar.setVisible(true)
+    this.add.existing(this.hullBar)
+    
+    console.log(`[HULL BAR UPDATE] Hull bar recreated and added to scene`)
+  }
+
+  private takeDamage(damage: number) {
+    console.log(`[DAMAGE] Taking ${damage} damage`)
+    
+    // Damage hits shield first, then hull
+    if (this.worldModel.playerShip.currentShield > 0) {
+      const shieldDamage = Math.min(damage, this.worldModel.playerShip.currentShield)
+      this.worldModel.playerShip.currentShield -= shieldDamage
+      damage -= shieldDamage
+      this.updateShieldBar()
+      console.log(`[DAMAGE] Shield took ${shieldDamage} damage, ${this.worldModel.playerShip.currentShield} shield remaining`)
+    }
+    
+    if (damage > 0 && this.worldModel.playerShip.currentHull > 0) {
+      const hullDamage = Math.min(damage, this.worldModel.playerShip.currentHull)
+      this.worldModel.playerShip.currentHull -= hullDamage
+      this.updateHullBar()
+      console.log(`[DAMAGE] Hull took ${hullDamage} damage, ${this.worldModel.playerShip.currentHull} hull remaining`)
+    }
+  }
+
+  private restoreShield(amount: number) {
+    console.log(`[SHIELD RESTORE] Restoring ${amount} shield`)
+    this.worldModel.playerShip.currentShield = Math.min(
+      this.worldModel.playerShip.currentShield + amount,
+      this.worldModel.playerShip.maxShield
+    )
+    this.updateShieldBar()
+  }
+
+  private repairHull(amount: number) {
+    console.log(`[HULL REPAIR] Repairing ${amount} hull`)
+    this.worldModel.playerShip.currentHull = Math.min(
+      this.worldModel.playerShip.currentHull + amount,
+      this.worldModel.playerShip.maxHull
+    )
+    this.updateHullBar()
   }
 
   private canSelectSlot(slotIndex: number): boolean {
@@ -391,7 +469,47 @@ export class SpaceCombatScene extends PotatoScene {
     console.log('[ENERGY BAR] Energy bar created:', this.energyBar)
     console.log('[ENERGY BAR] Energy bar children:', this.energyBar.list?.length || 0)
 
-    console.log('[CREATE] Scene created. Slots and spin button initialized.')
+    // --- SHIELD BAR ---
+    console.log('[SHIELD BAR] Creating shield bar with max:', this.worldModel.playerShip.maxShield, 'current:', this.worldModel.playerShip.currentShield)
+    const shieldBarBuilder = BarsBarBuilder.instance(this)
+    shieldBarBuilder.setPosition({ x: 40, y: 550 })
+    shieldBarBuilder.setMaxValue(this.worldModel.playerShip.maxShield)
+    shieldBarBuilder.setValue(this.worldModel.playerShip.currentShield)
+    shieldBarBuilder.setColors({ fill: '#0066ff', background: '#333333', border: '#ffffff' })
+    shieldBarBuilder.setLabel('Shield')
+    shieldBarBuilder.setOffsetX(5)
+    this.shieldBar = shieldBarBuilder.build()
+    this.shieldBar.setDepth(1000)
+    this.shieldBar.setVisible(true)
+    this.add.existing(this.shieldBar)
+
+    // --- HULL BAR ---
+    console.log('[HULL BAR] Creating hull bar with max:', this.worldModel.playerShip.maxHull, 'current:', this.worldModel.playerShip.currentHull)
+    const hullBarBuilder = BarsBarBuilder.instance(this)
+    hullBarBuilder.setPosition({ x: 40, y: 500 })
+    hullBarBuilder.setMaxValue(this.worldModel.playerShip.maxHull)
+    hullBarBuilder.setValue(this.worldModel.playerShip.currentHull)
+    hullBarBuilder.setColors({ fill: '#ffdd00', background: '#333333', border: '#ffffff' })
+    hullBarBuilder.setLabel('Hull')
+    hullBarBuilder.setOffsetX(5)
+    this.hullBar = hullBarBuilder.build()
+    this.hullBar.setDepth(1000)
+    this.hullBar.setVisible(true)
+    this.add.existing(this.hullBar)
+
+    // --- DAMAGE/REPAIR CONTROLS (for testing) ---
+    this.input.keyboard?.on('keydown-D', () => {
+      this.takeDamage(1)
+    })
+    this.input.keyboard?.on('keydown-S', () => {
+      this.restoreShield(1)
+    })
+    this.input.keyboard?.on('keydown-H', () => {
+      this.repairHull(1)
+    })
+
+    console.log('[CREATE] Scene created. Slots, spin button, and all bars initialized.')
+    console.log('[CREATE] Press D for damage, S to restore shield, H to repair hull')
 
     this.add.existing(this.energyBar)
   }
