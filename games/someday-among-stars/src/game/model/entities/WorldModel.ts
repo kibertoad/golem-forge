@@ -19,6 +19,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly planets: PlanetModel[]
 
   public readonly playerShip: ShipModel
+  public readonly enemyShip: ShipModel
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
     this.globalSceneEventEmitter = globalSceneEventEmitter
@@ -38,6 +39,14 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.playerShip = new ShipModel()
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
+
+    // Initialize enemy ship with different stats
+    this.enemyShip = new ShipModel()
+    this.enemyShip.maxEnergy = 4
+    this.enemyShip.currentShield = 2
+    this.enemyShip.maxShield = 2
+    this.enemyShip.currentHull = 5
+    this.enemyShip.maxHull = 5
   }
 }
 

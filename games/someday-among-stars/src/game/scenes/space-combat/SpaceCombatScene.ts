@@ -57,6 +57,8 @@ export class SpaceCombatScene extends PotatoScene {
   private energyBar!: Phaser.GameObjects.Container
   private shieldBar!: Phaser.GameObjects.Container
   private hullBar!: Phaser.GameObjects.Container
+  private enemyShieldBar!: Phaser.GameObjects.Container
+  private enemyHullBar!: Phaser.GameObjects.Container
   private energyUsage!: LimitedNumber
   private weaponUsage!: LimitedNumber
   private componentUsage!: LimitedNumber
@@ -146,6 +148,44 @@ export class SpaceCombatScene extends PotatoScene {
     console.log(`[HULL BAR UPDATE] Hull bar recreated and added to scene`)
   }
 
+  private updateEnemyShieldBar() {
+    console.log(`[ENEMY SHIELD BAR UPDATE] Current enemy shield: ${this.worldModel.enemyShip.currentShield}/${this.worldModel.enemyShip.maxShield}`)
+    
+    this.enemyShieldBar.destroy()
+    const enemyShieldBarBuilder = BarsBarBuilder.instance(this)
+    enemyShieldBarBuilder.setPosition({ x: this.scale.width - 200, y: 550 })
+    enemyShieldBarBuilder.setMaxValue(this.worldModel.enemyShip.maxShield)
+    enemyShieldBarBuilder.setValue(this.worldModel.enemyShip.currentShield)
+    enemyShieldBarBuilder.setColors({ fill: '#0066ff', background: '#333333', border: '#ffffff' })
+    enemyShieldBarBuilder.setLabel('Enemy Shield')
+    enemyShieldBarBuilder.setOffsetX(5)
+    this.enemyShieldBar = enemyShieldBarBuilder.build()
+    this.enemyShieldBar.setDepth(1000)
+    this.enemyShieldBar.setVisible(true)
+    this.add.existing(this.enemyShieldBar)
+    
+    console.log(`[ENEMY SHIELD BAR UPDATE] Enemy shield bar recreated and added to scene`)
+  }
+
+  private updateEnemyHullBar() {
+    console.log(`[ENEMY HULL BAR UPDATE] Current enemy hull: ${this.worldModel.enemyShip.currentHull}/${this.worldModel.enemyShip.maxHull}`)
+    
+    this.enemyHullBar.destroy()
+    const enemyHullBarBuilder = BarsBarBuilder.instance(this)
+    enemyHullBarBuilder.setPosition({ x: this.scale.width - 200, y: 500 })
+    enemyHullBarBuilder.setMaxValue(this.worldModel.enemyShip.maxHull)
+    enemyHullBarBuilder.setValue(this.worldModel.enemyShip.currentHull)
+    enemyHullBarBuilder.setColors({ fill: '#ffdd00', background: '#333333', border: '#ffffff' })
+    enemyHullBarBuilder.setLabel('Enemy Hull')
+    enemyHullBarBuilder.setOffsetX(5)
+    this.enemyHullBar = enemyHullBarBuilder.build()
+    this.enemyHullBar.setDepth(1000)
+    this.enemyHullBar.setVisible(true)
+    this.add.existing(this.enemyHullBar)
+    
+    console.log(`[ENEMY HULL BAR UPDATE] Enemy hull bar recreated and added to scene`)
+  }
+
   private takeDamage(damage: number) {
     console.log(`[DAMAGE] Taking ${damage} damage`)
     
@@ -182,6 +222,44 @@ export class SpaceCombatScene extends PotatoScene {
       this.worldModel.playerShip.maxHull
     )
     this.updateHullBar()
+  }
+
+  private damageEnemy(damage: number) {
+    console.log(`[ENEMY DAMAGE] Enemy taking ${damage} damage`)
+    
+    // Damage hits shield first, then hull
+    if (this.worldModel.enemyShip.currentShield > 0) {
+      const shieldDamage = Math.min(damage, this.worldModel.enemyShip.currentShield)
+      this.worldModel.enemyShip.currentShield -= shieldDamage
+      damage -= shieldDamage
+      this.updateEnemyShieldBar()
+      console.log(`[ENEMY DAMAGE] Enemy shield took ${shieldDamage} damage, ${this.worldModel.enemyShip.currentShield} shield remaining`)
+    }
+    
+    if (damage > 0 && this.worldModel.enemyShip.currentHull > 0) {
+      const hullDamage = Math.min(damage, this.worldModel.enemyShip.currentHull)
+      this.worldModel.enemyShip.currentHull -= hullDamage
+      this.updateEnemyHullBar()
+      console.log(`[ENEMY DAMAGE] Enemy hull took ${hullDamage} damage, ${this.worldModel.enemyShip.currentHull} hull remaining`)
+    }
+  }
+
+  private restoreEnemyShield(amount: number) {
+    console.log(`[ENEMY SHIELD RESTORE] Restoring ${amount} enemy shield`)
+    this.worldModel.enemyShip.currentShield = Math.min(
+      this.worldModel.enemyShip.currentShield + amount,
+      this.worldModel.enemyShip.maxShield
+    )
+    this.updateEnemyShieldBar()
+  }
+
+  private repairEnemyHull(amount: number) {
+    console.log(`[ENEMY HULL REPAIR] Repairing ${amount} enemy hull`)
+    this.worldModel.enemyShip.currentHull = Math.min(
+      this.worldModel.enemyShip.currentHull + amount,
+      this.worldModel.enemyShip.maxHull
+    )
+    this.updateEnemyHullBar()
   }
 
   private canSelectSlot(slotIndex: number): boolean {
@@ -497,7 +575,36 @@ export class SpaceCombatScene extends PotatoScene {
     this.hullBar.setVisible(true)
     this.add.existing(this.hullBar)
 
+    // --- ENEMY SHIELD BAR ---
+    console.log('[ENEMY SHIELD BAR] Creating enemy shield bar with max:', this.worldModel.enemyShip.maxShield, 'current:', this.worldModel.enemyShip.currentShield)
+    const enemyShieldBarBuilder = BarsBarBuilder.instance(this)
+    enemyShieldBarBuilder.setPosition({ x: this.scale.width - 200, y: 550 })
+    enemyShieldBarBuilder.setMaxValue(this.worldModel.enemyShip.maxShield)
+    enemyShieldBarBuilder.setValue(this.worldModel.enemyShip.currentShield)
+    enemyShieldBarBuilder.setColors({ fill: '#0066ff', background: '#333333', border: '#ffffff' })
+    enemyShieldBarBuilder.setLabel('Enemy Shield')
+    enemyShieldBarBuilder.setOffsetX(5)
+    this.enemyShieldBar = enemyShieldBarBuilder.build()
+    this.enemyShieldBar.setDepth(1000)
+    this.enemyShieldBar.setVisible(true)
+    this.add.existing(this.enemyShieldBar)
+
+    // --- ENEMY HULL BAR ---
+    console.log('[ENEMY HULL BAR] Creating enemy hull bar with max:', this.worldModel.enemyShip.maxHull, 'current:', this.worldModel.enemyShip.currentHull)
+    const enemyHullBarBuilder = BarsBarBuilder.instance(this)
+    enemyHullBarBuilder.setPosition({ x: this.scale.width - 200, y: 500 })
+    enemyHullBarBuilder.setMaxValue(this.worldModel.enemyShip.maxHull)
+    enemyHullBarBuilder.setValue(this.worldModel.enemyShip.currentHull)
+    enemyHullBarBuilder.setColors({ fill: '#ffdd00', background: '#333333', border: '#ffffff' })
+    enemyHullBarBuilder.setLabel('Enemy Hull')
+    enemyHullBarBuilder.setOffsetX(5)
+    this.enemyHullBar = enemyHullBarBuilder.build()
+    this.enemyHullBar.setDepth(1000)
+    this.enemyHullBar.setVisible(true)
+    this.add.existing(this.enemyHullBar)
+
     // --- DAMAGE/REPAIR CONTROLS (for testing) ---
+    // Player controls
     this.input.keyboard?.on('keydown-D', () => {
       this.takeDamage(1)
     })
@@ -507,9 +614,20 @@ export class SpaceCombatScene extends PotatoScene {
     this.input.keyboard?.on('keydown-H', () => {
       this.repairHull(1)
     })
+    
+    // Enemy controls
+    this.input.keyboard?.on('keydown-E', () => {
+      this.damageEnemy(1)
+    })
+    this.input.keyboard?.on('keydown-R', () => {
+      this.restoreEnemyShield(1)
+    })
+    this.input.keyboard?.on('keydown-T', () => {
+      this.repairEnemyHull(1)
+    })
 
     console.log('[CREATE] Scene created. Slots, spin button, and all bars initialized.')
-    console.log('[CREATE] Press D for damage, S to restore shield, H to repair hull')
+    console.log('[CREATE] Player: D=damage, S=shield, H=hull | Enemy: E=damage, R=shield, T=hull')
 
     this.add.existing(this.energyBar)
   }
