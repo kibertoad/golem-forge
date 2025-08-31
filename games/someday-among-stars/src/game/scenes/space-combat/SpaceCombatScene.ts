@@ -1,11 +1,12 @@
-import { PotatoScene, BarsBarBuilder } from '@potato-golem/ui'
 import { LimitedNumber } from '@potato-golem/core'
+import { BarsBarBuilder, PotatoScene } from '@potato-golem/ui'
 import Phaser from 'phaser'
 import type { Dependencies } from '../../diConfig.ts'
-import type { WorldModel } from '../../model/entities/WorldModel.ts'
-import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import { WEAPON_SLOT_SIDES } from '../../model/slot_sides/WeaponSlotSides.ts'
 import type { ActivationResult, ActivationSource } from '../../model/activations/activations.ts'
+import type { WorldModel } from '../../model/entities/WorldModel.ts'
+import { WEAPON_SLOT_SIDES } from '../../model/slot_sides/WeaponSlotSides.ts'
+import { sceneRegistry } from '../../registries/sceneRegistry.ts'
+import { EventLog } from './EventLog.ts'
 import { ShipIndicatorContainer } from './views/ShipIndicatorContainer.ts'
 
 // === SLOT MACHINE SPRITESHEET CONFIG ===
@@ -64,6 +65,7 @@ export class SpaceCombatScene extends PotatoScene {
   private energyUsage!: LimitedNumber
   private weaponUsage!: LimitedNumber
   private componentUsage!: LimitedNumber
+  private eventLog!: EventLog
 
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.SPACE_COMBAT })
@@ -91,8 +93,10 @@ export class SpaceCombatScene extends PotatoScene {
   }
 
   private updateEnergyBar() {
-    console.log(`[ENERGY BAR UPDATE] Current energy usage: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
-    
+    console.log(
+      `[ENERGY BAR UPDATE] Current energy usage: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`,
+    )
+
     // Update the energy bar using BarsBarBuilder method
     this.energyBar.destroy()
     const energyBarBuilder = BarsBarBuilder.instance(this)
@@ -108,13 +112,17 @@ export class SpaceCombatScene extends PotatoScene {
     this.energyBar.setVisible(true)
     // Add the new energy bar to the scene's display list
     this.add.existing(this.energyBar)
-    
-    console.log(`[ENERGY BAR UPDATE] Energy bar recreated and added to scene - bars should be spaced horizontally`)
+
+    console.log(
+      `[ENERGY BAR UPDATE] Energy bar recreated and added to scene - bars should be spaced horizontally`,
+    )
   }
 
   private updateShieldBar() {
-    console.log(`[SHIELD BAR UPDATE] Current shield: ${this.worldModel.playerShip.currentShield}/${this.worldModel.playerShip.maxShield}`)
-    
+    console.log(
+      `[SHIELD BAR UPDATE] Current shield: ${this.worldModel.playerShip.currentShield}/${this.worldModel.playerShip.maxShield}`,
+    )
+
     this.shieldBar.destroy()
     const shieldBarBuilder = BarsBarBuilder.instance(this)
     shieldBarBuilder.setPosition({ x: 40, y: 550 })
@@ -127,13 +135,15 @@ export class SpaceCombatScene extends PotatoScene {
     this.shieldBar.setDepth(1000)
     this.shieldBar.setVisible(true)
     this.add.existing(this.shieldBar)
-    
+
     console.log(`[SHIELD BAR UPDATE] Shield bar recreated and added to scene`)
   }
 
   private updateHullBar() {
-    console.log(`[HULL BAR UPDATE] Current hull: ${this.worldModel.playerShip.currentHull}/${this.worldModel.playerShip.maxHull}`)
-    
+    console.log(
+      `[HULL BAR UPDATE] Current hull: ${this.worldModel.playerShip.currentHull}/${this.worldModel.playerShip.maxHull}`,
+    )
+
     this.hullBar.destroy()
     const hullBarBuilder = BarsBarBuilder.instance(this)
     hullBarBuilder.setPosition({ x: 40, y: 500 })
@@ -146,13 +156,15 @@ export class SpaceCombatScene extends PotatoScene {
     this.hullBar.setDepth(1000)
     this.hullBar.setVisible(true)
     this.add.existing(this.hullBar)
-    
+
     console.log(`[HULL BAR UPDATE] Hull bar recreated and added to scene`)
   }
 
   private updateEnemyShieldBar() {
-    console.log(`[ENEMY SHIELD BAR UPDATE] Current enemy shield: ${this.worldModel.enemyShip.currentShield}/${this.worldModel.enemyShip.maxShield}`)
-    
+    console.log(
+      `[ENEMY SHIELD BAR UPDATE] Current enemy shield: ${this.worldModel.enemyShip.currentShield}/${this.worldModel.enemyShip.maxShield}`,
+    )
+
     this.enemyShieldBar.destroy()
     const enemyShieldBarBuilder = BarsBarBuilder.instance(this)
     enemyShieldBarBuilder.setPosition({ x: this.scale.width - 200, y: 550 })
@@ -165,13 +177,15 @@ export class SpaceCombatScene extends PotatoScene {
     this.enemyShieldBar.setDepth(1000)
     this.enemyShieldBar.setVisible(true)
     this.add.existing(this.enemyShieldBar)
-    
+
     console.log(`[ENEMY SHIELD BAR UPDATE] Enemy shield bar recreated and added to scene`)
   }
 
   private updateEnemyHullBar() {
-    console.log(`[ENEMY HULL BAR UPDATE] Current enemy hull: ${this.worldModel.enemyShip.currentHull}/${this.worldModel.enemyShip.maxHull}`)
-    
+    console.log(
+      `[ENEMY HULL BAR UPDATE] Current enemy hull: ${this.worldModel.enemyShip.currentHull}/${this.worldModel.enemyShip.maxHull}`,
+    )
+
     this.enemyHullBar.destroy()
     const enemyHullBarBuilder = BarsBarBuilder.instance(this)
     enemyHullBarBuilder.setPosition({ x: this.scale.width - 200, y: 500 })
@@ -184,27 +198,31 @@ export class SpaceCombatScene extends PotatoScene {
     this.enemyHullBar.setDepth(1000)
     this.enemyHullBar.setVisible(true)
     this.add.existing(this.enemyHullBar)
-    
+
     console.log(`[ENEMY HULL BAR UPDATE] Enemy hull bar recreated and added to scene`)
   }
 
   private takeDamage(damage: number) {
     console.log(`[DAMAGE] Taking ${damage} damage`)
-    
+
     // Damage hits shield first, then hull
     if (this.worldModel.playerShip.currentShield > 0) {
       const shieldDamage = Math.min(damage, this.worldModel.playerShip.currentShield)
       this.worldModel.playerShip.currentShield -= shieldDamage
       damage -= shieldDamage
       this.updateShieldBar()
-      console.log(`[DAMAGE] Shield took ${shieldDamage} damage, ${this.worldModel.playerShip.currentShield} shield remaining`)
+      console.log(
+        `[DAMAGE] Shield took ${shieldDamage} damage, ${this.worldModel.playerShip.currentShield} shield remaining`,
+      )
     }
-    
+
     if (damage > 0 && this.worldModel.playerShip.currentHull > 0) {
       const hullDamage = Math.min(damage, this.worldModel.playerShip.currentHull)
       this.worldModel.playerShip.currentHull -= hullDamage
       this.updateHullBar()
-      console.log(`[DAMAGE] Hull took ${hullDamage} damage, ${this.worldModel.playerShip.currentHull} hull remaining`)
+      console.log(
+        `[DAMAGE] Hull took ${hullDamage} damage, ${this.worldModel.playerShip.currentHull} hull remaining`,
+      )
     }
   }
 
@@ -212,7 +230,7 @@ export class SpaceCombatScene extends PotatoScene {
     console.log(`[SHIELD RESTORE] Restoring ${amount} shield`)
     this.worldModel.playerShip.currentShield = Math.min(
       this.worldModel.playerShip.currentShield + amount,
-      this.worldModel.playerShip.maxShield
+      this.worldModel.playerShip.maxShield,
     )
     this.updateShieldBar()
   }
@@ -221,28 +239,32 @@ export class SpaceCombatScene extends PotatoScene {
     console.log(`[HULL REPAIR] Repairing ${amount} hull`)
     this.worldModel.playerShip.currentHull = Math.min(
       this.worldModel.playerShip.currentHull + amount,
-      this.worldModel.playerShip.maxHull
+      this.worldModel.playerShip.maxHull,
     )
     this.updateHullBar()
   }
 
   private damageEnemy(damage: number) {
     console.log(`[ENEMY DAMAGE] Enemy taking ${damage} damage`)
-    
+
     // Damage hits shield first, then hull
     if (this.worldModel.enemyShip.currentShield > 0) {
       const shieldDamage = Math.min(damage, this.worldModel.enemyShip.currentShield)
       this.worldModel.enemyShip.currentShield -= shieldDamage
       damage -= shieldDamage
       this.updateEnemyShieldBar()
-      console.log(`[ENEMY DAMAGE] Enemy shield took ${shieldDamage} damage, ${this.worldModel.enemyShip.currentShield} shield remaining`)
+      console.log(
+        `[ENEMY DAMAGE] Enemy shield took ${shieldDamage} damage, ${this.worldModel.enemyShip.currentShield} shield remaining`,
+      )
     }
-    
+
     if (damage > 0 && this.worldModel.enemyShip.currentHull > 0) {
       const hullDamage = Math.min(damage, this.worldModel.enemyShip.currentHull)
       this.worldModel.enemyShip.currentHull -= hullDamage
       this.updateEnemyHullBar()
-      console.log(`[ENEMY DAMAGE] Enemy hull took ${hullDamage} damage, ${this.worldModel.enemyShip.currentHull} hull remaining`)
+      console.log(
+        `[ENEMY DAMAGE] Enemy hull took ${hullDamage} damage, ${this.worldModel.enemyShip.currentHull} hull remaining`,
+      )
     }
   }
 
@@ -250,7 +272,7 @@ export class SpaceCombatScene extends PotatoScene {
     console.log(`[ENEMY SHIELD RESTORE] Restoring ${amount} enemy shield`)
     this.worldModel.enemyShip.currentShield = Math.min(
       this.worldModel.enemyShip.currentShield + amount,
-      this.worldModel.enemyShip.maxShield
+      this.worldModel.enemyShip.maxShield,
     )
     this.updateEnemyShieldBar()
   }
@@ -259,23 +281,31 @@ export class SpaceCombatScene extends PotatoScene {
     console.log(`[ENEMY HULL REPAIR] Repairing ${amount} enemy hull`)
     this.worldModel.enemyShip.currentHull = Math.min(
       this.worldModel.enemyShip.currentHull + amount,
-      this.worldModel.enemyShip.maxHull
+      this.worldModel.enemyShip.maxHull,
     )
     this.updateEnemyHullBar()
   }
 
-  private executeTargetEffects(slotSideId: string, target: 'player' | 'enemy', sourceShip: 'player' | 'enemy', weaponIndex: number): ActivationResult[] {
-    console.log(`[TARGET EFFECTS] Executing effects for ${slotSideId} on ${target} from ${sourceShip} weapon ${weaponIndex}`)
-    
-    const slotSide = Object.values(WEAPON_SLOT_SIDES).find(side => side.id === slotSideId)
+  private executeTargetEffects(
+    slotSideId: string,
+    target: 'player' | 'enemy',
+    sourceShip: 'player' | 'enemy',
+    weaponIndex: number,
+  ): ActivationResult[] {
+    console.log(
+      `[TARGET EFFECTS] Executing effects for ${slotSideId} on ${target} from ${sourceShip} weapon ${weaponIndex}`,
+    )
+
+    const slotSide = Object.values(WEAPON_SLOT_SIDES).find((side) => side.id === slotSideId)
     if (!slotSide || slotSide.targetEffects.length === 0) {
       console.log(`[TARGET EFFECTS] No effects found for ${slotSideId}`)
       return []
     }
 
     const targetShip = target === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
-    const attackingShip = sourceShip === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
-    
+    const attackingShip =
+      sourceShip === 'player' ? this.worldModel.playerShip : this.worldModel.enemyShip
+
     // Get the source component (weapon that's attacking)
     let sourceComponent = null
     if (sourceShip === 'player' && weaponIndex < attackingShip.weapons.length) {
@@ -286,10 +316,12 @@ export class SpaceCombatScene extends PotatoScene {
       console.log(`[TARGET EFFECTS] Enemy attack - no specific weapon component available`)
     }
 
-    const source: ActivationSource | undefined = sourceComponent ? {
-      sourceShip: attackingShip,
-      sourceComponent: sourceComponent
-    } : undefined
+    const source: ActivationSource | undefined = sourceComponent
+      ? {
+          sourceShip: attackingShip,
+          sourceComponent: sourceComponent,
+        }
+      : undefined
 
     const results: ActivationResult[] = []
 
@@ -297,7 +329,7 @@ export class SpaceCombatScene extends PotatoScene {
       const result = effect.execute(targetShip, source)
       results.push(result)
       console.log(`[TARGET EFFECTS] ${effect.type} effect: ${result.message}`)
-      
+
       if (result.entityDestroyed) {
         console.log(`[TARGET EFFECTS] ${target} ship destroyed!`)
         // Update both bars to show the destruction
@@ -331,7 +363,9 @@ export class SpaceCombatScene extends PotatoScene {
       for (const slot of section.slots) {
         if (currentSlotIndex === slotIndex) {
           const newUsage = this.energyUsage.value + slot.energyUsage
-          console.log(`[ENERGY DEBUG] Current: ${this.energyUsage.value}, Adding: ${slot.energyUsage}, New: ${newUsage}, Max: ${this.worldModel.playerShip.maxEnergy}`)
+          console.log(
+            `[ENERGY DEBUG] Current: ${this.energyUsage.value}, Adding: ${slot.energyUsage}, New: ${newUsage}, Max: ${this.worldModel.playerShip.maxEnergy}`,
+          )
           return newUsage <= this.worldModel.playerShip.maxEnergy
         }
         currentSlotIndex++
@@ -349,18 +383,24 @@ export class SpaceCombatScene extends PotatoScene {
       for (const slot of section.slots) {
         if (currentSlotIndex === slotIndex) {
           if (this.energyUsage.value + slot.energyUsage <= this.worldModel.playerShip.maxEnergy) {
-            console.log(`[ENERGY SELECT] ${slot.name} selected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`)
+            console.log(
+              `[ENERGY SELECT] ${slot.name} selected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`,
+            )
             this.energyUsage.increase(slot.energyUsage)
             // For weapons, also track weapon usage
             if (section.label === 'Weapons') {
               this.weaponUsage.increase(slot.energyUsage)
             }
             this.componentUsage.increase(slot.energyUsage)
-            console.log(`[ENERGY SELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+            console.log(
+              `[ENERGY SELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`,
+            )
             this.updateEnergyBar()
             return true
           }
-          console.log(`[ENERGY SELECT] ${slot.name} cannot be selected - would exceed energy limit (${this.energyUsage.value + slot.energyUsage}/${this.worldModel.playerShip.maxEnergy})`)
+          console.log(
+            `[ENERGY SELECT] ${slot.name} cannot be selected - would exceed energy limit (${this.energyUsage.value + slot.energyUsage}/${this.worldModel.playerShip.maxEnergy})`,
+          )
           return false
         }
         currentSlotIndex++
@@ -377,14 +417,18 @@ export class SpaceCombatScene extends PotatoScene {
     for (const section of playerSections) {
       for (const slot of section.slots) {
         if (currentSlotIndex === slotIndex) {
-          console.log(`[ENERGY DESELECT] ${slot.name} deselected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`)
+          console.log(
+            `[ENERGY DESELECT] ${slot.name} deselected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`,
+          )
           this.energyUsage.decrease(slot.energyUsage)
           // For weapons, also reduce weapon usage
           if (section.label === 'Weapons') {
             this.weaponUsage.decrease(slot.energyUsage)
           }
           this.componentUsage.decrease(slot.energyUsage)
-          console.log(`[ENERGY DESELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+          console.log(
+            `[ENERGY DESELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`,
+          )
           this.updateEnergyBar()
           return
         }
@@ -393,7 +437,11 @@ export class SpaceCombatScene extends PotatoScene {
     }
   }
 
-  private handleSlotSelection(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+  private handleSlotSelection(
+    slotIndex: number,
+    sprite: Phaser.GameObjects.Image,
+    slot: any,
+  ): void {
     const isCurrentlySelected = this.playerSlotsSelected[slotIndex]
 
     if (isCurrentlySelected) {
@@ -403,14 +451,22 @@ export class SpaceCombatScene extends PotatoScene {
     }
   }
 
-  private handleSlotDeselection(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+  private handleSlotDeselection(
+    slotIndex: number,
+    sprite: Phaser.GameObjects.Image,
+    slot: any,
+  ): void {
     console.log(`[CLICK DEBUG] Deselecting ${slot.name}`)
     this.playerSlotsSelected[slotIndex] = false
     sprite.setAlpha(0.7)
     this.deselectSlot(slotIndex)
   }
 
-  private handleSlotSelectionAttempt(slotIndex: number, sprite: Phaser.GameObjects.Image, slot: any): void {
+  private handleSlotSelectionAttempt(
+    slotIndex: number,
+    sprite: Phaser.GameObjects.Image,
+    slot: any,
+  ): void {
     if (this.canSelectSlot(slotIndex)) {
       console.log(`[CLICK DEBUG] Selecting ${slot.name}`)
       const success = this.selectSlot(slotIndex)
@@ -588,12 +644,32 @@ export class SpaceCombatScene extends PotatoScene {
     this.shipIndicatorContainer.renderShipIndicators(midX)
 
     // --- ENERGY TRACKING ---
-    this.energyUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Energy Usage')
-    this.weaponUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Weapon Usage')
-    this.componentUsage = new LimitedNumber(0, this.worldModel.playerShip.maxEnergy, false, 'Component Usage')
+    this.energyUsage = new LimitedNumber(
+      0,
+      this.worldModel.playerShip.maxEnergy,
+      false,
+      'Energy Usage',
+    )
+    this.weaponUsage = new LimitedNumber(
+      0,
+      this.worldModel.playerShip.maxEnergy,
+      false,
+      'Weapon Usage',
+    )
+    this.componentUsage = new LimitedNumber(
+      0,
+      this.worldModel.playerShip.maxEnergy,
+      false,
+      'Component Usage',
+    )
 
     // --- ENERGY BAR ---
-    console.log('[ENERGY BAR] Creating energy bar with max:', this.worldModel.playerShip.maxEnergy, 'current:', this.energyUsage.value)
+    console.log(
+      '[ENERGY BAR] Creating energy bar with max:',
+      this.worldModel.playerShip.maxEnergy,
+      'current:',
+      this.energyUsage.value,
+    )
     const energyBarBuilder = BarsBarBuilder.instance(this)
     energyBarBuilder.setPosition({ x: 40, y: 600 })
     energyBarBuilder.setMaxValue(this.worldModel.playerShip.maxEnergy)
@@ -609,7 +685,12 @@ export class SpaceCombatScene extends PotatoScene {
     console.log('[ENERGY BAR] Energy bar children:', this.energyBar.list?.length || 0)
 
     // --- SHIELD BAR ---
-    console.log('[SHIELD BAR] Creating shield bar with max:', this.worldModel.playerShip.maxShield, 'current:', this.worldModel.playerShip.currentShield)
+    console.log(
+      '[SHIELD BAR] Creating shield bar with max:',
+      this.worldModel.playerShip.maxShield,
+      'current:',
+      this.worldModel.playerShip.currentShield,
+    )
     const shieldBarBuilder = BarsBarBuilder.instance(this)
     shieldBarBuilder.setPosition({ x: 40, y: 550 })
     shieldBarBuilder.setMaxValue(this.worldModel.playerShip.maxShield)
@@ -623,7 +704,12 @@ export class SpaceCombatScene extends PotatoScene {
     this.add.existing(this.shieldBar)
 
     // --- HULL BAR ---
-    console.log('[HULL BAR] Creating hull bar with max:', this.worldModel.playerShip.maxHull, 'current:', this.worldModel.playerShip.currentHull)
+    console.log(
+      '[HULL BAR] Creating hull bar with max:',
+      this.worldModel.playerShip.maxHull,
+      'current:',
+      this.worldModel.playerShip.currentHull,
+    )
     const hullBarBuilder = BarsBarBuilder.instance(this)
     hullBarBuilder.setPosition({ x: 40, y: 500 })
     hullBarBuilder.setMaxValue(this.worldModel.playerShip.maxHull)
@@ -637,7 +723,12 @@ export class SpaceCombatScene extends PotatoScene {
     this.add.existing(this.hullBar)
 
     // --- ENEMY SHIELD BAR ---
-    console.log('[ENEMY SHIELD BAR] Creating enemy shield bar with max:', this.worldModel.enemyShip.maxShield, 'current:', this.worldModel.enemyShip.currentShield)
+    console.log(
+      '[ENEMY SHIELD BAR] Creating enemy shield bar with max:',
+      this.worldModel.enemyShip.maxShield,
+      'current:',
+      this.worldModel.enemyShip.currentShield,
+    )
     const enemyShieldBarBuilder = BarsBarBuilder.instance(this)
     enemyShieldBarBuilder.setPosition({ x: this.scale.width - 200, y: 550 })
     enemyShieldBarBuilder.setMaxValue(this.worldModel.enemyShip.maxShield)
@@ -651,7 +742,12 @@ export class SpaceCombatScene extends PotatoScene {
     this.add.existing(this.enemyShieldBar)
 
     // --- ENEMY HULL BAR ---
-    console.log('[ENEMY HULL BAR] Creating enemy hull bar with max:', this.worldModel.enemyShip.maxHull, 'current:', this.worldModel.enemyShip.currentHull)
+    console.log(
+      '[ENEMY HULL BAR] Creating enemy hull bar with max:',
+      this.worldModel.enemyShip.maxHull,
+      'current:',
+      this.worldModel.enemyShip.currentHull,
+    )
     const enemyHullBarBuilder = BarsBarBuilder.instance(this)
     enemyHullBarBuilder.setPosition({ x: this.scale.width - 200, y: 500 })
     enemyHullBarBuilder.setMaxValue(this.worldModel.enemyShip.maxHull)
@@ -675,7 +771,7 @@ export class SpaceCombatScene extends PotatoScene {
     this.input.keyboard?.on('keydown-H', () => {
       this.repairHull(1)
     })
-    
+
     // Enemy controls
     this.input.keyboard?.on('keydown-E', () => {
       this.damageEnemy(1)
@@ -686,25 +782,50 @@ export class SpaceCombatScene extends PotatoScene {
     this.input.keyboard?.on('keydown-T', () => {
       this.repairEnemyHull(1)
     })
-    
+
     // Weapon damage testing
     this.input.keyboard?.on('keydown-W', () => {
       if (this.worldModel.playerShip.weapons.length > 0) {
         const weapon = this.worldModel.playerShip.weapons[0]
         weapon.durability.decrease(1)
-        console.log(`[WEAPON DAMAGE] Player weapon 0 damaged: ${weapon.durability.value}/${weapon.durability.maxValue}`)
+        console.log(
+          `[WEAPON DAMAGE] Player weapon 0 damaged: ${weapon.durability.value}/${weapon.durability.maxValue}`,
+        )
       }
     })
     this.input.keyboard?.on('keydown-Q', () => {
       if (this.worldModel.playerShip.weapons.length > 0) {
         const weapon = this.worldModel.playerShip.weapons[0]
         weapon.durability.increase(1)
-        console.log(`[WEAPON REPAIR] Player weapon 0 repaired: ${weapon.durability.value}/${weapon.durability.maxValue}`)
+        console.log(
+          `[WEAPON REPAIR] Player weapon 0 repaired: ${weapon.durability.value}/${weapon.durability.maxValue}`,
+        )
       }
     })
 
+    // Clear event log
+    this.input.keyboard?.on('keydown-C', () => {
+      this.eventLog.clearLog()
+    })
+
     console.log('[CREATE] Scene created. Slots, spin button, and all bars initialized.')
-    console.log('[CREATE] Player: D=damage, S=shield, H=hull, W=damage weapon, Q=repair weapon')
+    // --- EVENT LOG ---
+    this.eventLog = new EventLog(this)
+    const logX = this.scale.width / 2
+    const logY = this.scale.height - 280 // Moved higher to avoid Spin button (was -130)
+    this.eventLog.createDisplay(logX, logY)
+
+    // Add initial welcome message
+    this.eventLog.addEvent({
+      source: 'player',
+      weaponName: 'System',
+      slotSide: 'INFO',
+      message: 'Combat initialized. Select weapons and spin!',
+    })
+
+    console.log(
+      '[CREATE] Player: D=damage, S=shield, H=hull, W=damage weapon, Q=repair weapon, C=clear log',
+    )
     console.log('[CREATE] Enemy: E=damage, R=shield, T=hull')
 
     this.add.existing(this.energyBar)
@@ -879,19 +1000,49 @@ export class SpaceCombatScene extends PotatoScene {
         slotSpinsDone++
         if (slot && slot.reelSides && slot.reelSides[resultSide]) {
           const slotSideId = slot.reelSides[resultSide].description
+          const weaponName = slot.name
           console.log(
             `[SPIN] Player slot at idx ${i} stopped at side ${resultSide} (${slotSideId})`,
           )
-          
+
           // Execute target effects on enemy
           // Find which weapon this slot belongs to
           const weaponIndex = slotIdx // Since slots map directly to weapons in current implementation
           const results = this.executeTargetEffects(slotSideId, 'enemy', 'player', weaponIndex)
+
+          // Log the event
+          let eventMessage = `${weaponName} rolled ${slotSideId}`
+          if (results.length > 0 && results[0].success) {
+            const result = results[0]
+            if (result.entityDestroyed) {
+              eventMessage += ` - ENEMY DESTROYED!`
+            } else if (result.damageDealt && result.damageDealt > 0) {
+              eventMessage += ` - dealt ${result.damageDealt} damage to enemy`
+            } else {
+              eventMessage += ` - no effect`
+            }
+          }
+
+          this.eventLog.addEvent({
+            source: 'player',
+            weaponName: weaponName,
+            slotSide: slotSideId,
+            message: eventMessage,
+          })
+
           if (results.length > 0) {
             console.log(`[SPIN] Player weapon ${weaponIndex} ${slotSideId} hit enemy:`, results)
           }
         } else {
           console.log(`[SPIN] Player slot at idx ${i} stopped with fallback texture`)
+
+          // Log failed roll
+          this.eventLog.addEvent({
+            source: 'player',
+            weaponName: 'Unknown Weapon',
+            slotSide: 'ERROR',
+            message: 'Weapon malfunction - no effect',
+          })
         }
         if (slotSpinsDone === selectedSprites.length) {
           // After all player slots spin, spin enemy slots
@@ -972,17 +1123,47 @@ export class SpaceCombatScene extends PotatoScene {
         done++
         if (slot && slot.reelSides && slot.reelSides[resultSide]) {
           const slotSideId = slot.reelSides[resultSide].description
+          const weaponName = slot.name
           console.log(
             `[ENEMY] Enemy slot at idx ${idx} stopped at side ${resultSide} (${slotSideId})`,
           )
-          
+
           // Execute target effects on player
           const results = this.executeTargetEffects(slotSideId, 'player', 'enemy', idx)
+
+          // Log the event
+          let eventMessage = `${weaponName} rolled ${slotSideId}`
+          if (results.length > 0 && results[0].success) {
+            const result = results[0]
+            if (result.entityDestroyed) {
+              eventMessage += ` - PLAYER DESTROYED!`
+            } else if (result.damageDealt && result.damageDealt > 0) {
+              eventMessage += ` - dealt ${result.damageDealt} damage to player`
+            } else {
+              eventMessage += ` - no effect`
+            }
+          }
+
+          this.eventLog.addEvent({
+            source: 'enemy',
+            weaponName: weaponName,
+            slotSide: slotSideId,
+            message: eventMessage,
+          })
+
           if (results.length > 0) {
             console.log(`[ENEMY] Enemy weapon ${idx} ${slotSideId} hit player:`, results)
           }
         } else {
           console.log(`[ENEMY] Enemy slot at idx ${idx} stopped with fallback texture`)
+
+          // Log failed roll
+          this.eventLog.addEvent({
+            source: 'enemy',
+            weaponName: 'Enemy Weapon',
+            slotSide: 'ERROR',
+            message: 'Enemy weapon malfunction - no effect',
+          })
         }
         if (done === this.enemySlotSprites.length) {
           console.log('[ENEMY] *** ALL ENEMY SLOTS DONE - about to reset')
@@ -990,6 +1171,15 @@ export class SpaceCombatScene extends PotatoScene {
           this.spinning = false
           console.log('[ENEMY] *** spinning now:', this.spinning)
           console.log('[ENEMY] Enemy slots done. Spinning finished.')
+
+          // Log round completion
+          this.eventLog.addEvent({
+            source: 'player',
+            weaponName: 'System',
+            slotSide: 'INFO',
+            message: '--- Round completed, ready for next turn ---',
+          })
+
           // Reset selection state after spinning is completely done
           this.resetPlayerSlotSelection()
           this.restoreEnemySlotTextures()
@@ -1008,11 +1198,15 @@ export class SpaceCombatScene extends PotatoScene {
     console.log('[RESET] *** playerSlotSprites length:', this.playerSlotSprites.length)
 
     // Reset energy usage
-    console.log(`[RESET] Energy before reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+    console.log(
+      `[RESET] Energy before reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`,
+    )
     this.energyUsage.setValue(0)
     this.weaponUsage.setValue(0)
     this.componentUsage.setValue(0)
-    console.log(`[RESET] Energy after reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+    console.log(
+      `[RESET] Energy after reset: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`,
+    )
 
     // Reset selection state
     this.playerSlotsSelected = this.playerSlotSprites.map(() => false)

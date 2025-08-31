@@ -1,5 +1,10 @@
 import type { RegistryEntityIdValues } from '@potato-golem/core'
-import { DAMAGE_ACTIVATION, type TargettedActivation } from '../activations/activations.ts'
+import {
+  CRITICAL_DAMAGE_ACTIVATION,
+  DAMAGE_ACTIVATION,
+  PIERCE_DAMAGE_ACTIVATION,
+  type TargettedActivation,
+} from '../activations/activations.ts'
 import type { CommonSlotSide } from './CommonSlotSide.ts'
 
 export type WeaponSlotSidesIds = RegistryEntityIdValues<typeof WEAPON_SLOT_SIDES>
@@ -22,7 +27,7 @@ export const WEAPON_SLOT_SIDES = {
   CRITICAL: {
     id: 'CRITICAL',
     image: 'critical',
-    targetEffects: [DAMAGE_ACTIVATION], // Critical also uses weapon damage, could add multiplier later
+    targetEffects: [CRITICAL_DAMAGE_ACTIVATION], // Critical uses double damage activation
   },
   OVERHEAT: {
     id: 'OVERHEAT',
@@ -32,7 +37,7 @@ export const WEAPON_SLOT_SIDES = {
   SHIELD_PIERCE: {
     id: 'SHIELD_PIERCE',
     image: 'shield_pierce',
-    targetEffects: [],
+    targetEffects: [PIERCE_DAMAGE_ACTIVATION], // Pierce bypasses shields and hits hull directly
   },
   STUN: {
     id: 'STUN',
