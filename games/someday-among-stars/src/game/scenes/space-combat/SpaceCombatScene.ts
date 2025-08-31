@@ -85,21 +85,25 @@ export class SpaceCombatScene extends PotatoScene {
   }
 
   private updateEnergyBar() {
+    console.log(`[ENERGY BAR UPDATE] Current energy usage: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
+    
     // Update the energy bar using BarsBarBuilder method
     this.energyBar.destroy()
     const energyBarBuilder = BarsBarBuilder.instance(this)
-    energyBarBuilder.setPosition({ x: 40, y: 40 })
+    energyBarBuilder.setPosition({ x: 40, y: 600 })
     energyBarBuilder.setMaxValue(this.worldModel.playerShip.maxEnergy)
     energyBarBuilder.setValue(this.energyUsage.value)
     energyBarBuilder.setColors({ fill: '#ffaa00', background: '#333333', border: '#ffffff' })
     energyBarBuilder.setLabel('Energy Usage')
+    // Set horizontal spacing between bars
+    energyBarBuilder.setOffsetX(5) // 5px spacing between bars
     this.energyBar = energyBarBuilder.build()
     this.energyBar.setDepth(1000)
     this.energyBar.setVisible(true)
-    // Manual position override since builder setPosition might not work
-    this.energyBar.setPosition(40, 600)
     // Add the new energy bar to the scene's display list
     this.add.existing(this.energyBar)
+    
+    console.log(`[ENERGY BAR UPDATE] Energy bar recreated and added to scene - bars should be spaced horizontally`)
   }
 
   private canSelectSlot(slotIndex: number): boolean {
@@ -128,15 +132,18 @@ export class SpaceCombatScene extends PotatoScene {
       for (const slot of section.slots) {
         if (currentSlotIndex === slotIndex) {
           if (this.energyUsage.value + slot.energyUsage <= this.worldModel.playerShip.maxEnergy) {
+            console.log(`[ENERGY SELECT] ${slot.name} selected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`)
             this.energyUsage.increase(slot.energyUsage)
             // For weapons, also track weapon usage
             if (section.label === 'Weapons') {
               this.weaponUsage.increase(slot.energyUsage)
             }
             this.componentUsage.increase(slot.energyUsage)
+            console.log(`[ENERGY SELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
             this.updateEnergyBar()
             return true
           }
+          console.log(`[ENERGY SELECT] ${slot.name} cannot be selected - would exceed energy limit (${this.energyUsage.value + slot.energyUsage}/${this.worldModel.playerShip.maxEnergy})`)
           return false
         }
         currentSlotIndex++
@@ -153,12 +160,14 @@ export class SpaceCombatScene extends PotatoScene {
     for (const section of playerSections) {
       for (const slot of section.slots) {
         if (currentSlotIndex === slotIndex) {
+          console.log(`[ENERGY DESELECT] ${slot.name} deselected - Energy cost: ${slot.energyUsage}, Before: ${this.energyUsage.value}`)
           this.energyUsage.decrease(slot.energyUsage)
           // For weapons, also reduce weapon usage
           if (section.label === 'Weapons') {
             this.weaponUsage.decrease(slot.energyUsage)
           }
           this.componentUsage.decrease(slot.energyUsage)
+          console.log(`[ENERGY DESELECT] After: ${this.energyUsage.value}/${this.worldModel.playerShip.maxEnergy}`)
           this.updateEnergyBar()
           return
         }
@@ -369,16 +378,16 @@ export class SpaceCombatScene extends PotatoScene {
     // --- ENERGY BAR ---
     console.log('[ENERGY BAR] Creating energy bar with max:', this.worldModel.playerShip.maxEnergy, 'current:', this.energyUsage.value)
     const energyBarBuilder = BarsBarBuilder.instance(this)
-    energyBarBuilder.setPosition({ x: 40, y: 40 })
+    energyBarBuilder.setPosition({ x: 40, y: 600 })
     energyBarBuilder.setMaxValue(this.worldModel.playerShip.maxEnergy)
     energyBarBuilder.setValue(this.energyUsage.value)
     energyBarBuilder.setColors({ fill: '#ffaa00', background: '#333333', border: '#ffffff' })
     energyBarBuilder.setLabel('Energy Usage')
+    // Set horizontal spacing between bars
+    energyBarBuilder.setOffsetX(5) // 5px spacing between bars
     this.energyBar = energyBarBuilder.build()
     this.energyBar.setDepth(1000)
     this.energyBar.setVisible(true)
-    // Manual position override since builder setPosition might not work
-    this.energyBar.setPosition(40, 600)
     console.log('[ENERGY BAR] Energy bar created:', this.energyBar)
     console.log('[ENERGY BAR] Energy bar children:', this.energyBar.list?.length || 0)
 
