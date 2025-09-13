@@ -1,7 +1,7 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-import { ArmsManufacturer, manufacturerDetails, type ManufacturerInfo } from '../../model/enums/ArmsManufacturer.ts'
-import { DepthRegistry } from '../../registries/depthRegistry.ts'
+import { ArmsManufacturer, manufacturerDetails, type ManufacturerInfo } from '../../../model/enums/ArmsManufacturer.ts'
+import { DepthRegistry } from '../../../registries/depthRegistry.ts'
 
 export interface VendorCard {
   manufacturer: ArmsManufacturer
@@ -175,7 +175,7 @@ export class VendorContactSelection extends GameObjects.Container {
     // Branch tags
     const branches = info.branches.slice(0, 3) // Show max 3 branches
     let lastTagY = specY + 30
-    branches.forEach((branch, idx) => {
+    branches.forEach((branch: string, idx: number) => {
       const tagY = specY + 30 + idx * 25
       lastTagY = tagY
       const tagBg = scene.add.graphics()

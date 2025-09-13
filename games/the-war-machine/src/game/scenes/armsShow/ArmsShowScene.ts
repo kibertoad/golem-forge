@@ -1,7 +1,4 @@
-import { GameObjects } from 'phaser'
 import { PotatoScene } from '@potato-golem/ui'
-import type { EventEmitter } from 'emitix'
-import type { GlobalSceneEvents } from '@potato-golem/core'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
 import type { ArmsShowDefinition } from '../../model/definitions/armsShowsDefinitions.ts'
@@ -10,7 +7,14 @@ import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { AgentStatus } from '../../model/enums/AgentEnums.ts'
 import { ArmsManufacturer, manufacturerDetails } from '../../model/enums/ArmsManufacturer.ts'
-import { VendorContactSelection } from './VendorContactSelection.ts'
+
+// Molecules
+import { VendorContactSelection } from './molecules/VendorContactSelection.ts'
+import { AgentInfoPanel } from './molecules/AgentInfoPanel.ts'
+import { ActionPointsDisplay } from './molecules/ActionPointsDisplay.ts'
+import { ShowDetailsPanel } from './molecules/ShowDetailsPanel.ts'
+import { ArmsShowActionMenu, type ArmsShowAction } from './molecules/ArmsShowActionMenu.ts'
+import * as Phaser from 'phaser'
 
 export interface ArmsShowSceneData {
   agent: BusinessAgentModel
@@ -23,10 +27,13 @@ export class ArmsShowScene extends PotatoScene {
   private armsShow: ArmsShowDefinition | null = null
   private actionPoints: number = 0
   private maxActionPoints: number = 0
-  private actionButtons: GameObjects.Container[] = []
-  private actionPointsText: GameObjects.Text | null = null
-  private background: GameObjects.Graphics | null = null
   private sceneData: ArmsShowSceneData | null = null
+
+  // UI Molecules
+  private agentInfoPanel: AgentInfoPanel | null = null
+  private actionPointsDisplay: ActionPointsDisplay | null = null
+  private showDetailsPanel: ShowDetailsPanel | null = null
+  private actionMenu: ArmsShowActionMenu | null = null
 
   constructor({ worldModel, globalSceneEventEmitter }: Pick<Dependencies, 'worldModel' | 'globalSceneEventEmitter'>) {
     super(globalSceneEventEmitter, sceneRegistry.ARMS_SHOW_SCENE)
@@ -34,7 +41,6 @@ export class ArmsShowScene extends PotatoScene {
   }
 
   init(data?: ArmsShowSceneData) {
-    // Store the data passed from scene transition
     if (data) {
       this.sceneData = data
       this.agent = this.sceneData.agent
@@ -46,115 +52,28 @@ export class ArmsShowScene extends PotatoScene {
   }
 
   create() {
+    if (!this.agent || !this.armsShow) return
+
     // Create background
-    this.background = this.add.graphics()
-    this.background.fillStyle(0x001122, 1)
-    this.background.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height)
+    const bg = this.add.graphics()
+    bg.fillStyle(0x001122, 1)
+    bg.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height)
 
     // Title panel
     this.createTitlePanel()
 
-    // Agent info panel
-    this.createAgentInfoPanel()
+    // Create UI molecules
+    this.agentInfoPanel = new AgentInfoPanel(this, 50, 120, this.agent)
 
-    // Action points display
-    this.createActionPointsDisplay()
+    this.actionPointsDisplay = new ActionPointsDisplay(
+      this,
+      this.cameras.main.width - 250,
+      120,
+      this.actionPoints,
+      this.maxActionPoints
+    )
 
-    // Action menu
-    this.createActionMenu()
-
-    // Show details panel
-    this.createShowDetailsPanel()
-  }
-
-  private createTitlePanel() {
-    const titleBg = this.add.graphics()
-    titleBg.fillStyle(0x002244, 0.9)
-    titleBg.fillRoundedRect(50, 20, this.cameras.main.width - 100, 80, 10)
-    titleBg.lineStyle(3, 0x00ffff, 1)
-    titleBg.strokeRoundedRect(50, 20, this.cameras.main.width - 100, 80, 10)
-
-    const titleText = this.add.text(this.cameras.main.width / 2, 60,
-      `${this.armsShow?.name || 'ARMS SHOW'}`, {
-      fontSize: '36px',
-      fontFamily: 'Courier',
-      color: '#ffff00',
-      fontStyle: 'bold',
-    })
-    titleText.setOrigin(0.5)
-  }
-
-  private createAgentInfoPanel() {
-    const panel = this.add.container(50, 120)
-
-    const bg = this.add.graphics()
-    bg.fillStyle(0x003366, 0.8)
-    bg.fillRoundedRect(0, 0, 350, 150, 5)
-    bg.lineStyle(2, 0x00ffff, 0.8)
-    bg.strokeRoundedRect(0, 0, 350, 150, 5)
-    panel.add(bg)
-
-    const agentName = this.add.text(175, 20, `Agent: ${this.agent?.name}`, {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-    })
-    agentName.setOrigin(0.5)
-    panel.add(agentName)
-
-    const skills = [
-      `Negotiation: ${this.agent?.skills.negotiation}/10`,
-      `Networking: ${this.agent?.skills.networking}/10`,
-      `Languages: ${this.agent?.skills.languages}/10`,
-      `Finance: ${this.agent?.skills.finance}/10`,
-    ]
-
-    skills.forEach((skill, index) => {
-      const skillText = this.add.text(20, 50 + index * 25, skill, {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#00ffff',
-      })
-      panel.add(skillText)
-    })
-  }
-
-  private createActionPointsDisplay() {
-    const panel = this.add.container(this.cameras.main.width - 250, 120)
-
-    const bg = this.add.graphics()
-    bg.fillStyle(0x440044, 0.8)
-    bg.fillRoundedRect(0, 0, 200, 80, 5)
-    bg.lineStyle(2, 0xff00ff, 0.8)
-    bg.strokeRoundedRect(0, 0, 200, 80, 5)
-    panel.add(bg)
-
-    const apTitle = this.add.text(100, 20, 'ACTION POINTS', {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#ff00ff',
-      fontStyle: 'bold',
-    })
-    apTitle.setOrigin(0.5)
-    panel.add(apTitle)
-
-    this.actionPointsText = this.add.text(100, 50, `${this.actionPoints} / ${this.maxActionPoints}`, {
-      fontSize: '28px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-    })
-    this.actionPointsText.setOrigin(0.5)
-    panel.add(this.actionPointsText)
-  }
-
-  private createActionMenu() {
-    const menuX = this.cameras.main.width / 2
-    const menuY = 350
-    const buttonWidth = 700
-    const buttonHeight = 50
-    const buttonSpacing = 10
-
-    const actions = [
+    const actions: ArmsShowAction[] = [
       { id: 'vendors', label: '1. Establish connections with arms vendors', cost: 1 },
       { id: 'manufacturers', label: '2. Establish connections with manufacturers', cost: 1 },
       { id: 'buyers', label: '3. Search for potential buyers', cost: 1 },
@@ -164,96 +83,42 @@ export class ArmsShowScene extends PotatoScene {
       { id: 'leave', label: '7. Leave the arms show', cost: 0 },
     ]
 
-    actions.forEach((action, index) => {
-      const button = this.add.container(menuX, menuY + index * (buttonHeight + buttonSpacing))
+    this.actionMenu = new ArmsShowActionMenu(
+      this,
+      this.cameras.main.width / 2,
+      350,
+      actions,
+      (actionId, cost) => this.handleAction(actionId, cost)
+    )
 
-      const bg = this.add.graphics()
-      const canAfford = this.actionPoints >= action.cost
-      const isLeave = action.id === 'leave'
-
-      bg.fillStyle(isLeave ? 0x660000 : (canAfford ? 0x004488 : 0x222222), 0.8)
-      bg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-      bg.lineStyle(2, isLeave ? 0xff0000 : (canAfford ? 0x00ffff : 0x444444), 1)
-      bg.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-      button.add(bg)
-
-      const labelText = this.add.text(-buttonWidth / 2 + 20, 0, action.label, {
-        fontSize: '20px',
-        fontFamily: 'Courier',
-        color: canAfford || isLeave ? '#ffffff' : '#666666',
-        align: 'left',
-      })
-      labelText.setOrigin(0, 0.5)
-      button.add(labelText)
-
-      if (action.cost > 0) {
-        const costText = this.add.text(buttonWidth / 2 - 60, 0, `[${action.cost} AP]`, {
-          fontSize: '18px',
-          fontFamily: 'Courier',
-          color: canAfford ? '#00ff00' : '#ff0000',
-        })
-        costText.setOrigin(0.5)
-        button.add(costText)
-      }
-
-      if (canAfford || isLeave) {
-        bg.setInteractive(
-          new Phaser.Geom.Rectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight),
-          Phaser.Geom.Rectangle.Contains
-        )
-
-        bg.on('pointerover', () => {
-          bg.clear()
-          bg.fillStyle(isLeave ? 0x880000 : 0x0066aa, 1)
-          bg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-          bg.lineStyle(3, isLeave ? 0xff0000 : 0x00ffff, 1)
-          bg.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-        })
-
-        bg.on('pointerout', () => {
-          bg.clear()
-          bg.fillStyle(isLeave ? 0x660000 : 0x004488, 0.8)
-          bg.fillRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-          bg.lineStyle(2, isLeave ? 0xff0000 : 0x00ffff, 1)
-          bg.strokeRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 5)
-        })
-
-        bg.on('pointerdown', () => {
-          this.handleAction(action.id, action.cost)
-        })
-      }
-
-      this.actionButtons.push(button)
-      button.setData('action', action)
-      button.setData('bg', bg)
-    })
+    this.showDetailsPanel = new ShowDetailsPanel(
+      this,
+      50,
+      this.cameras.main.height - 200,
+      this.cameras.main.width - 100,
+      this.armsShow
+    )
   }
 
-  private createShowDetailsPanel() {
-    const panel = this.add.container(50, this.cameras.main.height - 200)
+  private createTitlePanel() {
+    const titleBg = this.add.graphics()
+    titleBg.fillStyle(0x002244, 0.9)
+    titleBg.fillRoundedRect(50, 20, this.cameras.main.width - 100, 80, 10)
+    titleBg.lineStyle(3, 0x00ffff, 1)
+    titleBg.strokeRoundedRect(50, 20, this.cameras.main.width - 100, 80, 10)
 
-    const bg = this.add.graphics()
-    bg.fillStyle(0x002244, 0.8)
-    bg.fillRoundedRect(0, 0, this.cameras.main.width - 100, 150, 5)
-    bg.lineStyle(2, 0x00ffff, 0.5)
-    bg.strokeRoundedRect(0, 0, this.cameras.main.width - 100, 150, 5)
-    panel.add(bg)
-
-    const showDetails = [
-      `Location: ${this.armsShow?.country}`,
-      `Prestige Level: ${this.armsShow?.prestigeLevel}/10`,
-      `Entry Fee Paid: $${this.armsShow?.entranceFee.toLocaleString()}`,
-      `Arms Branches Present: ${this.armsShow?.armsBranches.join(', ')}`,
-    ]
-
-    showDetails.forEach((detail, index) => {
-      const detailText = this.add.text(20, 20 + index * 30, detail, {
-        fontSize: '18px',
+    const titleText = this.add.text(
+      this.cameras.main.width / 2,
+      60,
+      `${this.armsShow?.name || 'ARMS SHOW'}`,
+      {
+        fontSize: '36px',
         fontFamily: 'Courier',
-        color: '#ffffff',
-      })
-      panel.add(detailText)
-    })
+        color: '#ffff00',
+        fontStyle: 'bold',
+      }
+    )
+    titleText.setOrigin(0.5)
   }
 
   private handleAction(actionId: string, cost: number) {
@@ -285,36 +150,110 @@ export class ArmsShowScene extends PotatoScene {
   }
 
   private executeAction(actionId: string) {
-    // Show result message
     let message = ''
     switch (actionId) {
       case 'vendors':
         this.handleVendorConnection()
         return // Vendor connection has its own flow
-      break
       case 'manufacturers':
         message = 'You made contact with component manufacturers.'
-        // TODO: Add manufacturer connections
         break
       case 'buyers':
         message = 'You identified potential buyers for your inventory.'
-        // TODO: Add buyer leads
         break
       case 'intel':
         message = 'You gathered valuable intelligence on vendor operations.'
-        // TODO: Add intel to world model
         break
       case 'mingle':
         message = 'You mingled with other attendees, improving your reputation.'
-        // TODO: Increase reputation
         break
       case 'espionage':
         message = 'You conducted covert intelligence gathering...'
-        // TODO: Add special intel or risk consequences
         break
     }
 
     this.showActionResult(message)
+  }
+
+  private handleVendorConnection() {
+    if (!this.armsShow) return
+
+    // Hide action menu during selection
+    if (this.actionMenu) {
+      this.actionMenu.hideButtons()
+    }
+
+    // Get eligible manufacturers
+    const eligibleManufacturers = this.getEligibleManufacturers()
+    const newManufacturers = eligibleManufacturers.filter(
+      m => !this.worldModel.hasVendorContact(m)
+    )
+    const selectedVendors = this.selectRandomVendors(newManufacturers, 3)
+
+    // Show selection UI
+    const selection = new VendorContactSelection(
+      this,
+      selectedVendors,
+      (manufacturer: ArmsManufacturer | null) => {
+        // Show action menu again
+        if (this.actionMenu) {
+          this.actionMenu.showButtons()
+        }
+
+        if (manufacturer) {
+          const added = this.worldModel.addVendorContact(manufacturer)
+          if (added) {
+            const info = manufacturerDetails[manufacturer]
+            this.showActionResult(`You established contact with ${info.displayName}!\nPrestige: ${'★'.repeat(info.prestigeLevel)}`)
+          }
+        } else {
+          this.showActionResult('You failed to establish any new vendor contacts.')
+        }
+      }
+    )
+  }
+
+  private getEligibleManufacturers(): ArmsManufacturer[] {
+    if (!this.armsShow || !this.agent) return []
+
+    const showPrestige = this.armsShow.prestigeLevel
+    const networkingSkill = this.agent.skills.networking
+    const eligible: ArmsManufacturer[] = []
+
+    // Calculate chance for higher level vendor
+    const higherLevelChance = 0.05 + (networkingSkill / 10) * 0.15 // 5% to 20%
+    const rollHigher = Math.random() < higherLevelChance
+
+    Object.values(ArmsManufacturer).forEach(manufacturer => {
+      const info = manufacturerDetails[manufacturer]
+
+      // Include manufacturers at show prestige level or one below
+      if (info.prestigeLevel === showPrestige || info.prestigeLevel === showPrestige - 1) {
+        eligible.push(manufacturer)
+      }
+
+      // Rarely include one level higher
+      if (rollHigher && info.prestigeLevel === showPrestige + 1) {
+        eligible.push(manufacturer)
+      }
+    })
+
+    return eligible
+  }
+
+  private selectRandomVendors(vendors: ArmsManufacturer[], count: number): ArmsManufacturer[] {
+    if (vendors.length <= count) return vendors
+
+    const selected: ArmsManufacturer[] = []
+    const available = [...vendors]
+
+    for (let i = 0; i < count && available.length > 0; i++) {
+      const index = Math.floor(Math.random() * available.length)
+      selected.push(available[index])
+      available.splice(index, 1)
+    }
+
+    return selected
   }
 
   private showActionResult(message: string) {
@@ -354,9 +293,9 @@ export class ArmsShowScene extends PotatoScene {
 
   private showOutOfActionsMessage() {
     // Disable all action buttons except leave
-    this.updateActionButtons()
+    this.updateActionButtons(true)
 
-    // Create semi-transparent overlay
+    // Create overlay
     const overlay = this.add.graphics()
     overlay.fillStyle(0x000000, 0.7)
     overlay.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height)
@@ -444,133 +383,15 @@ export class ArmsShowScene extends PotatoScene {
   }
 
   private updateActionPointsDisplay() {
-    if (this.actionPointsText) {
-      this.actionPointsText.setText(`${this.actionPoints} / ${this.maxActionPoints}`)
-
-      // Change color based on remaining points
-      if (this.actionPoints === 0) {
-        this.actionPointsText.setColor('#ff0000')
-      } else if (this.actionPoints <= 2) {
-        this.actionPointsText.setColor('#ffff00')
-      }
+    if (this.actionPointsDisplay) {
+      this.actionPointsDisplay.updatePoints(this.actionPoints)
     }
   }
 
   private updateActionButtons(forceDisableActions: boolean = false) {
-    this.actionButtons.forEach(button => {
-      const action = button.getData('action')
-      const bg = button.getData('bg') as GameObjects.Graphics
-
-      if (action && bg) {
-        const canAfford = this.actionPoints >= action.cost && !forceDisableActions
-        const isLeave = action.id === 'leave'
-        const buttonWidth = 700
-
-        // Clear and redraw based on new state
-        bg.clear()
-        bg.fillStyle(isLeave ? 0x660000 : (canAfford ? 0x004488 : 0x222222), 0.8)
-        bg.fillRoundedRect(-buttonWidth / 2, -25, buttonWidth, 50, 5)
-        bg.lineStyle(2, isLeave ? 0xff0000 : (canAfford ? 0x00ffff : 0x444444), 1)
-        bg.strokeRoundedRect(-buttonWidth / 2, -25, buttonWidth, 50, 5)
-
-        // Update interactivity
-        if (!canAfford && !isLeave) {
-          bg.removeInteractive()
-          bg.removeAllListeners()
-        }
-
-        // Update text colors
-        const texts = button.list.filter(item => item instanceof GameObjects.Text) as GameObjects.Text[]
-        texts.forEach(text => {
-          if (text.text.includes('AP]')) {
-            text.setColor(canAfford ? '#00ff00' : '#ff0000')
-          } else {
-            text.setColor(canAfford || isLeave ? '#ffffff' : '#666666')
-          }
-        })
-      }
-    })
-  }
-
-  private handleVendorConnection() {
-    if (!this.armsShow) return
-
-    // Hide action buttons during selection
-    this.actionButtons.forEach(button => button.setVisible(false))
-
-    // Get eligible manufacturers based on prestige level
-    const eligibleManufacturers = this.getEligibleManufacturers()
-
-    // Filter out already known contacts
-    const newManufacturers = eligibleManufacturers.filter(
-      m => !this.worldModel.hasVendorContact(m)
-    )
-
-    // Pick 3 random manufacturers from the eligible list
-    const selectedVendors = this.selectRandomVendors(newManufacturers, 3)
-
-    // Show selection UI
-    const selection = new VendorContactSelection(
-      this,
-      selectedVendors,
-      (manufacturer) => {
-        // Show action buttons again
-        this.actionButtons.forEach(button => button.setVisible(true))
-
-        if (manufacturer) {
-          const added = this.worldModel.addVendorContact(manufacturer)
-          if (added) {
-            const info = manufacturerDetails[manufacturer]
-            this.showActionResult(`You established contact with ${info.displayName}!\nPrestige: ${'★'.repeat(info.prestigeLevel)}`)
-          }
-        } else {
-          this.showActionResult('You failed to establish any new vendor contacts.')
-        }
-      }
-    )
-  }
-
-  private getEligibleManufacturers(): ArmsManufacturer[] {
-    if (!this.armsShow || !this.agent) return []
-
-    const showPrestige = this.armsShow.prestigeLevel
-    const networkingSkill = this.agent.skills.networking
-    const eligible: ArmsManufacturer[] = []
-
-    // Calculate chance for higher level vendor (based on networking skill)
-    const higherLevelChance = 0.05 + (networkingSkill / 10) * 0.15 // 5% to 20% based on skill
-    const rollHigher = Math.random() < higherLevelChance
-
-    Object.values(ArmsManufacturer).forEach(manufacturer => {
-      const info = manufacturerDetails[manufacturer]
-
-      // Include manufacturers at show prestige level or one below
-      if (info.prestigeLevel === showPrestige || info.prestigeLevel === showPrestige - 1) {
-        eligible.push(manufacturer)
-      }
-
-      // Rarely include one level higher
-      if (rollHigher && info.prestigeLevel === showPrestige + 1) {
-        eligible.push(manufacturer)
-      }
-    })
-
-    return eligible
-  }
-
-  private selectRandomVendors(vendors: ArmsManufacturer[], count: number): ArmsManufacturer[] {
-    if (vendors.length <= count) return vendors
-
-    const selected: ArmsManufacturer[] = []
-    const available = [...vendors]
-
-    for (let i = 0; i < count && available.length > 0; i++) {
-      const index = Math.floor(Math.random() * available.length)
-      selected.push(available[index])
-      available.splice(index, 1)
+    if (this.actionMenu) {
+      this.actionMenu.updateButtonStates(this.actionPoints, forceDisableActions)
     }
-
-    return selected
   }
 
   private returnToBoard() {
