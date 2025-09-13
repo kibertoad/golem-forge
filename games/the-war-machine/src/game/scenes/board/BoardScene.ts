@@ -23,13 +23,16 @@ import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { EarthMap, type EarthRegion } from './molecules/EarthMap.ts'
 import { EntityView } from './molecules/EntityView.js'
-import { NavigationBar, type NavigationState } from './molecules/NavigationBar.ts'
+import { NavigationBar, NavigationState } from './molecules/NavigationBar.ts'
 import { NextTurnButton } from './molecules/NextTurnButton.ts'
 import { type StatusData, StatusDisplay } from './molecules/StatusDisplay.ts'
 import { ToastContainer, type ToastData } from './molecules/ToastContainer.ts'
 import { ScheduleAttendanceButton } from './molecules/ScheduleAttendanceButton.ts'
 import { AgentSelectionWindow } from './molecules/AgentSelectionWindow.ts'
 import { EventLog } from './molecules/EventLog.ts'
+import { StockInventoryView } from './molecules/StockInventoryView.ts'
+import { ArmsStockModel } from '../../model/entities/ArmsStockModel.ts'
+import { ArmsCondition } from '../../model/enums/ArmsStockEnums.ts'
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -50,6 +53,8 @@ export class BoardScene extends PotatoScene {
   private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
   private selectedArmsShow: ArmsShowDefinition | null = null
   private agentSelectionWindow: AgentSelectionWindow | null = null
+  private stockInventoryView: StockInventoryView | null = null
+  private playerStock: ArmsStockModel[] = []
 
   constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
@@ -61,6 +66,7 @@ export class BoardScene extends PotatoScene {
   init() {
     this.addEntity()
     this.initializeAgents()
+    this.initializeStartingStock()
 
     eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
       /*
@@ -96,6 +102,89 @@ export class BoardScene extends PotatoScene {
     })
 
     this.businessAgents.push(playerAgent)
+  }
+
+  private initializeStartingStock() {
+    // Add some starting stock for testing
+    this.playerStock = [
+      // Premium weapons
+      new ArmsStockModel({
+        armsId: 'viper_7_aam',
+        quantity: 24,
+        purchasePrice: 1100000,
+        condition: ArmsCondition.EXCELLENT,
+        acquiredFrom: 'Initial Inventory',
+      }),
+      new ArmsStockModel({
+        armsId: 'phantom_x5',
+        quantity: 2,
+        purchasePrice: 75000000,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'Government Contract',
+      }),
+      new ArmsStockModel({
+        armsId: 'thunderbolt_mbt',
+        quantity: 5,
+        purchasePrice: 8500000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Factory Direct',
+      }),
+
+      // Mid-tier weapons
+      new ArmsStockModel({
+        armsId: 'nexus_ac7',
+        quantity: 500,
+        purchasePrice: 650,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Bulk Purchase',
+      }),
+      new ArmsStockModel({
+        armsId: 'wolverine_ifv',
+        quantity: 8,
+        purchasePrice: 3000000,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Military Surplus',
+      }),
+
+      // Low-tier weapons
+      new ArmsStockModel({
+        armsId: 'copycat_ak',
+        quantity: 2000,
+        purchasePrice: 120,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Black Market',
+      }),
+      new ArmsStockModel({
+        armsId: 'thunder_rocket',
+        quantity: 500,
+        purchasePrice: 4500,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Warehouse Clearance',
+      }),
+      new ArmsStockModel({
+        armsId: 'dune_runner_apc',
+        quantity: 12,
+        purchasePrice: 150000,
+        condition: ArmsCondition.POOR,
+        acquiredFrom: 'Salvage Yard',
+      }),
+      new ArmsStockModel({
+        armsId: 'wasp_drone',
+        quantity: 50,
+        purchasePrice: 7500,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'Commercial Supplier',
+      }),
+
+      // Some damaged/salvage items
+      new ArmsStockModel({
+        armsId: 'steel_bear_tank',
+        quantity: 3,
+        purchasePrice: 800000,
+        condition: ArmsCondition.SALVAGE,
+        acquiredFrom: 'Battlefield Recovery',
+      }),
+    ]
   }
 
   addEntity() {
@@ -162,6 +251,14 @@ export class BoardScene extends PotatoScene {
       this.handleNavigationChange(state)
     })
 
+    // Create stock inventory view (initially hidden)
+    this.stockInventoryView = new StockInventoryView(this, width / 2, height / 2)
+    this.stockInventoryView.setVisible(false)
+    this.stockInventoryView.setStockItems(this.playerStock)
+    this.stockInventoryView.on('item-sold', (item: ArmsStockModel) => {
+      this.handleStockSale(item)
+    })
+
     this.earthMap = new EarthMap(this, width / 2, height / 2)
     this.earthMap.setDepth(100)
     this.earthMap.on('region-selected', (region: EarthRegion) => {
@@ -194,6 +291,21 @@ export class BoardScene extends PotatoScene {
   }
 
   private handleNavigationChange(state: NavigationState) {
+    // Hide all views first
+    if (this.stockInventoryView) {
+      this.stockInventoryView.setVisible(false)
+    }
+
+    // Show the selected view
+    switch (state) {
+      case NavigationState.STOCK:
+        if (this.stockInventoryView) {
+          this.stockInventoryView.show()
+        }
+        break
+      // Add other navigation cases here as needed
+    }
+
     const toastData: ToastData = {
       id: `nav-${Date.now()}`,
       icon: imageRegistry.ROCKET,
@@ -202,6 +314,21 @@ export class BoardScene extends PotatoScene {
       timestamp: Date.now(),
     }
     this.toastContainer.addToast(toastData)
+  }
+
+  private handleStockSale(item: ArmsStockModel) {
+    const salePrice = item.sell(1) // Sell 1 unit
+    const currentStatus = this.statusDisplay.getStatus()
+    this.statusDisplay.updateStatus({
+      ...currentStatus,
+      money: currentStatus.money + salePrice,
+    })
+    this.eventLog.addEntry(`Sold 1x ${item.getName()} for $${salePrice.toLocaleString()}`, 'success')
+
+    // Update the inventory view
+    if (this.stockInventoryView) {
+      this.stockInventoryView.setStockItems(this.playerStock)
+    }
   }
 
   private handleRegionSelection(region: EarthRegion) {

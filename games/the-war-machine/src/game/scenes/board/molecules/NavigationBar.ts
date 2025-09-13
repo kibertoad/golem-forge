@@ -2,6 +2,7 @@ import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
 
 export enum NavigationState {
+  STOCK = 'stock',
   RESEARCH = 'research',
   PRODUCTION = 'production',
   CONTACTS = 'contacts',
@@ -31,6 +32,7 @@ export class NavigationBar extends GameObjects.Container {
     this.add(this.background)
 
     const navItems = [
+      { state: NavigationState.STOCK, label: 'Stock', icon: '📦' },
       { state: NavigationState.RESEARCH, label: 'Research', icon: '🔬' },
       { state: NavigationState.PRODUCTION, label: 'Production', icon: '🏭' },
       { state: NavigationState.CONTACTS, label: 'Contacts', icon: '📞' },
