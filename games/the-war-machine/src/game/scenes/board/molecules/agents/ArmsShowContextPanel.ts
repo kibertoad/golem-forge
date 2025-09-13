@@ -33,7 +33,7 @@ export function createArmsShowContextPanel(
   const details = [
     `Country: ${armsShow.country}`,
     `Entry Fee: $${armsShow.entranceFee.toLocaleString()}`,
-    `Prestige: ${armsShow.prestigeLevel}/10`,
+    `Prestige: ${'★'.repeat(armsShow.prestigeLevel)}${'☆'.repeat(5 - armsShow.prestigeLevel)}`,
     `Arms Branches: ${armsShow.armsBranches.join(', ')}`,
   ]
 

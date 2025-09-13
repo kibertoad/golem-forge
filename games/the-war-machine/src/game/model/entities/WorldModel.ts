@@ -9,6 +9,7 @@ import type { EntityModel } from './EntityModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
 import type { ArmsStockModel } from './ArmsStockModel.ts'
 import { AgentStatus } from '../enums/AgentEnums.ts'
+import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'combat' | 'travel'
@@ -27,6 +28,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly entities: EntityModel[] = []
   public readonly businessAgents: BusinessAgentModel[] = []
   public readonly playerStock: ArmsStockModel[] = []
+  public readonly vendorContacts: Set<ArmsManufacturer> = new Set()
   public gameStatus: GameStatus
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
@@ -104,6 +106,23 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     } else {
       this.gameStatus.date.setDate(this.gameStatus.date.getDate() + 7)
     }
+  }
+
+  // Vendor contact management
+  addVendorContact(manufacturer: ArmsManufacturer): boolean {
+    if (this.vendorContacts.has(manufacturer)) {
+      return false // Already have this contact
+    }
+    this.vendorContacts.add(manufacturer)
+    return true
+  }
+
+  hasVendorContact(manufacturer: ArmsManufacturer): boolean {
+    return this.vendorContacts.has(manufacturer)
+  }
+
+  getVendorContacts(): ArmsManufacturer[] {
+    return Array.from(this.vendorContacts)
   }
 }
 

@@ -93,14 +93,14 @@ export class BoardScene extends PotatoScene {
       isPlayer: true,
       currentLocation: Country.USA,
       skills: {
-        negotiation: 7,
-        intimidation: 5,
-        networking: 6,
-        languages: 4,
-        combat: 3,
-        stealth: 4,
-        technical: 5,
-        finance: 6,
+        negotiation: 2,
+        intimidation: 2,
+        networking: 2,
+        languages: 2,
+        combat: 2,
+        stealth: 2,
+        technical: 2,
+        finance: 2,
       },
       positiveTraits: [PositiveTrait.NEGOTIATOR],
     })
@@ -482,8 +482,7 @@ export class BoardScene extends PotatoScene {
       // Transition to arms show scene after a brief delay
       this.time.delayedCall(1000, () => {
         const sceneData: ArmsShowSceneData = { agent, armsShow }
-        // Sleep this scene to preserve state, then start arms show
-        this.scene.sleep()
+        this.scene.sleep()  // Preserve BoardScene state
         this.scene.run(sceneRegistry.ARMS_SHOW_SCENE, sceneData)
       })
     } else {
@@ -505,7 +504,7 @@ export class BoardScene extends PotatoScene {
           id: `arms-show-${show.id}`,
           icon: imageRegistry.ROCKET,
           title: `🎯 ${show.name} (${countryName})`,
-          description: `Prestige Level: ${show.prestigeLevel}/10 | Entry: $${show.entranceFee.toLocaleString()}`,
+          description: `Prestige: ${'★'.repeat(show.prestigeLevel)} | Entry: $${show.entranceFee.toLocaleString()}`,
           timestamp: Date.now(),
         }
 

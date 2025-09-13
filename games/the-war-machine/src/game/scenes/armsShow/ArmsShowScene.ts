@@ -9,6 +9,8 @@ import type { Dependencies } from '../../model/diConfig.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { AgentStatus } from '../../model/enums/AgentEnums.ts'
+import { ArmsManufacturer, manufacturerDetails } from '../../model/enums/ArmsManufacturer.ts'
+import { VendorContactSelection } from './VendorContactSelection.ts'
 
 export interface ArmsShowSceneData {
   agent: BusinessAgentModel
@@ -287,9 +289,9 @@ export class ArmsShowScene extends PotatoScene {
     let message = ''
     switch (actionId) {
       case 'vendors':
-        message = 'You established connections with several arms vendors.'
-        // TODO: Add vendor connections to world model
-        break
+        this.handleVendorConnection()
+        return // Vendor connection has its own flow
+      break
       case 'manufacturers':
         message = 'You made contact with component manufacturers.'
         // TODO: Add manufacturer connections
@@ -490,13 +492,94 @@ export class ArmsShowScene extends PotatoScene {
     })
   }
 
+  private handleVendorConnection() {
+    if (!this.armsShow) return
+
+    // Hide action buttons during selection
+    this.actionButtons.forEach(button => button.setVisible(false))
+
+    // Get eligible manufacturers based on prestige level
+    const eligibleManufacturers = this.getEligibleManufacturers()
+
+    // Filter out already known contacts
+    const newManufacturers = eligibleManufacturers.filter(
+      m => !this.worldModel.hasVendorContact(m)
+    )
+
+    // Pick 3 random manufacturers from the eligible list
+    const selectedVendors = this.selectRandomVendors(newManufacturers, 3)
+
+    // Show selection UI
+    const selection = new VendorContactSelection(
+      this,
+      selectedVendors,
+      (manufacturer) => {
+        // Show action buttons again
+        this.actionButtons.forEach(button => button.setVisible(true))
+
+        if (manufacturer) {
+          const added = this.worldModel.addVendorContact(manufacturer)
+          if (added) {
+            const info = manufacturerDetails[manufacturer]
+            this.showActionResult(`You established contact with ${info.displayName}!\nPrestige: ${'★'.repeat(info.prestigeLevel)}`)
+          }
+        } else {
+          this.showActionResult('You failed to establish any new vendor contacts.')
+        }
+      }
+    )
+  }
+
+  private getEligibleManufacturers(): ArmsManufacturer[] {
+    if (!this.armsShow || !this.agent) return []
+
+    const showPrestige = this.armsShow.prestigeLevel
+    const networkingSkill = this.agent.skills.networking
+    const eligible: ArmsManufacturer[] = []
+
+    // Calculate chance for higher level vendor (based on networking skill)
+    const higherLevelChance = 0.05 + (networkingSkill / 10) * 0.15 // 5% to 20% based on skill
+    const rollHigher = Math.random() < higherLevelChance
+
+    Object.values(ArmsManufacturer).forEach(manufacturer => {
+      const info = manufacturerDetails[manufacturer]
+
+      // Include manufacturers at show prestige level or one below
+      if (info.prestigeLevel === showPrestige || info.prestigeLevel === showPrestige - 1) {
+        eligible.push(manufacturer)
+      }
+
+      // Rarely include one level higher
+      if (rollHigher && info.prestigeLevel === showPrestige + 1) {
+        eligible.push(manufacturer)
+      }
+    })
+
+    return eligible
+  }
+
+  private selectRandomVendors(vendors: ArmsManufacturer[], count: number): ArmsManufacturer[] {
+    if (vendors.length <= count) return vendors
+
+    const selected: ArmsManufacturer[] = []
+    const available = [...vendors]
+
+    for (let i = 0; i < count && available.length > 0; i++) {
+      const index = Math.floor(Math.random() * available.length)
+      selected.push(available[index])
+      available.splice(index, 1)
+    }
+
+    return selected
+  }
+
   private returnToBoard() {
     // Mark agent as available again after attending the show
     if (this.agent) {
       this.agent.status = AgentStatus.AVAILABLE
     }
 
-    // Stop this scene and wake up the board scene
+    // Stop this scene and wake the sleeping BoardScene
     this.scene.stop()
     this.scene.wake(sceneRegistry.BOARD_SCENE)
   }
