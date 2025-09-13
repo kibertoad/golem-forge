@@ -1,75 +1,74 @@
 import { v4 as uuidv4 } from 'uuid'
-import { ArmsBranch } from '../enums/ArmsBranches.ts'
-import {
-  ArmsCondition,
-  type BranchQuality,
-  getDefaultQualityForBranch,
-  validateSubcategories,
-} from '../enums/ArmsStockEnums.ts'
+import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
+import { armsRegistry } from '../../registries/armsRegistry.ts'
+import type { ArmsDefinition } from '../definitions/armsDefinitions.ts'
 
 export interface ArmsStockParams {
-  name: string
-  branch: ArmsBranch
-  subcategories?: Set<string> | string[] // Accept both Set and array for convenience
+  armsId: string // Reference to the arms definition
   quantity: number
-  boughtAtPrice: number
+  purchasePrice: number // What the player paid per unit
   condition?: ArmsCondition
-  qualityAttributes?: BranchQuality
-  manufacturer?: string
+  acquiredFrom?: string // Where/who it was acquired from
 }
 
 export class ArmsStockModel {
   public readonly id: string
-  public name: string
-  public branch: ArmsBranch
-  public subcategories: Set<string>
+  public readonly armsId: string // Reference to immutable definition
   public quantity: number
-  public boughtAtPrice: number
+  public purchasePrice: number // What was paid per unit
   public condition: ArmsCondition
-  public qualityAttributes: BranchQuality
-  public manufacturer: string | undefined
+  public acquiredFrom: string | undefined
   public dateAcquired: Date
   public lastModified: Date
 
   constructor(params: ArmsStockParams) {
+    // Validate that the arms definition exists
+    if (!armsRegistry.hasDefinition(params.armsId)) {
+      throw new Error(`Arms definition not found: ${params.armsId}`)
+    }
+
     this.id = uuidv4()
-    this.name = params.name
-    this.branch = params.branch
-
-    // Convert subcategories to Set and validate
-    if (params.subcategories) {
-      this.subcategories = params.subcategories instanceof Set
-        ? params.subcategories
-        : new Set(params.subcategories)
-    } else {
-      this.subcategories = new Set()
-    }
-
-    // Validate subcategories for mutual exclusivity
-    if (!validateSubcategories(this.branch, this.subcategories)) {
-      console.error(`Invalid subcategory combination for ${this.name}`)
-    }
-
+    this.armsId = params.armsId
     this.quantity = params.quantity
-    this.boughtAtPrice = params.boughtAtPrice
+    this.purchasePrice = params.purchasePrice
     this.condition = params.condition || ArmsCondition.GOOD
-    this.qualityAttributes = params.qualityAttributes || getDefaultQualityForBranch(params.branch)
-    this.manufacturer = params.manufacturer
+    this.acquiredFrom = params.acquiredFrom
     this.dateAcquired = new Date()
     this.lastModified = new Date()
+  }
+
+  // Get the immutable definition for this stock
+  getDefinition(): ArmsDefinition | undefined {
+    return armsRegistry.getDefinition(this.armsId)
+  }
+
+  // Get display name from definition
+  getName(): string {
+    const def = this.getDefinition()
+    return def ? def.name : 'Unknown Arms'
   }
 
   // Calculate total value based on condition and quantity
   getTotalValue(): number {
     const conditionMultiplier = this.getConditionMultiplier()
-    return this.boughtAtPrice * this.quantity * conditionMultiplier
+    return this.purchasePrice * this.quantity * conditionMultiplier
   }
 
   // Calculate current market value (could fluctuate based on game events)
   getCurrentMarketValue(): number {
-    const baseValue = this.getTotalValue()
+    const def = this.getDefinition()
+    if (!def) return 0
+
+    const baseValue = def.basePrice * this.quantity
+    const conditionMultiplier = this.getConditionMultiplier()
     const qualityMultiplier = this.getQualityMultiplier()
-    return Math.round(baseValue * qualityMultiplier)
+
+    return Math.round(baseValue * conditionMultiplier * qualityMultiplier)
+  }
+
+  // Calculate profit/loss if sold at current market value
+  getPotentialProfit(): number {
+    return this.getCurrentMarketValue() - (this.purchasePrice * this.quantity)
   }
 
   // Get condition multiplier for value calculations
@@ -92,9 +91,12 @@ export class ArmsStockModel {
     }
   }
 
-  // Calculate quality multiplier based on quality attributes
+  // Calculate quality multiplier based on quality attributes from definition
   private getQualityMultiplier(): number {
-    const attributes = Object.values(this.qualityAttributes)
+    const def = this.getDefinition()
+    if (!def) return 1.0
+
+    const attributes = Object.values(def.qualityAttributes)
     const avgQuality = attributes.reduce((sum, val) => sum + val, 0) / attributes.length
     return 0.5 + (avgQuality / 100) // 0.5 to 1.5 multiplier
   }
@@ -103,6 +105,19 @@ export class ArmsStockModel {
   updateQuantity(change: number): void {
     this.quantity = Math.max(0, this.quantity + change)
     this.lastModified = new Date()
+  }
+
+  // Sell some quantity
+  sell(quantityToSell: number): number {
+    if (quantityToSell > this.quantity) {
+      quantityToSell = this.quantity
+    }
+
+    const valuePerUnit = this.getCurrentMarketValue() / this.quantity
+    const totalValue = valuePerUnit * quantityToSell
+
+    this.updateQuantity(-quantityToSell)
+    return totalValue
   }
 
   // Degrade condition over time or due to use
@@ -127,82 +142,90 @@ export class ArmsStockModel {
     return false
   }
 
-  // Check if stock meets minimum quality requirements
+  // Check if stock meets minimum quality threshold
   meetsQualityThreshold(threshold: number): boolean {
-    const attributes = Object.values(this.qualityAttributes)
+    const def = this.getDefinition()
+    if (!def) return false
+
+    const attributes = Object.values(def.qualityAttributes)
     const avgQuality = attributes.reduce((sum, val) => sum + val, 0) / attributes.length
     return avgQuality >= threshold
   }
 
-  // Check if stock has a specific subcategory
-  hasSubcategory(subcategory: string): boolean {
-    return this.subcategories.has(subcategory)
-  }
+  // Check if this stock can fulfill a requirement
+  canFulfillRequirement(subcategories: Set<string>, minQuality?: number): boolean {
+    const def = this.getDefinition()
+    if (!def) return false
 
-  // Check if stock matches all required subcategories
-  matchesSubcategories(required: Set<string> | string[]): boolean {
-    const requiredSet = required instanceof Set ? required : new Set(required)
-    for (const cat of requiredSet) {
-      if (!this.subcategories.has(cat)) {
+    // Check subcategories match
+    for (const cat of subcategories) {
+      if (!def.subcategories.has(cat)) {
         return false
       }
     }
+
+    // Check quality if specified
+    if (minQuality !== undefined) {
+      return this.meetsQualityThreshold(minQuality)
+    }
+
     return true
   }
 
   // Get a summary description
   getSummary(): string {
-    const subcatString = this.subcategories.size > 0
-      ? ` [${Array.from(this.subcategories).join(', ')}]`
+    const def = this.getDefinition()
+    if (!def) return `Unknown Arms - Qty: ${this.quantity}`
+
+    const subcatString = def.subcategories.size > 0
+      ? ` [${Array.from(def.subcategories).join(', ')}]`
       : ''
-    return `${this.name} (${this.branch}${subcatString}) - Qty: ${this.quantity}, Condition: ${this.condition}`
+    return `${def.name} (${def.branch}${subcatString}) - Qty: ${this.quantity}, Condition: ${this.condition}`
   }
 
   // Clone the stock (for splitting inventory)
   clone(newQuantity?: number): ArmsStockModel {
     return new ArmsStockModel({
-      name: this.name,
-      branch: this.branch,
-      subcategories: new Set(this.subcategories),
+      armsId: this.armsId,
       quantity: newQuantity || this.quantity,
-      boughtAtPrice: this.boughtAtPrice,
+      purchasePrice: this.purchasePrice,
       condition: this.condition,
-      qualityAttributes: { ...this.qualityAttributes },
-      manufacturer: this.manufacturer,
+      acquiredFrom: this.acquiredFrom,
     })
   }
 
-  // Serialize for storage
-  toJSON() {
-    return {
-      id: this.id,
-      name: this.name,
-      branch: this.branch,
-      subcategories: Array.from(this.subcategories),
-      quantity: this.quantity,
-      boughtAtPrice: this.boughtAtPrice,
-      condition: this.condition,
-      qualityAttributes: this.qualityAttributes,
-      manufacturer: this.manufacturer,
-      dateAcquired: this.dateAcquired.toISOString(),
-      lastModified: this.lastModified.toISOString(),
+  // Split stock into two parts
+  split(quantityToSplit: number): ArmsStockModel | null {
+    if (quantityToSplit >= this.quantity || quantityToSplit <= 0) {
+      return null
     }
+
+    const newStock = this.clone(quantityToSplit)
+    this.updateQuantity(-quantityToSplit)
+    return newStock
   }
 
-  // Create from JSON
-  static fromJSON(json: any): ArmsStockModel {
-    const stock = new ArmsStockModel({
-      name: json.name,
-      branch: json.branch,
-      subcategories: json.subcategories || [],
-      quantity: json.quantity,
-      boughtAtPrice: json.boughtAtPrice,
-      condition: json.condition,
-      qualityAttributes: json.qualityAttributes,
-      manufacturer: json.manufacturer,
-    })
-    stock.dateAcquired = new Date(json.dateAcquired)
-    stock.lastModified = new Date(json.lastModified)
-    return stock
+  // Merge with another stock of the same type
+  merge(otherStock: ArmsStockModel): boolean {
+    if (otherStock.armsId !== this.armsId) {
+      return false // Can't merge different arms types
+    }
+
+    // Calculate weighted average purchase price
+    const totalValue = (this.purchasePrice * this.quantity) + (otherStock.purchasePrice * otherStock.quantity)
+    const totalQuantity = this.quantity + otherStock.quantity
+    this.purchasePrice = totalValue / totalQuantity
+
+    // Take the worse condition
+    const conditions = Object.values(ArmsCondition)
+    const thisIndex = conditions.indexOf(this.condition)
+    const otherIndex = conditions.indexOf(otherStock.condition)
+    if (otherIndex > thisIndex) {
+      this.condition = otherStock.condition
+    }
+
+    this.quantity = totalQuantity
+    this.lastModified = new Date()
+    return true
   }
 }
