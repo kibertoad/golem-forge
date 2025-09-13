@@ -26,7 +26,7 @@ export class NavigationBar extends GameObjects.Container {
   constructor(scene: PotatoScene, x: number, y: number) {
     super(scene, x, y)
 
-    this.background = scene.add.rectangle(0, 0, 120, 600, 0x1a1a1a, 0.95)
+    this.background = scene.add.rectangle(0, 0, 140, 600, 0x1a1a1a, 0.95)
     this.background.setStrokeStyle(2, 0x3a3a3a)
     this.add(this.background)
 
@@ -63,21 +63,21 @@ export class NavigationBar extends GameObjects.Container {
   ): GameObjects.Container {
     const button = scene.add.container(0, y)
 
-    const bg = scene.add.rectangle(0, 0, 100, 70, 0x2a2a2a, 0.8)
+    const bg = scene.add.rectangle(0, 0, 120, 85, 0x2a2a2a, 0.8)
     bg.setStrokeStyle(1, 0x4a4a4a)
     bg.setInteractive()
     button.add(bg)
 
     if (icon) {
-      const iconText = scene.add.text(0, -15, icon, {
-        fontSize: '24px',
+      const iconText = scene.add.text(0, -20, icon, {
+        fontSize: '32px',
       })
       iconText.setOrigin(0.5)
       button.add(iconText)
     }
 
-    const labelText = scene.add.text(0, 15, label, {
-      fontSize: '14px',
+    const labelText = scene.add.text(0, 20, label, {
+      fontSize: '18px',
       color: '#cccccc',
     })
     labelText.setOrigin(0.5)

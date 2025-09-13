@@ -20,55 +20,55 @@ export class StatusDisplay extends GameObjects.Container {
     super(scene, x, y)
     this.statusData = initialData
 
-    this.background = scene.add.rectangle(0, 0, 250, 120, 0x1a1a1a, 0.9)
+    this.background = scene.add.rectangle(0, 0, 300, 150, 0x1a1a1a, 0.9)
     this.background.setStrokeStyle(2, 0x3a3a3a)
     this.add(this.background)
 
-    const dateLabel = scene.add.text(-110, -45, 'Date:', {
-      fontSize: '14px',
+    const dateLabel = scene.add.text(-135, -55, 'Date:', {
+      fontSize: '18px',
       color: '#888888',
     })
     this.add(dateLabel)
 
-    this.dateText = scene.add.text(-60, -45, this.formatDate(initialData.date), {
-      fontSize: '14px',
+    this.dateText = scene.add.text(-70, -55, this.formatDate(initialData.date), {
+      fontSize: '18px',
       color: '#ffffff',
       fontStyle: 'bold',
     })
     this.add(this.dateText)
 
-    const weekLabel = scene.add.text(-110, -20, 'Week:', {
-      fontSize: '14px',
+    const weekLabel = scene.add.text(-135, -25, 'Week:', {
+      fontSize: '18px',
       color: '#888888',
     })
     this.add(weekLabel)
 
-    this.weekText = scene.add.text(-60, -20, `Week ${initialData.week}`, {
-      fontSize: '14px',
+    this.weekText = scene.add.text(-70, -25, `Week ${initialData.week}`, {
+      fontSize: '18px',
       color: '#ffffff',
     })
     this.add(this.weekText)
 
-    const moneyIcon = scene.add.text(-110, 5, '💰', {
-      fontSize: '16px',
+    const moneyIcon = scene.add.text(-135, 5, '💰', {
+      fontSize: '20px',
     })
     this.add(moneyIcon)
 
-    this.moneyText = scene.add.text(-80, 5, this.formatMoney(initialData.money), {
-      fontSize: '16px',
+    this.moneyText = scene.add.text(-95, 5, this.formatMoney(initialData.money), {
+      fontSize: '20px',
       color: '#00ff00',
       fontStyle: 'bold',
     })
     this.add(this.moneyText)
 
-    const turnLabel = scene.add.text(-110, 35, 'Turn:', {
-      fontSize: '14px',
+    const turnLabel = scene.add.text(-135, 40, 'Turn:', {
+      fontSize: '18px',
       color: '#888888',
     })
     this.add(turnLabel)
 
-    this.turnText = scene.add.text(-60, 35, initialData.turn.toString(), {
-      fontSize: '14px',
+    this.turnText = scene.add.text(-70, 40, initialData.turn.toString(), {
+      fontSize: '18px',
       color: '#ffffff',
     })
     this.add(this.turnText)

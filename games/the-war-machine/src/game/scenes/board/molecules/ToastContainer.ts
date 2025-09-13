@@ -13,6 +13,10 @@ export class ToastContainer extends GameObjects.Container {
     scene.add.existing(this)
   }
 
+  private calculateToastY(toastCount: number) {
+        return 200 + (toastCount * 90)
+  }
+
   addToast(data: ToastData) {
     if (this.toasts.size >= this.maxToasts) {
       const firstToast = this.toasts.values().next().value
@@ -21,7 +25,7 @@ export class ToastContainer extends GameObjects.Container {
       }
     }
 
-    const yOffset = this.toasts.size * 90
+    const yOffset = this.calculateToastY(this.toasts.size)
     const toast = new ToastNotification(this.scene as PotatoScene, 0, yOffset, data)
 
     toast.on('toast-clicked', (toastData: ToastData) => {
@@ -54,7 +58,7 @@ export class ToastContainer extends GameObjects.Container {
     this.toasts.forEach((toast) => {
       this.scene.tweens.add({
         targets: toast,
-        y: index * 90,
+        y: this.calculateToastY(index),
         duration: 200,
         ease: 'Power2',
       })

@@ -7,12 +7,15 @@ import {
   updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
-import { armsShowsDefinitions } from '../../model/definitions/armsShowsDefinitions.ts'
+import { armsShowsDefinitions, type ArmsShowDefinition } from '../../model/definitions/armsShowsDefinitions.ts'
 import { entityDefinitions } from '../../model/definitions/entityDefinitions.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import { EntityModel } from '../../model/entities/EntityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
+import { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
 import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
+import { Country } from '../../model/enums/Countries.ts'
+import { Gender, PositiveTrait } from '../../model/enums/AgentEnums.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
@@ -24,6 +27,9 @@ import { NavigationBar, type NavigationState } from './molecules/NavigationBar.t
 import { NextTurnButton } from './molecules/NextTurnButton.ts'
 import { type StatusData, StatusDisplay } from './molecules/StatusDisplay.ts'
 import { ToastContainer, type ToastData } from './molecules/ToastContainer.ts'
+import { ScheduleAttendanceButton } from './molecules/ScheduleAttendanceButton.ts'
+import { AgentSelectionWindow } from './molecules/AgentSelectionWindow.ts'
+import { EventLog } from './molecules/EventLog.ts'
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -39,6 +45,11 @@ export class BoardScene extends PotatoScene {
   private earthMap!: EarthMap
   private statusDisplay!: StatusDisplay
   private nextTurnButton!: NextTurnButton
+  private eventLog!: EventLog
+  private businessAgents: BusinessAgentModel[] = []
+  private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
+  private selectedArmsShow: ArmsShowDefinition | null = null
+  private agentSelectionWindow: AgentSelectionWindow | null = null
 
   constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
@@ -49,6 +60,7 @@ export class BoardScene extends PotatoScene {
 
   init() {
     this.addEntity()
+    this.initializeAgents()
 
     eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
       /*
@@ -59,6 +71,31 @@ export class BoardScene extends PotatoScene {
 
        */
     })
+  }
+
+  private initializeAgents() {
+    // Create the player as the first agent
+    const playerAgent = new BusinessAgentModel({
+      name: 'You',
+      nationality: Country.USA,
+      age: 35,
+      gender: Gender.OTHER,
+      isPlayer: true,
+      currentLocation: Country.USA,
+      skills: {
+        negotiation: 7,
+        intimidation: 5,
+        networking: 6,
+        languages: 4,
+        combat: 3,
+        stealth: 4,
+        technical: 5,
+        finance: 6,
+      },
+      positiveTraits: [PositiveTrait.NEGOTIATOR],
+    })
+
+    this.businessAgents.push(playerAgent)
   }
 
   addEntity() {
@@ -111,7 +148,8 @@ export class BoardScene extends PotatoScene {
   private createUIElements() {
     const { width, height } = this.cameras.main
 
-    this.toastContainer = new ToastContainer(this, width - 160, 100)
+    // Position toasts below the status display area
+    this.toastContainer = new ToastContainer(this, width - 160, 200)
     this.toastContainer.setDepth(1000)
     this.toastContainer.on('toast-detail-requested', (data: ToastData) => {
       console.log('Toast detail requested:', data)
@@ -137,14 +175,20 @@ export class BoardScene extends PotatoScene {
       money: 1000000,
       turn: 1,
     }
-    this.statusDisplay = new StatusDisplay(this, width - 140, height - 60, initialStatus)
+    // Move status display to top-right corner
+    this.statusDisplay = new StatusDisplay(this, width - 160, 80, initialStatus)
     this.statusDisplay.setDepth(950)
 
-    this.nextTurnButton = new NextTurnButton(this, width - 100, height - 150)
+    // Move next turn button further down to avoid overlap
+    this.nextTurnButton = new NextTurnButton(this, width - 110, 250)
     this.nextTurnButton.setDepth(950)
     this.nextTurnButton.on('next-turn', () => {
       this.processTurn()
     })
+
+    // Add event log at the bottom of the screen
+    this.eventLog = new EventLog(this, width / 2, height - 80)
+    this.eventLog.setDepth(900)
 
     this.demoToast()
   }
@@ -233,9 +277,90 @@ export class BoardScene extends PotatoScene {
           if (capital) {
             this.earthMap.addEventMarkerAtCapital(capital.x, capital.y, show.name)
           }
+
+          // Show attendance button for the selected show
+          this.showScheduleAttendanceButton(show)
         }
       }
     })
+  }
+
+  private showScheduleAttendanceButton(armsShow: ArmsShowDefinition) {
+    // Remove existing button if any
+    if (this.scheduleAttendanceButton) {
+      this.scheduleAttendanceButton.destroy()
+    }
+
+    this.selectedArmsShow = armsShow
+    const currentCash = this.statusDisplay.getStatus().money
+    const canAfford = currentCash >= armsShow.entranceFee
+
+    // Create button near the map marker
+    const capital = CountryCapitals[armsShow.country]
+    this.scheduleAttendanceButton = new ScheduleAttendanceButton(
+      this,
+      this.cameras.main.width / 2 + capital.x,
+      this.cameras.main.height / 2 + capital.y + 80,
+      canAfford,
+      () => this.openAgentSelectionWindow(armsShow),
+    )
+    this.scheduleAttendanceButton.setDepth(1500)
+  }
+
+  private openAgentSelectionWindow(armsShow: ArmsShowDefinition) {
+    // Close existing window if any
+    if (this.agentSelectionWindow) {
+      this.agentSelectionWindow.destroy()
+    }
+
+    const currentCash = this.statusDisplay.getStatus().money
+
+    this.agentSelectionWindow = new AgentSelectionWindow(
+      this,
+      this.cameras.main.width / 2,
+      this.cameras.main.height / 2,
+      armsShow,
+      this.businessAgents,
+      currentCash,
+      (agent) => this.confirmAttendance(armsShow, agent),
+    )
+  }
+
+  private confirmAttendance(armsShow: ArmsShowDefinition, agent: BusinessAgentModel) {
+    // Calculate total cost
+    const totalCost = agent.calculateAttendanceFee(armsShow.entranceFee)
+    const currentStatus = this.statusDisplay.getStatus()
+
+    // Deduct money
+    this.statusDisplay.updateStatus({
+      ...currentStatus,
+      money: currentStatus.money - totalCost,
+    })
+
+    // Mark agent as busy
+    agent.markAsBusy()
+
+    // Remove the arms show toast after scheduling
+    this.toastContainer.removeToast(`arms-show-${armsShow.id}`)
+
+    // Add to event log instead of toast
+    this.eventLog.addEntry(`${agent.name} scheduled to attend ${armsShow.name}`, 'success')
+
+    // Clear the map highlight
+    this.earthMap.clearEventMarkers()
+
+    // Clean up UI elements
+    if (this.scheduleAttendanceButton) {
+      this.scheduleAttendanceButton.destroy()
+      this.scheduleAttendanceButton = null
+    }
+    if (this.agentSelectionWindow) {
+      this.agentSelectionWindow.destroy()
+      this.agentSelectionWindow = null
+    }
+
+    // Clear map markers
+    this.earthMap.clearEventMarkers()
   }
 
   private getMonthName(monthIndex: number): string {

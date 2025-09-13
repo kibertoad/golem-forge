@@ -10,21 +10,21 @@ export class NextTurnButton extends GameObjects.Container {
   constructor(scene: PotatoScene, x: number, y: number) {
     super(scene, x, y)
 
-    this.background = scene.add.rectangle(0, 0, 180, 60, 0x2a5d3e, 0.9)
+    this.background = scene.add.rectangle(0, 0, 220, 80, 0x2a5d3e, 0.9)
     this.background.setStrokeStyle(3, 0x3a6d4e)
     this.background.setInteractive()
     this.add(this.background)
 
-    this.buttonText = scene.add.text(0, -8, 'NEXT TURN', {
-      fontSize: '20px',
+    this.buttonText = scene.add.text(0, -10, 'NEXT TURN', {
+      fontSize: '26px',
       color: '#ffffff',
       fontStyle: 'bold',
     })
     this.buttonText.setOrigin(0.5)
     this.add(this.buttonText)
 
-    this.hotkeyText = scene.add.text(0, 15, '[Space]', {
-      fontSize: '12px',
+    this.hotkeyText = scene.add.text(0, 18, '[Space]', {
+      fontSize: '16px',
       color: '#aaaaaa',
     })
     this.hotkeyText.setOrigin(0.5)
