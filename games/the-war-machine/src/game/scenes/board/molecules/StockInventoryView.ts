@@ -18,6 +18,7 @@ export class StockInventoryView extends GameObjects.Container {
   private stockItems: ArmsStockModel[] = []
   private displayedItems: ArmsStockModel[] = []
   private itemContainers: GameObjects.Container[] = []
+  private filterContainer: GameObjects.Container | null = null
 
   // UI elements
   private scrollBar: GameObjects.Graphics | null = null
@@ -33,20 +34,19 @@ export class StockInventoryView extends GameObjects.Container {
   private selectedConditionFilter: ArmsCondition | null = null
   private currentSort: SortBy = SortBy.NAME
   private sortAscending = true
+  private availableBranches: Set<ArmsBranch> = new Set()
+  private maxVisibleItems = 12
+  private filterSectionHeight = 150 // Track actual filter section height
 
   constructor(scene: PotatoScene, x: number, y: number) {
     super(scene, x, y)
 
-    // Create main background - larger window
+    // Create main background - dynamically sized window
     this.background = scene.add.graphics()
-    this.background.fillStyle(0x1a1a1a, 0.95)
-    this.background.fillRoundedRect(-600, -350, 1200, 700, 10)
-    this.background.lineStyle(2, 0x444444, 1)
-    this.background.strokeRoundedRect(-600, -350, 1200, 700, 10)
     this.add(this.background)
 
-    // Title
-    this.titleText = scene.add.text(0, -320, 'ARMS INVENTORY', {
+    // Title will be positioned after background is sized
+    this.titleText = scene.add.text(0, 0, 'ARMS INVENTORY', {
       fontSize: '36px',
       fontFamily: 'Courier',
       color: '#00ff00',
@@ -55,8 +55,11 @@ export class StockInventoryView extends GameObjects.Container {
     this.titleText.setOrigin(0.5)
     this.add(this.titleText)
 
-    // Create UI sections
-    this.createFilterSection(scene)
+    // Create container for filters
+    this.filterContainer = scene.add.container(0, 0)
+    this.add(this.filterContainer)
+
+    // Other UI sections will be created after analyzing stock
     this.createSortSection(scene)
     this.createSummarySection(scene)
     this.createScrollBar(scene)
@@ -69,35 +72,76 @@ export class StockInventoryView extends GameObjects.Container {
   }
 
   private createFilterSection(scene: PotatoScene) {
+    // Clear existing filters
+    this.filterContainer?.removeAll(true)
+    this.filterButtons.clear()
+
+    // Get window dimensions
+    const windowHeight = (this.background as any).currentHeight || 700
+    const halfHeight = windowHeight / 2
+
+    // Position filter section relative to window top
+    const filterLabelY = -halfHeight + 70  // 70px from top (after title)
+    const baseX = -580
+
     // Filter label
-    const filterLabel = scene.add.text(-580, -270, 'FILTERS:', {
+    const filterLabel = scene.add.text(baseX, filterLabelY, 'FILTERS:', {
       fontSize: '22px',
       fontFamily: 'Courier',
       color: '#888888',
     })
-    this.add(filterLabel)
+    this.filterContainer?.add(filterLabel)
 
-    // Branch filters
-    const branches = [
-      { branch: ArmsBranch.SMALL_ARMS, label: 'Small Arms', x: -580, y: -235 },
-      { branch: ArmsBranch.MISSILES, label: 'Missiles', x: -450, y: -235 },
-      { branch: ArmsBranch.ARMORED_VEHICLES, label: 'Vehicles', x: -320, y: -235 },
-      { branch: ArmsBranch.AIRCRAFT, label: 'Aircraft', x: -190, y: -235 },
-    ]
+    // Dynamic branch filters based on available stock
+    const branchLabels: Record<ArmsBranch, string> = {
+      [ArmsBranch.SMALL_ARMS]: 'Small Arms',
+      [ArmsBranch.MISSILES]: 'Missiles',
+      [ArmsBranch.ARMORED_VEHICLES]: 'Vehicles',
+      [ArmsBranch.AIRCRAFT]: 'Aircraft',
+      [ArmsBranch.NAVAL]: 'Naval',
+      [ArmsBranch.DRONES]: 'Drones',
+      [ArmsBranch.ARTILLERY]: 'Artillery',
+      [ArmsBranch.AMMUNITION]: 'Ammo',
+      [ArmsBranch.ELECTRONIC_WARFARE]: 'E-War',
+      [ArmsBranch.CYBER_WARFARE]: 'Cyber',
+      [ArmsBranch.SURVEILLANCE]: 'Recon',
+      [ArmsBranch.COMMUNICATIONS]: 'Comms',
+      [ArmsBranch.SPACE]: 'Space',
+      [ArmsBranch.LOGISTICS]: 'Logistics',
+      [ArmsBranch.CBRN]: 'CBRN',
+    }
 
-    branches.forEach(({ branch, label, x, y }) => {
-      const button = this.createFilterButton(scene, label, x, y, () => {
+    const branchesArray = Array.from(this.availableBranches)
+    const buttonsPerRow = 6
+    let currentRow = 0
+    let currentCol = 0
+
+    // Branch filters start 35px below filter label
+    const branchStartY = filterLabelY + 35
+
+    branchesArray.forEach((branch, index) => {
+      if (index > 0 && index % buttonsPerRow === 0) {
+        currentRow++
+        currentCol = 0
+      }
+
+      const x = baseX + currentCol * 110
+      const y = branchStartY + currentRow * 40
+
+      const button = this.createFilterButton(scene, branchLabels[branch] || branch, x, y, () => {
         this.toggleBranchFilter(branch)
       })
       this.filterButtons.set(`branch_${branch}`, button)
+      currentCol++
     })
 
-    // Condition filters
+    // Condition filters on next row after branches with proper spacing
+    const conditionY = branchStartY + (Math.ceil(branchesArray.length / buttonsPerRow)) * 40 + 15
     const conditions = [
-      { condition: ArmsCondition.NEW, label: 'New', x: -580, y: -195 },
-      { condition: ArmsCondition.GOOD, label: 'Good', x: -480, y: -195 },
-      { condition: ArmsCondition.FAIR, label: 'Fair', x: -380, y: -195 },
-      { condition: ArmsCondition.POOR, label: 'Poor', x: -280, y: -195 },
+      { condition: ArmsCondition.NEW, label: 'New', x: baseX, y: conditionY },
+      { condition: ArmsCondition.GOOD, label: 'Good', x: baseX + 100, y: conditionY },
+      { condition: ArmsCondition.FAIR, label: 'Fair', x: baseX + 200, y: conditionY },
+      { condition: ArmsCondition.POOR, label: 'Poor', x: baseX + 300, y: conditionY },
     ]
 
     conditions.forEach(({ condition, label, x, y }) => {
@@ -108,26 +152,27 @@ export class StockInventoryView extends GameObjects.Container {
     })
 
     // Clear filters button
-    const clearButton = this.createFilterButton(scene, 'Clear All', -100, -215, () => {
+    const clearButton = this.createFilterButton(scene, 'Clear All', baseX + 420, conditionY, () => {
       this.clearFilters()
     })
     const clearBg = clearButton.getAt(0) as GameObjects.Graphics
     clearBg.clear()
-    clearBg.fillStyle(0x660000, 0.8) // Red tint
+    clearBg.fillStyle(0x660000, 0.8)
     clearBg.fillRoundedRect(0, 0, 100, 35, 4)
     clearBg.lineStyle(1, 0xaa0000, 1)
     clearBg.strokeRoundedRect(0, 0, 100, 35, 4)
-    this.add(clearButton)
+    this.filterContainer?.add(clearButton)
   }
 
   private createSortSection(scene: PotatoScene) {
-    // Sort label
+    // Sort label - will be repositioned after filter section
     const sortLabel = scene.add.text(200, -270, 'SORT BY:', {
       fontSize: '22px',
       fontFamily: 'Courier',
       color: '#888888',
     })
     this.add(sortLabel)
+    sortLabel.setData('isSortLabel', true)
 
     const sortOptions = [
       { sort: SortBy.NAME, label: 'Name', x: 200, y: -235 },
@@ -143,8 +188,8 @@ export class StockInventoryView extends GameObjects.Container {
   }
 
   private createSummarySection(scene: PotatoScene) {
-    // Total value
-    this.totalValueText = scene.add.text(-580, 310, 'Total Value: $0', {
+    // Total value - will be repositioned dynamically
+    this.totalValueText = scene.add.text(-580, 0, 'Total Value: $0', {
       fontSize: '24px',
       fontFamily: 'Courier',
       color: '#00ff00',
@@ -153,7 +198,7 @@ export class StockInventoryView extends GameObjects.Container {
     this.add(this.totalValueText)
 
     // Item count
-    this.itemCountText = scene.add.text(300, 310, 'Items: 0', {
+    this.itemCountText = scene.add.text(300, 0, 'Items: 0', {
       fontSize: '24px',
       fontFamily: 'Courier',
       color: '#ffffff',
@@ -196,7 +241,7 @@ export class StockInventoryView extends GameObjects.Container {
       bg.strokeRoundedRect(0, 0, 100, 35, 4)
     })
 
-    this.add(container)
+    this.filterContainer?.add(container)
     return container
   }
 
@@ -249,6 +294,81 @@ export class StockInventoryView extends GameObjects.Container {
   // Data management
   public setStockItems(items: ArmsStockModel[]) {
     this.stockItems = items
+
+    // Analyze available branches in stock
+    this.availableBranches.clear()
+    items.forEach(item => {
+      const def = item.getDefinition()
+      if (def) {
+        this.availableBranches.add(def.branch)
+      }
+    })
+
+    // Calculate filter section height first
+    const numBranchRows = Math.ceil(this.availableBranches.size / 6)
+    // Title: 70px, Filter label: 35px, Branch rows: numBranchRows * 40px, spacing: 15px, Condition row: 40px, Bottom padding: 25px
+    const calculatedFilterHeight = 70 + 35 + (numBranchRows * 40) + 15 + 40 + 25
+
+    // Calculate window height based on number of items (show all without scrolling if possible)
+    const itemHeight = 75
+    const headerHeight = calculatedFilterHeight + 80 // Filter section + sort section (with more padding)
+    const footerHeight = 60 // Summary
+    const maxHeight = 900 // Max window height
+    const minHeight = 700 // Min window height
+
+    // Calculate needed height for all items
+    const neededItemsHeight = items.length * itemHeight
+    const totalNeededHeight = headerHeight + neededItemsHeight + footerHeight
+
+    // Determine actual window height and visible items
+    let windowHeight: number
+    if (totalNeededHeight <= maxHeight) {
+      windowHeight = Math.max(minHeight, totalNeededHeight)
+      this.maxVisibleItems = items.length
+    } else {
+      windowHeight = maxHeight
+      this.maxVisibleItems = Math.floor((maxHeight - headerHeight - footerHeight) / itemHeight)
+    }
+
+    // Redraw background with new height
+    const halfHeight = windowHeight / 2
+    this.background.clear()
+    this.background.fillStyle(0x1a1a1a, 0.95)
+    this.background.fillRoundedRect(-600, -halfHeight, 1200, windowHeight, 10)
+    this.background.lineStyle(2, 0x444444, 1)
+    this.background.strokeRoundedRect(-600, -halfHeight, 1200, windowHeight, 10)
+    // Store height for later reference
+    ;(this.background as any).currentHeight = windowHeight
+
+    // Reposition title
+    this.titleText.setY(-halfHeight + 30)
+
+    // Recreate filter section with dynamic branches
+    const scene = this.scene as PotatoScene
+    this.createFilterSection(scene)
+
+    // Filter section height was already calculated above, just use it
+    this.filterSectionHeight = calculatedFilterHeight
+
+    // Reposition sort section right after filter section with padding
+    const sortY = -halfHeight + this.filterSectionHeight + 10
+    this.list.forEach(child => {
+      if (child.getData && child.getData('isSortLabel')) {
+        (child as GameObjects.Text).setY(sortY)
+      }
+    })
+
+    // Reposition sort buttons
+    const sortButtonY = sortY + 30
+    this.sortButtons.forEach(button => {
+      button.setY(sortButtonY)
+    })
+
+    // Reposition summary at bottom
+    const summaryY = halfHeight - 40
+    if (this.totalValueText) this.totalValueText.setY(summaryY)
+    if (this.itemCountText) this.itemCountText.setY(summaryY)
+
     this.applyFiltersAndSort()
   }
 
@@ -334,7 +454,7 @@ export class StockInventoryView extends GameObjects.Container {
     })
 
     this.scrollOffset = 0
-    this.maxScroll = Math.max(0, this.displayedItems.length - 8)
+    this.maxScroll = Math.max(0, this.displayedItems.length - this.maxVisibleItems)
     this.updateDisplay()
     this.updateSummary()
   }
@@ -344,13 +464,19 @@ export class StockInventoryView extends GameObjects.Container {
     this.itemContainers.forEach(container => container.destroy())
     this.itemContainers = []
 
-    // Display visible items (show 8 items with larger window)
+    // Display visible items based on calculated max
     const startIndex = this.scrollOffset
-    const endIndex = Math.min(startIndex + 8, this.displayedItems.length)
+    const endIndex = Math.min(startIndex + this.maxVisibleItems, this.displayedItems.length)
+
+    // Calculate starting Y position based on window height
+    const windowHeight = (this.background as any).currentHeight || 700
+    const halfHeight = windowHeight / 2
+    // Items start after filter section and sort section with extra padding
+    const itemsStartY = -halfHeight + this.filterSectionHeight + 80
 
     for (let i = startIndex; i < endIndex; i++) {
       const item = this.displayedItems[i]
-      const yPos = -150 + (i - startIndex) * 75
+      const yPos = itemsStartY + (i - startIndex) * 75
       const itemContainer = this.createItemDisplay(item, yPos)
       this.itemContainers.push(itemContainer)
     }
@@ -360,7 +486,7 @@ export class StockInventoryView extends GameObjects.Container {
   }
 
   private createItemDisplay(item: ArmsStockModel, yPos: number): GameObjects.Container {
-    const scene = this.scene
+    const scene = this.scene as PotatoScene
     const container = scene.add.container(-570, yPos)
 
     // Item background
@@ -486,13 +612,20 @@ export class StockInventoryView extends GameObjects.Container {
     this.scrollBar.clear()
 
     if (this.maxScroll > 0) {
+      const windowHeight = (this.background as any).currentHeight || 700
+      const halfHeight = windowHeight / 2
+      // Scroll track height accounts for filter section, sort section, and footer
+      const scrollTrackHeight = windowHeight - (this.filterSectionHeight + 80 + 60)
+      // Scroll starts at the same position as items
+      const scrollStartY = -halfHeight + this.filterSectionHeight + 80
+
       // Draw scrollbar track
       this.scrollBar.fillStyle(0x1a1a1a, 0.5)
-      this.scrollBar.fillRoundedRect(580, -150, 10, 450, 5)
+      this.scrollBar.fillRoundedRect(580, scrollStartY, 10, scrollTrackHeight, 5)
 
       // Draw scrollbar thumb
-      const thumbHeight = Math.max(30, 450 / (this.displayedItems.length / 8))
-      const thumbY = -150 + (this.scrollOffset / this.maxScroll) * (450 - thumbHeight)
+      const thumbHeight = Math.max(30, scrollTrackHeight / (this.displayedItems.length / this.maxVisibleItems))
+      const thumbY = scrollStartY + (this.scrollOffset / this.maxScroll) * (scrollTrackHeight - thumbHeight)
 
       this.scrollBar.fillStyle(0x666666, 0.8)
       this.scrollBar.fillRoundedRect(580, thumbY, 10, thumbHeight, 5)

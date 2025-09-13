@@ -154,9 +154,9 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
     weight: 13200,
   },
 
-  havoc_gunship: {
-    id: 'havoc_gunship',
-    name: 'Havoc Gunship',
+  storm_rider_gunship: {
+    id: 'storm_rider_gunship',
+    name: 'Storm Rider Gunship',
     branch: ArmsBranch.AIRCRAFT,
     subcategories: new Set(['attack', 'helicopter', 'all_weather']),
     manufacturer: ArmsManufacturer.SKYFORGE,
@@ -312,9 +312,9 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
   },
 
   // Liberty Surplus products
-  patriot_surplus_rifle: {
-    id: 'patriot_surplus_rifle',
-    name: 'Patriot M-16A1 (Surplus)',
+  liberty_surplus_rifle: {
+    id: 'liberty_surplus_rifle',
+    name: 'Liberty L-71 (Surplus)',
     branch: ArmsBranch.SMALL_ARMS,
     subcategories: new Set(['assault_rifle', 'semi_automatic']),
     manufacturer: ArmsManufacturer.LIBERTY_SURPLUS,
@@ -427,9 +427,9 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
     weight: 70,
   },
 
-  hawk_eye_missile: {
-    id: 'hawk_eye_missile',
-    name: 'Hawk Eye SAM',
+  sky_needle_sam: {
+    id: 'sky_needle_sam',
+    name: 'Sky Needle SAM',
     branch: ArmsBranch.MISSILES,
     subcategories: new Set(['short_range', 'ground_to_air', 'guided']),
     manufacturer: ArmsManufacturer.BUDGET_BALLISTICS,
@@ -466,9 +466,9 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
     weight: 14000,
   },
 
-  bushmaster_rifle: {
-    id: 'bushmaster_rifle',
-    name: 'Bushmaster BR-8',
+  frontier_carbine: {
+    id: 'frontier_carbine',
+    name: 'Frontier FC-8',
     branch: ArmsBranch.SMALL_ARMS,
     subcategories: new Set(['assault_rifle', 'semi_automatic']),
     manufacturer: ArmsManufacturer.FRONTIER_ARMS,

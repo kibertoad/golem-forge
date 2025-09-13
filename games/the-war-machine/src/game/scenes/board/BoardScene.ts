@@ -107,7 +107,7 @@ export class BoardScene extends PotatoScene {
   private initializeStartingStock() {
     // Add some starting stock for testing
     this.playerStock = [
-      // Premium weapons
+      // MISSILES
       new ArmsStockModel({
         armsId: 'viper_7_aam',
         quantity: 24,
@@ -116,43 +116,11 @@ export class BoardScene extends PotatoScene {
         acquiredFrom: 'Initial Inventory',
       }),
       new ArmsStockModel({
-        armsId: 'phantom_x5',
-        quantity: 2,
-        purchasePrice: 75000000,
+        armsId: 'horizon_cm',
+        quantity: 8,
+        purchasePrice: 1750000,
         condition: ArmsCondition.NEW,
         acquiredFrom: 'Government Contract',
-      }),
-      new ArmsStockModel({
-        armsId: 'thunderbolt_mbt',
-        quantity: 5,
-        purchasePrice: 8500000,
-        condition: ArmsCondition.GOOD,
-        acquiredFrom: 'Factory Direct',
-      }),
-
-      // Mid-tier weapons
-      new ArmsStockModel({
-        armsId: 'nexus_ac7',
-        quantity: 500,
-        purchasePrice: 650,
-        condition: ArmsCondition.GOOD,
-        acquiredFrom: 'Bulk Purchase',
-      }),
-      new ArmsStockModel({
-        armsId: 'wolverine_ifv',
-        quantity: 8,
-        purchasePrice: 3000000,
-        condition: ArmsCondition.FAIR,
-        acquiredFrom: 'Military Surplus',
-      }),
-
-      // Low-tier weapons
-      new ArmsStockModel({
-        armsId: 'copycat_ak',
-        quantity: 2000,
-        purchasePrice: 120,
-        condition: ArmsCondition.FAIR,
-        acquiredFrom: 'Black Market',
       }),
       new ArmsStockModel({
         armsId: 'thunder_rocket',
@@ -162,11 +130,117 @@ export class BoardScene extends PotatoScene {
         acquiredFrom: 'Warehouse Clearance',
       }),
       new ArmsStockModel({
+        armsId: 'talon_atg',
+        quantity: 15,
+        purchasePrice: 145000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Air Force Surplus',
+      }),
+      new ArmsStockModel({
+        armsId: 'sky_needle_sam',
+        quantity: 35,
+        purchasePrice: 8500,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Black Market',
+      }),
+
+      // AIRCRAFT
+      new ArmsStockModel({
+        armsId: 'phantom_x5',
+        quantity: 2,
+        purchasePrice: 75000000,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'Factory Direct',
+      }),
+      new ArmsStockModel({
+        armsId: 'storm_rider_gunship',
+        quantity: 4,
+        purchasePrice: 32000000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Military Surplus',
+      }),
+
+      // ARMORED VEHICLES
+      new ArmsStockModel({
+        armsId: 'thunderbolt_mbt',
+        quantity: 5,
+        purchasePrice: 8500000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Factory Direct',
+      }),
+      new ArmsStockModel({
+        armsId: 'wolverine_ifv',
+        quantity: 8,
+        purchasePrice: 3000000,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Military Surplus',
+      }),
+      new ArmsStockModel({
         armsId: 'dune_runner_apc',
         quantity: 12,
         purchasePrice: 150000,
         condition: ArmsCondition.POOR,
         acquiredFrom: 'Salvage Yard',
+      }),
+
+      // SMALL ARMS
+      new ArmsStockModel({
+        armsId: 'nexus_ac7',
+        quantity: 500,
+        purchasePrice: 650,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Bulk Purchase',
+      }),
+      new ArmsStockModel({
+        armsId: 'copycat_ak',
+        quantity: 2000,
+        purchasePrice: 120,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Black Market',
+      }),
+      new ArmsStockModel({
+        armsId: 'liberty_surplus_rifle',
+        quantity: 300,
+        purchasePrice: 350,
+        condition: ArmsCondition.SALVAGE,
+        acquiredFrom: 'Police Auction',
+      }),
+      new ArmsStockModel({
+        armsId: 'scorpion_rifle',
+        quantity: 150,
+        purchasePrice: 1200,
+        condition: ArmsCondition.EXCELLENT,
+        acquiredFrom: 'Special Forces Surplus',
+      }),
+      new ArmsStockModel({
+        armsId: 'jungle_viper_smg',
+        quantity: 75,
+        purchasePrice: 450,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Guerrilla Contact',
+      }),
+      new ArmsStockModel({
+        armsId: 'frontier_carbine',
+        quantity: 200,
+        purchasePrice: 280,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Regional Militia',
+      }),
+      new ArmsStockModel({
+        armsId: 'longshot_50',
+        quantity: 12,
+        purchasePrice: 8500,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'Precision Arms Dealer',
+      }),
+
+      // DRONES
+      new ArmsStockModel({
+        armsId: 'sentinel_uav',
+        quantity: 15,
+        purchasePrice: 1200000,
+        condition: ArmsCondition.EXCELLENT,
+        acquiredFrom: 'Tech Startup Acquisition',
       }),
       new ArmsStockModel({
         armsId: 'wasp_drone',
@@ -174,6 +248,56 @@ export class BoardScene extends PotatoScene {
         purchasePrice: 7500,
         condition: ArmsCondition.NEW,
         acquiredFrom: 'Commercial Supplier',
+      }),
+
+      // NAVAL
+      new ArmsStockModel({
+        armsId: 'leviathan_destroyer',
+        quantity: 1,
+        purchasePrice: 450000000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Navy Decommission',
+      }),
+
+      // ARTILLERY
+      new ArmsStockModel({
+        armsId: 'grad_lite',
+        quantity: 3,
+        purchasePrice: 850000,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Eastern European Contact',
+      }),
+      new ArmsStockModel({
+        armsId: 'thunder_mortar',
+        quantity: 25,
+        purchasePrice: 800,
+        condition: ArmsCondition.POOR,
+        acquiredFrom: 'Workshop Production',
+      }),
+
+      // ELECTRONIC WARFARE
+      new ArmsStockModel({
+        armsId: 'spectre_ew_suite',
+        quantity: 4,
+        purchasePrice: 2800000,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'R&D Partnership',
+      }),
+
+      // Additional vehicles
+      new ArmsStockModel({
+        armsId: 'rhino_mrap',
+        quantity: 10,
+        purchasePrice: 450000,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Corporate Liquidation',
+      }),
+      new ArmsStockModel({
+        armsId: 'guardian_apc',
+        quantity: 6,
+        purchasePrice: 3200000,
+        condition: ArmsCondition.EXCELLENT,
+        acquiredFrom: 'NATO Surplus',
       }),
 
       // Some damaged/salvage items
