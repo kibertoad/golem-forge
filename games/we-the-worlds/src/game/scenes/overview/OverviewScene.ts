@@ -3,17 +3,7 @@ import type Phaser from 'phaser'
 import type { Dependencies } from '../../model/diConfig.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 
-// Types
-interface CharacterStats {
-  name: string
-  age: number
-  health: number
-  looks: number
-  smarts: number
-  energy: number
-  emotional: number
-  status: string
-}
+
 interface ActionMenuItem {
   label: string
   y: number
@@ -25,7 +15,6 @@ interface OverviewIcon {
 }
 
 export class OverviewScene extends PotatoScene {
-  stats: CharacterStats
   timeLeft: number
   actionMenus: Record<string, Phaser.GameObjects.GameObject[] | null>
   eventCard!: Phaser.GameObjects.Rectangle

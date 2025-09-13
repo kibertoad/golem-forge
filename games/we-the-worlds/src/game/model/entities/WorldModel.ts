@@ -6,11 +6,13 @@ import {
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
 import type { EntityModel } from './EntityModel.ts'
+import {PlayerModel} from "./PlayerModel.ts";
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'combat' | 'travel'
 
 export class WorldModel implements StateHolder<StateFlags, MainStates> {
+  public readonly playerModel: PlayerModel
   public readonly state: State<StateFlags, MainStates>
   public readonly globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
 
@@ -24,6 +26,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
         isAlive: true,
       },
     }
+    this.playerModel = new PlayerModel()
   }
 
   addEntity(cardModel: EntityModel) {
