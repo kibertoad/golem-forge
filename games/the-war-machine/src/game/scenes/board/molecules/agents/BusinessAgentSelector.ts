@@ -1,40 +1,48 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
 import type { BusinessAgentModel } from '../../../../model/entities/BusinessAgentModel.ts'
-import type { ArmsShowDefinition } from '../../../../model/definitions/armsShowsDefinitions.ts'
 import { imageRegistry } from '../../../../registries/imageRegistry.ts'
 
-/**
- * @deprecated use BusinessAgentSelector instead
- */
-export class AgentSelectionWindow extends GameObjects.Container {
+export interface AgentSelectionContext {
+  title: string
+  description?: string
+  costCalculator?: (agent: BusinessAgentModel) => number
+  canSelectValidator?: (agent: BusinessAgentModel, availableCash: number) => boolean
+  detailsPanel?: GameObjects.Container // Optional custom details panel
+}
+
+export class BusinessAgentSelector extends GameObjects.Container {
   private background: GameObjects.Graphics
   private titleText: GameObjects.Text
   private closeButton: GameObjects.Text
   private portraitSlots: GameObjects.Container[] = []
   private selectedAgent: BusinessAgentModel | null = null
   private confirmButton: GameObjects.Container | null = null
-  private showDetailsPanel: GameObjects.Container | null = null
   private agentDetailsPanel: GameObjects.Container | null = null
-  private armsShow: ArmsShowDefinition
+  private contextPanel: GameObjects.Container | null = null
+
+  private context: AgentSelectionContext
   private availableCash: number
   private onConfirmCallback: (agent: BusinessAgentModel) => void
+  private onCancelCallback?: () => void
 
   constructor(
     scene: PotatoScene,
     x: number,
     y: number,
-    armsShow: ArmsShowDefinition,
     agents: BusinessAgentModel[],
+    context: AgentSelectionContext,
     availableCash: number,
     onConfirm: (agent: BusinessAgentModel) => void,
+    onCancel?: () => void,
   ) {
     super(scene, x, y)
-    this.armsShow = armsShow
+    this.context = context
     this.availableCash = availableCash
     this.onConfirmCallback = onConfirm
+    this.onCancelCallback = onCancel
 
-    // Create background - increased height to fit all slots
+    // Create background
     this.background = scene.add.graphics()
     this.background.fillStyle(0x000000, 0.95)
     this.background.strokeRoundedRect(-400, -350, 800, 700, 10)
@@ -44,7 +52,7 @@ export class AgentSelectionWindow extends GameObjects.Container {
     this.add(this.background)
 
     // Title
-    this.titleText = scene.add.text(0, -320, 'SELECT REPRESENTATIVE', {
+    this.titleText = scene.add.text(0, -320, context.title || 'SELECT AGENT', {
       fontSize: '32px',
       fontFamily: 'Courier',
       color: '#00ffff',
@@ -66,8 +74,15 @@ export class AgentSelectionWindow extends GameObjects.Container {
     this.closeButton.on('pointerdown', () => this.close())
     this.add(this.closeButton)
 
-    // Create show details panel
-    this.createShowDetailsPanel(scene)
+    // Add context panel if provided - positioned higher to avoid overlap
+    if (context.detailsPanel) {
+      this.contextPanel = context.detailsPanel
+      this.contextPanel.setPosition(0, -220)
+      this.add(this.contextPanel)
+    } else if (context.description) {
+      // Create simple description panel
+      this.createDescriptionPanel(scene, context.description)
+    }
 
     // Create portrait slots
     this.createPortraitSlots(scene, agents)
@@ -77,56 +92,27 @@ export class AgentSelectionWindow extends GameObjects.Container {
     this.setDepth(2000)
   }
 
-  private createShowDetailsPanel(scene: PotatoScene) {
-    this.showDetailsPanel = scene.add.container(0, -100)
+  private createDescriptionPanel(scene: PotatoScene, description: string) {
+    this.contextPanel = scene.add.container(0, -220)
 
-    // Panel background - doubled width + 30px
     const panelBg = scene.add.graphics()
     panelBg.fillStyle(0x002244, 0.8)
-    panelBg.fillRoundedRect(-395, -100, 790, 200, 5)
+    panelBg.fillRoundedRect(-395, -40, 790, 80, 5)
     panelBg.lineStyle(2, 0x00ffff, 0.5)
-    panelBg.strokeRoundedRect(-395, -100, 790, 200, 5)
-    this.showDetailsPanel.add(panelBg)
+    panelBg.strokeRoundedRect(-395, -40, 790, 80, 5)
+    this.contextPanel.add(panelBg)
 
-    // Show name
-    const showName = scene.add.text(0, -75, this.armsShow.name, {
-      fontSize: '22px',
+    const descText = scene.add.text(0, 0, description, {
+      fontSize: '18px',
       fontFamily: 'Courier',
-      color: '#ffff00',
+      color: '#ffffff',
       align: 'center',
       wordWrap: { width: 750 },
     })
-    showName.setOrigin(0.5)
-    this.showDetailsPanel.add(showName)
+    descText.setOrigin(0.5)
+    this.contextPanel.add(descText)
 
-    // Show details
-    const details = [
-      `Country: ${this.armsShow.country}`,
-      `Entry Fee: $${this.armsShow.entranceFee.toLocaleString()}`,
-      `Prestige: ${this.armsShow.prestigeLevel}/10`,
-      `Arms Branches: ${this.armsShow.armsBranches.join(', ')}`,
-    ]
-
-    details.forEach((detail, index) => {
-      const detailText = scene.add.text(-365, -35 + index * 30, detail, {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#00ffff',
-      })
-      this.showDetailsPanel!.add(detailText)
-    })
-
-    // Available cash
-    const cashText = scene.add.text(0, 85, `Available Cash: $${this.availableCash.toLocaleString()}`, {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: this.availableCash >= this.armsShow.entranceFee ? '#00ff00' : '#ff0000',
-      align: 'center',
-    })
-    cashText.setOrigin(0.5)
-    this.showDetailsPanel.add(cashText)
-
-    this.add(this.showDetailsPanel)
+    this.add(this.contextPanel)
   }
 
   private createPortraitSlots(scene: PotatoScene, agents: BusinessAgentModel[]) {
@@ -134,7 +120,7 @@ export class AgentSelectionWindow extends GameObjects.Container {
     const slotHeight = 150
     const spacing = 10
     const startX = -250
-    const startY = 100
+    const startY = 50
 
     // Create 6 slots (max agents)
     for (let i = 0; i < 6; i++) {
@@ -188,8 +174,12 @@ export class AgentSelectionWindow extends GameObjects.Container {
         statusText.setOrigin(0.5)
         slot.add(statusText)
 
-        // Make slot interactive if agent is available
-        if (agent.status === 'available') {
+        // Check if agent can be selected
+        const canSelect = agent.status === 'available' &&
+          (!this.context.canSelectValidator || this.context.canSelectValidator(agent, this.availableCash))
+
+        // Make slot interactive if agent can be selected
+        if (canSelect) {
           slotBg.setInteractive(
             new Phaser.Geom.Rectangle(-slotWidth / 2, -slotHeight / 2, slotWidth, slotHeight),
             Phaser.Geom.Rectangle.Contains,
@@ -216,6 +206,9 @@ export class AgentSelectionWindow extends GameObjects.Container {
           slotBg.on('pointerdown', () => {
             this.selectAgent(agent, slot, slotBg, slotWidth, slotHeight, agents)
           })
+        } else if (agent.status !== 'available') {
+          // Show why agent can't be selected
+          statusText.setColor('#ff0000')
         }
       } else {
         // Empty slot label
@@ -242,7 +235,7 @@ export class AgentSelectionWindow extends GameObjects.Container {
     slotHeight: number,
     agents: BusinessAgentModel[],
   ) {
-    // Clear previous selection - only for active agent slots
+    // Clear previous selection
     this.portraitSlots.forEach((s, index) => {
       const bg = s.list[0] as GameObjects.Graphics
       if (bg && bg !== slotBg && index < agents.length) {
@@ -272,6 +265,8 @@ export class AgentSelectionWindow extends GameObjects.Container {
     // Show confirm button if not already shown
     if (!this.confirmButton) {
       this.createConfirmButton()
+    } else {
+      this.updateConfirmButton()
     }
   }
 
@@ -283,9 +278,9 @@ export class AgentSelectionWindow extends GameObjects.Container {
       this.agentDetailsPanel.destroy()
     }
 
-    this.agentDetailsPanel = scene.add.container(200, 100)
+    this.agentDetailsPanel = scene.add.container(250, 80)
 
-    // Background - increased width by 30px
+    // Background
     const bg = scene.add.graphics()
     bg.fillStyle(0x003366, 0.9)
     bg.fillRoundedRect(-165, -120, 330, 240, 5)
@@ -353,49 +348,68 @@ export class AgentSelectionWindow extends GameObjects.Container {
       this.agentDetailsPanel!.add(infoText)
     })
 
-    // Total cost
-    const totalCost = agent.calculateAttendanceFee(this.armsShow.entranceFee)
-    const costText = scene.add.text(0, 95, `Total Cost: $${totalCost.toLocaleString()}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: this.availableCash >= totalCost ? '#00ff00' : '#ff0000',
-      align: 'center',
-    })
-    costText.setOrigin(0.5)
-    this.agentDetailsPanel.add(costText)
+    // Cost if calculator provided
+    if (this.context.costCalculator) {
+      const cost = this.context.costCalculator(agent)
+      const costText = scene.add.text(0, 95, `Cost: $${cost.toLocaleString()}`, {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: this.availableCash >= cost ? '#00ff00' : '#ff0000',
+        align: 'center',
+      })
+      costText.setOrigin(0.5)
+      this.agentDetailsPanel.add(costText)
+    }
 
     this.add(this.agentDetailsPanel)
   }
 
   private createConfirmButton() {
     const scene = this.scene
-    this.confirmButton = scene.add.container(0, 260)
+    this.confirmButton = scene.add.container(0, 310)
 
-    const totalCost = this.selectedAgent
-      ? this.selectedAgent.calculateAttendanceFee(this.armsShow.entranceFee)
-      : this.armsShow.entranceFee
-
-    const canAfford = this.availableCash >= totalCost
-
-    // Button background
     const buttonBg = scene.add.graphics()
-    buttonBg.fillStyle(canAfford ? 0x00aa00 : 0x444444, 0.8)
-    buttonBg.fillRoundedRect(-100, -20, 200, 40, 5)
-    buttonBg.lineStyle(2, canAfford ? 0x00ff00 : 0x666666, 1)
-    buttonBg.strokeRoundedRect(-100, -20, 200, 40, 5)
     this.confirmButton.add(buttonBg)
 
-    // Button text
-    const buttonText = scene.add.text(0, 0, 'CONFIRM ATTENDANCE', {
+    const buttonText = scene.add.text(0, 0, 'CONFIRM', {
       fontSize: '20px',
       fontFamily: 'Courier',
-      color: canAfford ? '#ffffff' : '#666666',
+      color: '#ffffff',
       align: 'center',
     })
     buttonText.setOrigin(0.5)
     this.confirmButton.add(buttonText)
 
-    if (canAfford) {
+    this.confirmButton.setData('bg', buttonBg)
+    this.confirmButton.setData('text', buttonText)
+
+    this.updateConfirmButton()
+    this.add(this.confirmButton)
+  }
+
+  private updateConfirmButton() {
+    if (!this.confirmButton || !this.selectedAgent) return
+
+    const buttonBg = this.confirmButton.getData('bg') as GameObjects.Graphics
+    const buttonText = this.confirmButton.getData('text') as GameObjects.Text
+
+    const cost = this.context.costCalculator ? this.context.costCalculator(this.selectedAgent) : 0
+    const canAfford = this.availableCash >= cost
+    const canConfirm = canAfford && (!this.context.canSelectValidator ||
+      this.context.canSelectValidator(this.selectedAgent, this.availableCash))
+
+    buttonBg.clear()
+    buttonBg.fillStyle(canConfirm ? 0x00aa00 : 0x444444, 0.8)
+    buttonBg.fillRoundedRect(-100, -20, 200, 40, 5)
+    buttonBg.lineStyle(2, canConfirm ? 0x00ff00 : 0x666666, 1)
+    buttonBg.strokeRoundedRect(-100, -20, 200, 40, 5)
+
+    buttonText.setColor(canConfirm ? '#ffffff' : '#666666')
+
+    // Remove previous listeners
+    buttonBg.removeAllListeners()
+
+    if (canConfirm) {
       buttonBg.setInteractive(new Phaser.Geom.Rectangle(-100, -20, 200, 40), Phaser.Geom.Rectangle.Contains)
 
       buttonBg.on('pointerover', () => {
@@ -421,11 +435,12 @@ export class AgentSelectionWindow extends GameObjects.Container {
         }
       })
     }
-
-    this.add(this.confirmButton)
   }
 
   private close() {
+    if (this.onCancelCallback) {
+      this.onCancelCallback()
+    }
     this.destroy()
   }
 }

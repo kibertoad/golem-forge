@@ -28,7 +28,8 @@ import { NextTurnButton } from './molecules/ui/NextTurnButton.ts'
 import { type StatusData, StatusDisplay } from './molecules/ui/StatusDisplay.ts'
 import { ToastContainer, type ToastData } from './molecules/ui/ToastContainer.ts'
 import { ScheduleAttendanceButton } from './molecules/agents/ScheduleAttendanceButton.ts'
-import { AgentSelectionWindow } from './molecules/agents/AgentSelectionWindow.ts'
+import { BusinessAgentSelector, type AgentSelectionContext } from './molecules/agents/BusinessAgentSelector.ts'
+import { createArmsShowContextPanel, createArmsShowCostCalculator, createArmsShowSelectionValidator } from './molecules/agents/ArmsShowContextPanel.ts'
 import { EventLog } from './molecules/ui/EventLog.ts'
 import { StockInventoryView } from './molecules/inventory/StockInventoryView.ts'
 import { ArmsStockModel } from '../../model/entities/ArmsStockModel.ts'
@@ -52,7 +53,7 @@ export class BoardScene extends PotatoScene {
   private businessAgents: BusinessAgentModel[] = []
   private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
   private selectedArmsShow: ArmsShowDefinition | null = null
-  private agentSelectionWindow: AgentSelectionWindow | null = null
+  private agentSelector: BusinessAgentSelector | null = null
   private stockInventoryView: StockInventoryView | null = null
   private playerStock: ArmsStockModel[] = []
 
@@ -551,18 +552,26 @@ export class BoardScene extends PotatoScene {
 
   private openAgentSelectionWindow(armsShow: ArmsShowDefinition) {
     // Close existing window if any
-    if (this.agentSelectionWindow) {
-      this.agentSelectionWindow.destroy()
+    if (this.agentSelector) {
+      this.agentSelector.destroy()
     }
 
     const currentCash = this.statusDisplay.getStatus().money
 
-    this.agentSelectionWindow = new AgentSelectionWindow(
+    // Create arms show specific context
+    const context: AgentSelectionContext = {
+      title: 'SELECT REPRESENTATIVE FOR ARMS SHOW',
+      detailsPanel: createArmsShowContextPanel(this, armsShow, currentCash),
+      costCalculator: createArmsShowCostCalculator(armsShow),
+      canSelectValidator: createArmsShowSelectionValidator(armsShow),
+    }
+
+    this.agentSelector = new BusinessAgentSelector(
       this,
       this.cameras.main.width / 2,
       this.cameras.main.height / 2,
-      armsShow,
       this.businessAgents,
+      context,
       currentCash,
       (agent) => this.confirmAttendance(armsShow, agent),
     )
@@ -596,9 +605,9 @@ export class BoardScene extends PotatoScene {
       this.scheduleAttendanceButton.destroy()
       this.scheduleAttendanceButton = null
     }
-    if (this.agentSelectionWindow) {
-      this.agentSelectionWindow.destroy()
-      this.agentSelectionWindow = null
+    if (this.agentSelector) {
+      this.agentSelector.destroy()
+      this.agentSelector = null
     }
 
     // Clear map markers
