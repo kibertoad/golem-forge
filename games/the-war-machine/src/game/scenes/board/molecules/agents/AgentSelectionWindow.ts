@@ -1,8 +1,8 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-import type { BusinessAgentModel } from '../../../model/entities/BusinessAgentModel.ts'
-import type { ArmsShowDefinition } from '../../../model/definitions/armsShowsDefinitions.ts'
-import { imageRegistry } from '../../../registries/imageRegistry.ts'
+import type { BusinessAgentModel } from '../../../../model/entities/BusinessAgentModel.ts'
+import type { ArmsShowDefinition } from '../../../../model/definitions/armsShowsDefinitions.ts'
+import { imageRegistry } from '../../../../registries/imageRegistry.ts'
 
 export class AgentSelectionWindow extends GameObjects.Container {
   private background: GameObjects.Graphics

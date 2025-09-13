@@ -1,8 +1,8 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-import type { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
-import { getManufacturerDisplayName, manufacturerDetails } from '../../../model/enums/ArmsManufacturer.ts'
-import { ArmsBranchNames } from '../../../model/enums/ArmsBranches.ts'
+import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
+import { getManufacturerDisplayName, manufacturerDetails } from '../../../../model/enums/ArmsManufacturer.ts'
+import { ArmsBranchNames } from '../../../../model/enums/ArmsBranches.ts'
 
 export class ArmsDetailView extends GameObjects.Container {
   private background: GameObjects.Graphics

@@ -1,8 +1,8 @@
 import type { IdHolder } from '@potato-golem/core'
 import type { Position, PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
-import type { EntityModel } from '../../../model/entities/EntityModel.ts'
-import type { EndTurnProcessor } from '../../../model/processors/EndTurnProcessor.ts'
+import type { EntityModel } from '../../../../model/entities/EntityModel.ts'
+import type { EndTurnProcessor } from '../../../../model/processors/EndTurnProcessor.ts'
 
 export type CardViewParams = {
   model: EntityModel

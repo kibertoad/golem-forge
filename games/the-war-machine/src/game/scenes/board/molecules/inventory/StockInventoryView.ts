@@ -1,8 +1,8 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-import type { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
-import { ArmsBranch } from '../../../model/enums/ArmsBranches.ts'
-import { ArmsCondition } from '../../../model/enums/ArmsStockEnums.ts'
+import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
+import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
+import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
 import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
