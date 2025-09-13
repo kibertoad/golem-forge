@@ -3,6 +3,7 @@ import { GameObjects } from 'phaser'
 
 export interface StatusData {
   date: Date
+  week: number
   money: number
   turn: number
 }
@@ -10,6 +11,7 @@ export interface StatusData {
 export class StatusDisplay extends GameObjects.Container {
   private background: GameObjects.Rectangle
   private dateText: GameObjects.Text
+  private weekText: GameObjects.Text
   private moneyText: GameObjects.Text
   private turnText: GameObjects.Text
   private statusData: StatusData
@@ -18,42 +20,54 @@ export class StatusDisplay extends GameObjects.Container {
     super(scene, x, y)
     this.statusData = initialData
 
-    this.background = scene.add.rectangle(0, 0, 250, 100, 0x1a1a1a, 0.9)
+    this.background = scene.add.rectangle(0, 0, 250, 120, 0x1a1a1a, 0.9)
     this.background.setStrokeStyle(2, 0x3a3a3a)
     this.add(this.background)
 
-    const dateLabel = scene.add.text(-110, -30, 'Date:', {
+    const dateLabel = scene.add.text(-110, -45, 'Date:', {
       fontSize: '14px',
       color: '#888888',
     })
     this.add(dateLabel)
 
-    this.dateText = scene.add.text(-60, -30, this.formatDate(initialData.date), {
+    this.dateText = scene.add.text(-60, -45, this.formatDate(initialData.date), {
       fontSize: '14px',
       color: '#ffffff',
       fontStyle: 'bold',
     })
     this.add(this.dateText)
 
-    const moneyIcon = scene.add.text(-110, 0, '💰', {
+    const weekLabel = scene.add.text(-110, -20, 'Week:', {
+      fontSize: '14px',
+      color: '#888888',
+    })
+    this.add(weekLabel)
+
+    this.weekText = scene.add.text(-60, -20, `Week ${initialData.week}`, {
+      fontSize: '14px',
+      color: '#ffffff',
+    })
+    this.add(this.weekText)
+
+    const moneyIcon = scene.add.text(-110, 5, '💰', {
       fontSize: '16px',
     })
     this.add(moneyIcon)
 
-    this.moneyText = scene.add.text(-80, 0, this.formatMoney(initialData.money), {
+    this.moneyText = scene.add.text(-80, 5, this.formatMoney(initialData.money), {
       fontSize: '16px',
       color: '#00ff00',
       fontStyle: 'bold',
     })
     this.add(this.moneyText)
 
-    const turnLabel = scene.add.text(-110, 30, 'Turn:', {
+    const turnLabel = scene.add.text(-110, 35, 'Turn:', {
       fontSize: '14px',
       color: '#888888',
     })
     this.add(turnLabel)
 
-    this.turnText = scene.add.text(-60, 30, initialData.turn.toString(), {
+    this.turnText = scene.add.text(-60, 35, initialData.turn.toString(), {
       fontSize: '14px',
       color: '#ffffff',
     })
@@ -95,6 +109,11 @@ export class StatusDisplay extends GameObjects.Container {
     if (data.date !== undefined) {
       this.statusData.date = data.date
       this.dateText.setText(this.formatDate(data.date))
+    }
+
+    if (data.week !== undefined) {
+      this.statusData.week = data.week
+      this.weekText.setText(`Week ${data.week}`)
     }
 
     if (data.money !== undefined) {

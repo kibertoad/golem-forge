@@ -27,6 +27,7 @@ export class EarthMap extends GameObjects.Container {
   private earthBackground: GameObjects.Graphics
   private globeOutline: GameObjects.Arc
   private regionData: Map<EarthRegion, RegionData> = new Map()
+  private eventMarkers: GameObjects.Graphics[] = []
 
   constructor(scene: PotatoScene, x: number, y: number) {
     super(scene, x, y)
@@ -508,5 +509,60 @@ export class EarthMap extends GameObjects.Container {
         },
       })
     }
+  }
+
+  addEventMarker(x: number, y: number, label?: string): GameObjects.Graphics {
+    const marker = this.scene.add.graphics()
+
+    // Draw pulsing red circle
+    marker.fillStyle(0xff0000, 0.8)
+    marker.fillCircle(x, y, 8)
+    marker.lineStyle(2, 0xffffff, 1)
+    marker.strokeCircle(x, y, 8)
+
+    // Add outer ring
+    marker.lineStyle(2, 0xff0000, 0.5)
+    marker.strokeCircle(x, y, 12)
+
+    // Pulsing animation
+    this.scene.tweens.add({
+      targets: marker,
+      scaleX: 1.2,
+      scaleY: 1.2,
+      alpha: 0.6,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    if (label) {
+      const text = this.scene.add.text(x, y - 20, label, {
+        fontSize: '12px',
+        color: '#ffffff',
+        backgroundColor: '#ff0000',
+        padding: { x: 4, y: 2 },
+      })
+      text.setOrigin(0.5)
+      text.setShadow(2, 2, '#000000', 2, true, true)
+      this.add(text)
+    }
+
+    this.add(marker)
+    this.eventMarkers.push(marker)
+
+    return marker
+  }
+
+  clearEventMarkers() {
+    this.eventMarkers.forEach((marker) => {
+      marker.destroy()
+    })
+    this.eventMarkers = []
+  }
+
+  addEventMarkerAtCapital(capitalX: number, capitalY: number, label?: string) {
+    // Capital positions are already relative to map center
+    return this.addEventMarker(capitalX, capitalY, label)
   }
 }

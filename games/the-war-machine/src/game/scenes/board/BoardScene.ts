@@ -7,10 +7,12 @@ import {
   updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
+import { armsShowsDefinitions } from '../../model/definitions/armsShowsDefinitions.ts'
 import { entityDefinitions } from '../../model/definitions/entityDefinitions.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import { EntityModel } from '../../model/entities/EntityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
+import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
@@ -131,6 +133,7 @@ export class BoardScene extends PotatoScene {
 
     const initialStatus: StatusData = {
       date: new Date(2024, 0, 1),
+      week: 1,
       money: 1000000,
       turn: 1,
     }
@@ -175,19 +178,32 @@ export class BoardScene extends PotatoScene {
 
     const currentStatus = this.statusDisplay.getStatus()
     const newDate = new Date(currentStatus.date)
-    newDate.setMonth(newDate.getMonth() + 1)
+    let newWeek = currentStatus.week + 1
+
+    // If we've gone past week 4, move to next month
+    if (newWeek > 4) {
+      newWeek = 1
+      newDate.setMonth(newDate.getMonth() + 1)
+    } else {
+      // Just advance by 7 days for visual consistency
+      newDate.setDate(newDate.getDate() + 7)
+    }
+
+    // Check for arms shows this week
+    this.checkArmsShows(newDate.getMonth() + 1, newWeek)
 
     this.statusDisplay.updateStatus({
       date: newDate,
-      money: currentStatus.money + Math.floor(Math.random() * 500000),
+      week: newWeek,
+      money: currentStatus.money + Math.floor(Math.random() * 100000),
       turn: currentStatus.turn + 1,
     })
 
     const toastData: ToastData = {
       id: `turn-${Date.now()}`,
       icon: imageRegistry.ROCKET,
-      title: 'Turn Complete',
-      description: `Turn ${currentStatus.turn + 1} has begun`,
+      title: 'Week Complete',
+      description: `Week ${newWeek} of ${this.getMonthName(newDate.getMonth())}`,
       timestamp: Date.now(),
     }
     this.toastContainer.addToast(toastData)
@@ -195,6 +211,92 @@ export class BoardScene extends PotatoScene {
     this.time.delayedCall(500, () => {
       this.nextTurnButton.setProcessing(false)
     })
+  }
+
+  private checkArmsShows(month: number, week: number) {
+    // Clear previous event markers
+    this.earthMap.clearEventMarkers()
+
+    Object.values(armsShowsDefinitions).forEach((show) => {
+      if (show.cadence.month === month && show.cadence.week === week) {
+        // Create toast for arms show
+        const countryName = this.getCountryDisplayName(show.country)
+        const toastData: ToastData = {
+          id: `arms-show-${show.id}`,
+          icon: imageRegistry.ROCKET,
+          title: `🎯 ${show.name} (${countryName})`,
+          description: `Prestige Level: ${show.prestigeLevel}/10 | Entry: $${show.entranceFee.toLocaleString()}`,
+          timestamp: Date.now(),
+        }
+
+        this.toastContainer.addToast(toastData)
+
+        // Add click handler to show location on map
+        this.toastContainer.once('toast-detail-requested', (data: ToastData) => {
+          if (data.id === `arms-show-${show.id}`) {
+            const capital = CountryCapitals[show.country]
+            if (capital) {
+              this.earthMap.addEventMarkerAtCapital(capital.x, capital.y, show.name)
+            }
+          }
+        })
+      }
+    })
+  }
+
+  private getMonthName(monthIndex: number): string {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ]
+    return months[monthIndex]
+  }
+
+  private getCountryDisplayName(countryCode: string): string {
+    // Import CountryNames from the Countries enum file
+    const countryNames: Record<string, string> = {
+      usa: 'USA',
+      russia: 'Russia',
+      china: 'China',
+      uk: 'UK',
+      france: 'France',
+      germany: 'Germany',
+      israel: 'Israel',
+      india: 'India',
+      japan: 'Japan',
+      south_korea: 'South Korea',
+      turkey: 'Turkey',
+      italy: 'Italy',
+      sweden: 'Sweden',
+      switzerland: 'Switzerland',
+      uae: 'UAE',
+      canada: 'Canada',
+      australia: 'Australia',
+      brazil: 'Brazil',
+      south_africa: 'South Africa',
+      poland: 'Poland',
+      spain: 'Spain',
+      netherlands: 'Netherlands',
+      belgium: 'Belgium',
+      norway: 'Norway',
+      singapore: 'Singapore',
+      saudi_arabia: 'Saudi Arabia',
+      egypt: 'Egypt',
+      pakistan: 'Pakistan',
+      ukraine: 'Ukraine',
+      czech_republic: 'Czech Republic',
+    }
+    return countryNames[countryCode] || countryCode.toUpperCase()
   }
 
   private demoToast() {

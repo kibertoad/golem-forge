@@ -22,7 +22,7 @@ export const armsShowsRegistry = {
 } as const
 
 export type ArmsShowId = RegistryEntityId<typeof armsShowsRegistry>
-export type ArmsShowIds = RegistryEntityIdValues<typeof armsShowsRegistry>
+export type ArmsShowIds = typeof armsShowsRegistry[keyof typeof armsShowsRegistry]
 
 export type ArmsShowDefinition = {
   id: string
@@ -37,7 +37,7 @@ export type ArmsShowDefinition = {
 
 export const armsShowsDefinitions = {
   desert_thunder: {
-    id: 'DESERT_THUNDER',
+    id: 'desert_thunder',
     name: 'Desert Thunder Defense Exhibition',
     entranceFee: 50000,
     country: Country.UAE,
@@ -53,7 +53,7 @@ export const armsShowsDefinitions = {
     description: 'Premier defense exhibition in the desert nations',
   },
   iron_summit: {
-    id: 'IRON_SUMMIT',
+    id: 'iron_summit',
     name: 'Iron Summit Arms Convention',
     entranceFee: 75000,
     country: Country.FRANCE,
@@ -69,7 +69,7 @@ export const armsShowsDefinitions = {
     description: 'Continental premier land and air defense summit',
   },
   skyhawk_expo: {
-    id: 'SKYHAWK_EXPO',
+    id: 'skyhawk_expo',
     name: 'Skyhawk International Aerospace Expo',
     entranceFee: 85000,
     country: Country.UK,
@@ -79,7 +79,7 @@ export const armsShowsDefinitions = {
     description: 'Leading aerospace and aviation technology showcase',
   },
   fortress_fair: {
-    id: 'FORTRESS_FAIR',
+    id: 'fortress_fair',
     name: 'Fortress Defense & Security Fair',
     entranceFee: 70000,
     country: Country.GERMANY,
@@ -95,7 +95,7 @@ export const armsShowsDefinitions = {
     description: 'Comprehensive defense and security exhibition',
   },
   liberty_showcase: {
-    id: 'LIBERTY_SHOWCASE',
+    id: 'liberty_showcase',
     name: 'Liberty Defense Showcase',
     entranceFee: 60000,
     country: Country.USA,
@@ -111,7 +111,7 @@ export const armsShowsDefinitions = {
     description: 'Annual military systems and technology showcase',
   },
   dragon_defense: {
-    id: 'DRAGON_DEFENSE',
+    id: 'dragon_defense',
     name: 'Dragon Defense & Maritime Expo',
     entranceFee: 40000,
     country: Country.SINGAPORE,
@@ -126,7 +126,7 @@ export const armsShowsDefinitions = {
     description: 'Pacific region maritime and aerospace exhibition',
   },
   arctic_arsenal: {
-    id: 'ARCTIC_ARSENAL',
+    id: 'arctic_arsenal',
     name: 'Arctic Arsenal Defense Expo',
     entranceFee: 35000,
     country: Country.NORWAY,
@@ -142,7 +142,7 @@ export const armsShowsDefinitions = {
     description: 'Northern territories defense exhibition',
   },
   titan_tech: {
-    id: 'TITAN_TECH',
+    id: 'titan_tech',
     name: 'Titan Technology Defense Fair',
     entranceFee: 45000,
     country: Country.TURKEY,
@@ -158,7 +158,7 @@ export const armsShowsDefinitions = {
     description: 'Transcontinental defense technology fair',
   },
   eagle_convention: {
-    id: 'EAGLE_CONVENTION',
+    id: 'eagle_convention',
     name: 'Eagle Defense Industry Convention',
     entranceFee: 25000,
     country: Country.POLAND,
@@ -173,7 +173,7 @@ export const armsShowsDefinitions = {
     description: 'Central region defense convention',
   },
   samurai_systems: {
-    id: 'SAMURAI_SYSTEMS',
+    id: 'samurai_systems',
     name: 'Samurai Systems Military Forum',
     entranceFee: 30000,
     country: Country.JAPAN,
@@ -189,7 +189,7 @@ export const armsShowsDefinitions = {
     description: 'Advanced technology military systems forum',
   },
   phoenix_pavilion: {
-    id: 'PHOENIX_PAVILION',
+    id: 'phoenix_pavilion',
     name: 'Phoenix Aerospace & Defense Pavilion',
     entranceFee: 55000,
     country: Country.SOUTH_KOREA,
@@ -205,7 +205,7 @@ export const armsShowsDefinitions = {
     description: 'Aerospace and advanced defense pavilion',
   },
   viper_venue: {
-    id: 'VIPER_VENUE',
+    id: 'viper_venue',
     name: 'Viper Special Operations Venue',
     entranceFee: 40000,
     country: Country.ISRAEL,
@@ -221,7 +221,7 @@ export const armsShowsDefinitions = {
     description: 'Special operations and tactical equipment venue',
   },
   spartan_symposium: {
-    id: 'SPARTAN_SYMPOSIUM',
+    id: 'spartan_symposium',
     name: 'Spartan Defense Technology Symposium',
     entranceFee: 20000,
     country: Country.BRAZIL,
@@ -236,7 +236,7 @@ export const armsShowsDefinitions = {
     description: 'Regional defense technology symposium',
   },
   thunder_trade: {
-    id: 'THUNDER_TRADE',
+    id: 'thunder_trade',
     name: 'Thunder Arms Trade Exhibition',
     entranceFee: 25000,
     country: Country.PAKISTAN,
@@ -252,7 +252,7 @@ export const armsShowsDefinitions = {
     description: 'Regional arms trade exhibition',
   },
   meridian_mart: {
-    id: 'MERIDIAN_MART',
+    id: 'meridian_mart',
     name: 'Meridian Aviation & Defense Mart',
     entranceFee: 65000,
     country: Country.CHINA,
