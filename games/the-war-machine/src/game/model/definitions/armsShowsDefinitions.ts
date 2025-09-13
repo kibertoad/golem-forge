@@ -1,0 +1,270 @@
+import type { RegistryEntityId, RegistryEntityIdValues } from '@potato-golem/core'
+import { ArmsBranch } from '../enums/ArmsBranches.ts'
+import { Country } from '../enums/Countries.ts'
+import { Month, type ShowCadence, Week } from '../enums/ShowCadence.ts'
+
+export const armsShowsRegistry = {
+  DESERT_THUNDER: 'desert_thunder',
+  IRON_SUMMIT: 'iron_summit',
+  SKYHAWK_EXPO: 'skyhawk_expo',
+  FORTRESS_FAIR: 'fortress_fair',
+  LIBERTY_SHOWCASE: 'liberty_showcase',
+  DRAGON_DEFENSE: 'dragon_defense',
+  ARCTIC_ARSENAL: 'arctic_arsenal',
+  TITAN_TECH: 'titan_tech',
+  EAGLE_CONVENTION: 'eagle_convention',
+  SAMURAI_SYSTEMS: 'samurai_systems',
+  PHOENIX_PAVILION: 'phoenix_pavilion',
+  VIPER_VENUE: 'viper_venue',
+  SPARTAN_SYMPOSIUM: 'spartan_symposium',
+  THUNDER_TRADE: 'thunder_trade',
+  MERIDIAN_MART: 'meridian_mart',
+} as const
+
+export type ArmsShowId = RegistryEntityId<typeof armsShowsRegistry>
+export type ArmsShowIds = RegistryEntityIdValues<typeof armsShowsRegistry>
+
+export type ArmsShowDefinition = {
+  id: string
+  name: string
+  entranceFee: number
+  country: Country
+  armsBranches: ArmsBranch[]
+  prestigeLevel: number
+  cadence: ShowCadence
+  description?: string
+}
+
+export const armsShowsDefinitions = {
+  desert_thunder: {
+    id: 'DESERT_THUNDER',
+    name: 'Desert Thunder Defense Exhibition',
+    entranceFee: 50000,
+    country: Country.UAE,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.NAVAL,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.MISSILES,
+      ArmsBranch.ELECTRONIC_WARFARE,
+    ],
+    prestigeLevel: 9,
+    cadence: { month: Month.FEBRUARY, week: Week.THIRD },
+    description: 'Premier defense exhibition in the desert nations',
+  },
+  iron_summit: {
+    id: 'IRON_SUMMIT',
+    name: 'Iron Summit Arms Convention',
+    entranceFee: 75000,
+    country: Country.FRANCE,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.ARTILLERY,
+      ArmsBranch.LOGISTICS,
+      ArmsBranch.COMMUNICATIONS,
+      ArmsBranch.CBRN,
+    ],
+    prestigeLevel: 10,
+    cadence: { month: Month.JUNE, week: Week.SECOND },
+    description: 'Continental premier land and air defense summit',
+  },
+  skyhawk_expo: {
+    id: 'SKYHAWK_EXPO',
+    name: 'Skyhawk International Aerospace Expo',
+    entranceFee: 85000,
+    country: Country.UK,
+    armsBranches: [ArmsBranch.AIRCRAFT, ArmsBranch.SPACE, ArmsBranch.DRONES, ArmsBranch.MISSILES],
+    prestigeLevel: 10,
+    cadence: { month: Month.JULY, week: Week.THIRD },
+    description: 'Leading aerospace and aviation technology showcase',
+  },
+  fortress_fair: {
+    id: 'FORTRESS_FAIR',
+    name: 'Fortress Defense & Security Fair',
+    entranceFee: 70000,
+    country: Country.GERMANY,
+    armsBranches: [
+      ArmsBranch.NAVAL,
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.CYBER_WARFARE,
+      ArmsBranch.ELECTRONIC_WARFARE,
+    ],
+    prestigeLevel: 9,
+    cadence: { month: Month.SEPTEMBER, week: Week.FIRST },
+    description: 'Comprehensive defense and security exhibition',
+  },
+  liberty_showcase: {
+    id: 'LIBERTY_SHOWCASE',
+    name: 'Liberty Defense Showcase',
+    entranceFee: 60000,
+    country: Country.USA,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.SMALL_ARMS,
+      ArmsBranch.ARTILLERY,
+      ArmsBranch.COMMUNICATIONS,
+      ArmsBranch.DRONES,
+    ],
+    prestigeLevel: 8,
+    cadence: { month: Month.OCTOBER, week: Week.SECOND },
+    description: 'Annual military systems and technology showcase',
+  },
+  dragon_defense: {
+    id: 'DRAGON_DEFENSE',
+    name: 'Dragon Defense & Maritime Expo',
+    entranceFee: 40000,
+    country: Country.SINGAPORE,
+    armsBranches: [
+      ArmsBranch.NAVAL,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.DRONES,
+      ArmsBranch.SURVEILLANCE,
+    ],
+    prestigeLevel: 7,
+    cadence: { month: Month.MARCH, week: Week.FOURTH },
+    description: 'Pacific region maritime and aerospace exhibition',
+  },
+  arctic_arsenal: {
+    id: 'ARCTIC_ARSENAL',
+    name: 'Arctic Arsenal Defense Expo',
+    entranceFee: 35000,
+    country: Country.NORWAY,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.NAVAL,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.MISSILES,
+      ArmsBranch.SMALL_ARMS,
+    ],
+    prestigeLevel: 7,
+    cadence: { month: Month.JANUARY, week: Week.THIRD },
+    description: 'Northern territories defense exhibition',
+  },
+  titan_tech: {
+    id: 'TITAN_TECH',
+    name: 'Titan Technology Defense Fair',
+    entranceFee: 45000,
+    country: Country.TURKEY,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.NAVAL,
+      ArmsBranch.DRONES,
+      ArmsBranch.ELECTRONIC_WARFARE,
+      ArmsBranch.AMMUNITION,
+    ],
+    prestigeLevel: 8,
+    cadence: { month: Month.MAY, week: Week.FIRST },
+    description: 'Transcontinental defense technology fair',
+  },
+  eagle_convention: {
+    id: 'EAGLE_CONVENTION',
+    name: 'Eagle Defense Industry Convention',
+    entranceFee: 25000,
+    country: Country.POLAND,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.ARTILLERY,
+      ArmsBranch.SMALL_ARMS,
+      ArmsBranch.LOGISTICS,
+    ],
+    prestigeLevel: 6,
+    cadence: { month: Month.SEPTEMBER, week: Week.THIRD },
+    description: 'Central region defense convention',
+  },
+  samurai_systems: {
+    id: 'SAMURAI_SYSTEMS',
+    name: 'Samurai Systems Military Forum',
+    entranceFee: 30000,
+    country: Country.JAPAN,
+    armsBranches: [
+      ArmsBranch.NAVAL,
+      ArmsBranch.ELECTRONIC_WARFARE,
+      ArmsBranch.MISSILES,
+      ArmsBranch.CYBER_WARFARE,
+      ArmsBranch.SPACE,
+    ],
+    prestigeLevel: 8,
+    cadence: { month: Month.NOVEMBER, week: Week.SECOND },
+    description: 'Advanced technology military systems forum',
+  },
+  phoenix_pavilion: {
+    id: 'PHOENIX_PAVILION',
+    name: 'Phoenix Aerospace & Defense Pavilion',
+    entranceFee: 55000,
+    country: Country.SOUTH_KOREA,
+    armsBranches: [
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.MISSILES,
+      ArmsBranch.NAVAL,
+      ArmsBranch.ELECTRONIC_WARFARE,
+      ArmsBranch.SPACE,
+    ],
+    prestigeLevel: 8,
+    cadence: { month: Month.APRIL, week: Week.THIRD },
+    description: 'Aerospace and advanced defense pavilion',
+  },
+  viper_venue: {
+    id: 'VIPER_VENUE',
+    name: 'Viper Special Operations Venue',
+    entranceFee: 40000,
+    country: Country.ISRAEL,
+    armsBranches: [
+      ArmsBranch.SMALL_ARMS,
+      ArmsBranch.COMMUNICATIONS,
+      ArmsBranch.SURVEILLANCE,
+      ArmsBranch.DRONES,
+      ArmsBranch.CYBER_WARFARE,
+    ],
+    prestigeLevel: 7,
+    cadence: { month: Month.MAY, week: Week.FOURTH },
+    description: 'Special operations and tactical equipment venue',
+  },
+  spartan_symposium: {
+    id: 'SPARTAN_SYMPOSIUM',
+    name: 'Spartan Defense Technology Symposium',
+    entranceFee: 20000,
+    country: Country.BRAZIL,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.NAVAL,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.SMALL_ARMS,
+    ],
+    prestigeLevel: 5,
+    cadence: { month: Month.AUGUST, week: Week.FIRST },
+    description: 'Regional defense technology symposium',
+  },
+  thunder_trade: {
+    id: 'THUNDER_TRADE',
+    name: 'Thunder Arms Trade Exhibition',
+    entranceFee: 25000,
+    country: Country.PAKISTAN,
+    armsBranches: [
+      ArmsBranch.ARMORED_VEHICLES,
+      ArmsBranch.SMALL_ARMS,
+      ArmsBranch.AMMUNITION,
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.NAVAL,
+    ],
+    prestigeLevel: 6,
+    cadence: { month: Month.NOVEMBER, week: Week.FOURTH },
+    description: 'Regional arms trade exhibition',
+  },
+  meridian_mart: {
+    id: 'MERIDIAN_MART',
+    name: 'Meridian Aviation & Defense Mart',
+    entranceFee: 65000,
+    country: Country.CHINA,
+    armsBranches: [
+      ArmsBranch.AIRCRAFT,
+      ArmsBranch.SPACE,
+      ArmsBranch.DRONES,
+      ArmsBranch.MISSILES,
+      ArmsBranch.ELECTRONIC_WARFARE,
+    ],
+    prestigeLevel: 9,
+    cadence: { month: Month.NOVEMBER, week: Week.FIRST },
+    description: 'Eastern aerospace and defense marketplace',
+  },
+} as const satisfies Record<ArmsShowId, ArmsShowDefinition>

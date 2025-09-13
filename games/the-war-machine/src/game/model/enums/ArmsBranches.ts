@@ -1,0 +1,35 @@
+export enum ArmsBranch {
+  SMALL_ARMS = 'small_arms',
+  ARTILLERY = 'artillery',
+  ARMORED_VEHICLES = 'armored_vehicles',
+  AIRCRAFT = 'aircraft',
+  NAVAL = 'naval',
+  MISSILES = 'missiles',
+  ELECTRONIC_WARFARE = 'electronic_warfare',
+  DRONES = 'drones',
+  CYBER_WARFARE = 'cyber_warfare',
+  SPACE = 'space',
+  AMMUNITION = 'ammunition',
+  COMMUNICATIONS = 'communications',
+  SURVEILLANCE = 'surveillance',
+  LOGISTICS = 'logistics',
+  CBRN = 'cbrn', // Chemical, Biological, Radiological, Nuclear
+}
+
+export const ArmsBranchNames: Record<ArmsBranch, string> = {
+  [ArmsBranch.SMALL_ARMS]: 'Small Arms & Light Weapons',
+  [ArmsBranch.ARTILLERY]: 'Artillery Systems',
+  [ArmsBranch.ARMORED_VEHICLES]: 'Armored Vehicles',
+  [ArmsBranch.AIRCRAFT]: 'Military Aircraft',
+  [ArmsBranch.NAVAL]: 'Naval Systems',
+  [ArmsBranch.MISSILES]: 'Missile Systems',
+  [ArmsBranch.ELECTRONIC_WARFARE]: 'Electronic Warfare',
+  [ArmsBranch.DRONES]: 'Unmanned Systems',
+  [ArmsBranch.CYBER_WARFARE]: 'Cyber Warfare',
+  [ArmsBranch.SPACE]: 'Space Systems',
+  [ArmsBranch.AMMUNITION]: 'Ammunition & Ordnance',
+  [ArmsBranch.COMMUNICATIONS]: 'Communications Equipment',
+  [ArmsBranch.SURVEILLANCE]: 'Surveillance & Reconnaissance',
+  [ArmsBranch.LOGISTICS]: 'Logistics & Support',
+  [ArmsBranch.CBRN]: 'CBRN Defense',
+}
