@@ -1,5 +1,6 @@
 import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import * as Phaser from 'phaser'
 
 export class ScheduleAttendanceButton extends GameObjects.Container {
   private background: GameObjects.Graphics
