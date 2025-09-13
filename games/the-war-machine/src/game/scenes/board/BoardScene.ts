@@ -21,6 +21,7 @@ import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
+import type { ArmsShowSceneData } from '../armsShow/ArmsShowScene.ts'
 import { EarthMap, type EarthRegion } from './molecules/map/EarthMap.ts'
 import { EntityView } from './molecules/entities/EntityView.js'
 import { NavigationBar, NavigationState } from './molecules/navigation/NavigationBar.ts'
@@ -50,12 +51,11 @@ export class BoardScene extends PotatoScene {
   private statusDisplay!: StatusDisplay
   private nextTurnButton!: NextTurnButton
   private eventLog!: EventLog
-  private businessAgents: BusinessAgentModel[] = []
   private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
   private selectedArmsShow: ArmsShowDefinition | null = null
   private agentSelector: BusinessAgentSelector | null = null
+  private scheduledArmsShowData: { agent: BusinessAgentModel; armsShow: ArmsShowDefinition } | null = null
   private stockInventoryView: StockInventoryView | null = null
-  private playerStock: ArmsStockModel[] = []
 
   constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
@@ -65,9 +65,12 @@ export class BoardScene extends PotatoScene {
   }
 
   init() {
-    this.addEntity()
-    this.initializeAgents()
-    this.initializeStartingStock()
+    // Only initialize world state if it hasn't been initialized yet
+    if (this.worldModel.businessAgents.length === 0) {
+      this.addEntity()
+      this.initializeAgents()
+      this.initializeStartingStock()
+    }
 
     eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
       /*
@@ -102,12 +105,12 @@ export class BoardScene extends PotatoScene {
       positiveTraits: [PositiveTrait.NEGOTIATOR],
     })
 
-    this.businessAgents.push(playerAgent)
+    this.worldModel.addAgent(playerAgent)
   }
 
   private initializeStartingStock() {
     // Add some starting stock for testing
-    this.playerStock = [
+    const startingStock = [
       // MISSILES
       new ArmsStockModel({
         armsId: 'viper_7_aam',
@@ -310,6 +313,9 @@ export class BoardScene extends PotatoScene {
         acquiredFrom: 'Battlefield Recovery',
       }),
     ]
+
+    // Add all stock to world model
+    startingStock.forEach(stock => this.worldModel.addStock(stock))
   }
 
   addEntity() {
@@ -379,7 +385,7 @@ export class BoardScene extends PotatoScene {
     // Create stock inventory view (initially hidden)
     this.stockInventoryView = new StockInventoryView(this, width / 2, height / 2)
     this.stockInventoryView.setVisible(false)
-    this.stockInventoryView.setStockItems(this.playerStock)
+    this.stockInventoryView.setStockItems(this.worldModel.playerStock)
     this.stockInventoryView.on('item-sold', (item: ArmsStockModel) => {
       this.handleStockSale(item)
     })
@@ -392,10 +398,10 @@ export class BoardScene extends PotatoScene {
     })
 
     const initialStatus: StatusData = {
-      date: new Date(2024, 0, 1),
-      week: 1,
-      money: 1000000,
-      turn: 1,
+      date: this.worldModel.gameStatus.date,
+      week: this.worldModel.gameStatus.week,
+      money: this.worldModel.gameStatus.money,
+      turn: this.worldModel.gameStatus.turn,
     }
     // Move status display to top-right corner
     this.statusDisplay = new StatusDisplay(this, width - 160, 80, initialStatus)
@@ -434,16 +440,15 @@ export class BoardScene extends PotatoScene {
 
   private handleStockSale(item: ArmsStockModel) {
     const salePrice = item.sell(1) // Sell 1 unit
-    const currentStatus = this.statusDisplay.getStatus()
+    this.worldModel.addMoney(salePrice)
     this.statusDisplay.updateStatus({
-      ...currentStatus,
-      money: currentStatus.money + salePrice,
+      ...this.worldModel.gameStatus,
     })
     this.eventLog.addEntry(`Sold 1x ${item.getName()} for $${salePrice.toLocaleString()}`, 'success')
 
     // Update the inventory view
     if (this.stockInventoryView) {
-      this.stockInventoryView.setStockItems(this.playerStock)
+      this.stockInventoryView.setStockItems(this.worldModel.playerStock)
     }
   }
 
@@ -457,32 +462,35 @@ export class BoardScene extends PotatoScene {
 
     this.endTurnProcessor.processTurn()
 
-    const currentStatus = this.statusDisplay.getStatus()
-    const newDate = new Date(currentStatus.date)
-    let newWeek = currentStatus.week + 1
-
-    // If we've gone past week 4, move to next month
-    if (newWeek > 4) {
-      newWeek = 1
-      newDate.setMonth(newDate.getMonth() + 1)
-    } else {
-      // Just advance by 7 days for visual consistency
-      newDate.setDate(newDate.getDate() + 7)
-    }
+    // Update world model turn
+    this.worldModel.advanceTurn()
+    this.worldModel.addMoney(Math.floor(Math.random() * 100000)) // Random income
 
     // Check for arms shows this week
-    this.checkArmsShows(newDate.getMonth() + 1, newWeek)
+    this.checkArmsShows(this.worldModel.gameStatus.date.getMonth() + 1, this.worldModel.gameStatus.week)
 
+    // Update display from world model
     this.statusDisplay.updateStatus({
-      date: newDate,
-      week: newWeek,
-      money: currentStatus.money + Math.floor(Math.random() * 100000),
-      turn: currentStatus.turn + 1,
+      ...this.worldModel.gameStatus,
     })
 
-    this.time.delayedCall(500, () => {
-      this.nextTurnButton.setProcessing(false)
-    })
+    // Check if we have a scheduled arms show to transition to
+    if (this.scheduledArmsShowData) {
+      const { agent, armsShow } = this.scheduledArmsShowData
+      this.scheduledArmsShowData = null // Clear the data
+
+      // Transition to arms show scene after a brief delay
+      this.time.delayedCall(1000, () => {
+        const sceneData: ArmsShowSceneData = { agent, armsShow }
+        // Sleep this scene to preserve state, then start arms show
+        this.scene.sleep()
+        this.scene.run(sceneRegistry.ARMS_SHOW_SCENE, sceneData)
+      })
+    } else {
+      this.time.delayedCall(500, () => {
+        this.nextTurnButton.setProcessing(false)
+      })
+    }
   }
 
   private checkArmsShows(month: number, week: number) {
@@ -535,7 +543,7 @@ export class BoardScene extends PotatoScene {
     }
 
     this.selectedArmsShow = armsShow
-    const currentCash = this.statusDisplay.getStatus().money
+    const currentCash = this.worldModel.gameStatus.money
     const canAfford = currentCash >= armsShow.entranceFee
 
     // Create button near the map marker
@@ -556,7 +564,7 @@ export class BoardScene extends PotatoScene {
       this.agentSelector.destroy()
     }
 
-    const currentCash = this.statusDisplay.getStatus().money
+    const currentCash = this.worldModel.gameStatus.money
 
     // Create arms show specific context
     const context: AgentSelectionContext = {
@@ -570,7 +578,7 @@ export class BoardScene extends PotatoScene {
       this,
       this.cameras.main.width / 2,
       this.cameras.main.height / 2,
-      this.businessAgents,
+      this.worldModel.businessAgents,
       context,
       currentCash,
       (agent) => this.confirmAttendance(armsShow, agent),
@@ -580,12 +588,13 @@ export class BoardScene extends PotatoScene {
   private confirmAttendance(armsShow: ArmsShowDefinition, agent: BusinessAgentModel) {
     // Calculate total cost
     const totalCost = agent.calculateAttendanceFee(armsShow.entranceFee)
-    const currentStatus = this.statusDisplay.getStatus()
 
-    // Deduct money
+    // Deduct money from world model
+    this.worldModel.deductMoney(totalCost)
+
+    // Update display
     this.statusDisplay.updateStatus({
-      ...currentStatus,
-      money: currentStatus.money - totalCost,
+      ...this.worldModel.gameStatus,
     })
 
     // Mark agent as busy
@@ -612,6 +621,9 @@ export class BoardScene extends PotatoScene {
 
     // Clear map markers
     this.earthMap.clearEventMarkers()
+
+    // Store the scheduled arms show data for scene transition after turn ends
+    this.scheduledArmsShowData = { agent, armsShow }
   }
 
   private getMonthName(monthIndex: number): string {

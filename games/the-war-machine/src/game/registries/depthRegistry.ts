@@ -7,6 +7,8 @@ export const DepthRegistry = {
   CHAT_BUBBLE: 400,
   EXPLOSION: 800,
   EVENT: 1000,
+  TOAST: 1500,
+  MODAL: 2000,
   GAME_OVER: 10000,
   INPUT_BLOCK: 9000,
 }
