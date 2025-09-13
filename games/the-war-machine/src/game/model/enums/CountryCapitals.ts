@@ -6,37 +6,50 @@ export interface CapitalPosition {
   name: string
 }
 
-// Positions are relative to the Earth map center (0,0)
-// Based on our custom Earth map projection
+// Positions are relative to the flat map center (0,0)
+// Based on simplified continent shapes
 export const CountryCapitals: Record<Country, CapitalPosition> = {
-  [Country.USA]: { x: -95, y: -38, name: 'Washington D.C.' },
-  [Country.RUSSIA]: { x: 37, y: -56, name: 'Moscow' },
-  [Country.CHINA]: { x: 116, y: -40, name: 'Beijing' },
-  [Country.UK]: { x: 0, y: -51, name: 'London' },
-  [Country.FRANCE]: { x: 2, y: -49, name: 'Paris' },
-  [Country.GERMANY]: { x: 13, y: -52, name: 'Berlin' },
-  [Country.ISRAEL]: { x: 35, y: -32, name: 'Jerusalem' },
-  [Country.INDIA]: { x: 77, y: -28, name: 'New Delhi' },
-  [Country.JAPAN]: { x: 140, y: -36, name: 'Tokyo' },
-  [Country.SOUTH_KOREA]: { x: 127, y: -37, name: 'Seoul' },
-  [Country.TURKEY]: { x: 33, y: -40, name: 'Ankara' },
-  [Country.ITALY]: { x: 12, y: -42, name: 'Rome' },
-  [Country.SWEDEN]: { x: 18, y: -59, name: 'Stockholm' },
-  [Country.SWITZERLAND]: { x: 7, y: -47, name: 'Bern' },
-  [Country.UAE]: { x: 54, y: -24, name: 'Abu Dhabi' },
-  [Country.CANADA]: { x: -75, y: -45, name: 'Ottawa' },
-  [Country.AUSTRALIA]: { x: 149, y: 35, name: 'Canberra' },
-  [Country.BRAZIL]: { x: -48, y: 16, name: 'Brasília' },
-  [Country.SOUTH_AFRICA]: { x: 28, y: 26, name: 'Pretoria' },
-  [Country.POLAND]: { x: 21, y: -52, name: 'Warsaw' },
-  [Country.SPAIN]: { x: -4, y: -40, name: 'Madrid' },
-  [Country.NETHERLANDS]: { x: 5, y: -52, name: 'Amsterdam' },
-  [Country.BELGIUM]: { x: 4, y: -51, name: 'Brussels' },
-  [Country.NORWAY]: { x: 11, y: -60, name: 'Oslo' },
-  [Country.SINGAPORE]: { x: 104, y: -1, name: 'Singapore' },
-  [Country.SAUDI_ARABIA]: { x: 47, y: -25, name: 'Riyadh' },
-  [Country.EGYPT]: { x: 31, y: -30, name: 'Cairo' },
-  [Country.PAKISTAN]: { x: 73, y: -34, name: 'Islamabad' },
-  [Country.UKRAINE]: { x: 31, y: -50, name: 'Kyiv' },
-  [Country.CZECH_REPUBLIC]: { x: 14, y: -50, name: 'Prague' },
+  // North America (-550 to -350 x, -300 to -100 y)
+  [Country.USA]: { x: -450, y: -200, name: 'Washington D.C.' },
+  [Country.CANADA]: { x: -450, y: -250, name: 'Ottawa' },
+
+  // South America (-500 to -400 x, -50 to 200 y)
+  [Country.BRAZIL]: { x: -450, y: 50, name: 'Brasília' },
+
+  // Europe (-200 to 0 x, -300 to -150 y)
+  [Country.UK]: { x: -150, y: -250, name: 'London' },
+  [Country.FRANCE]: { x: -100, y: -225, name: 'Paris' },
+  [Country.GERMANY]: { x: -50, y: -225, name: 'Berlin' },
+  [Country.ITALY]: { x: -100, y: -175, name: 'Rome' },
+  [Country.SPAIN]: { x: -150, y: -200, name: 'Madrid' },
+  [Country.POLAND]: { x: -50, y: -250, name: 'Warsaw' },
+  [Country.UKRAINE]: { x: -25, y: -225, name: 'Kyiv' },
+  [Country.SWEDEN]: { x: -100, y: -275, name: 'Stockholm' },
+  [Country.NORWAY]: { x: -125, y: -275, name: 'Oslo' },
+  [Country.NETHERLANDS]: { x: -125, y: -250, name: 'Amsterdam' },
+  [Country.BELGIUM]: { x: -100, y: -250, name: 'Brussels' },
+  [Country.SWITZERLAND]: { x: -100, y: -200, name: 'Bern' },
+  [Country.CZECH_REPUBLIC]: { x: -75, y: -225, name: 'Prague' },
+
+  // Africa (-150 to -50 x, -100 to 200 y)
+  [Country.EGYPT]: { x: -100, y: -50, name: 'Cairo' },
+  [Country.SOUTH_AFRICA]: { x: -100, y: 150, name: 'Pretoria' },
+
+  // Asia (100 to 500 x, -300 to 50 y)
+  [Country.RUSSIA]: { x: 200, y: -250, name: 'Moscow' },
+  [Country.CHINA]: { x: 400, y: -100, name: 'Beijing' },
+  [Country.INDIA]: { x: 300, y: -50, name: 'New Delhi' },
+  [Country.JAPAN]: { x: 450, y: -150, name: 'Tokyo' },
+  [Country.SOUTH_KOREA]: { x: 425, y: -125, name: 'Seoul' },
+  [Country.PAKISTAN]: { x: 250, y: -75, name: 'Islamabad' },
+  [Country.SINGAPORE]: { x: 350, y: 0, name: 'Singapore' },
+
+  // Middle East (part of Asia boundaries)
+  [Country.TURKEY]: { x: 150, y: -150, name: 'Ankara' },
+  [Country.ISRAEL]: { x: 150, y: -100, name: 'Jerusalem' },
+  [Country.UAE]: { x: 200, y: -50, name: 'Abu Dhabi' },
+  [Country.SAUDI_ARABIA]: { x: 175, y: -75, name: 'Riyadh' },
+
+  // Oceania (250 to 450 x, 150 to 300 y)
+  [Country.AUSTRALIA]: { x: 350, y: 225, name: 'Canberra' },
 }

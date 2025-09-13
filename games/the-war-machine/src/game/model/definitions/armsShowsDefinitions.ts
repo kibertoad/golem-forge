@@ -1,4 +1,4 @@
-import type { RegistryEntityId, RegistryEntityIdValues } from '@potato-golem/core'
+import type { RegistryEntityId } from '@potato-golem/core'
 import { ArmsBranch } from '../enums/ArmsBranches.ts'
 import { Country } from '../enums/Countries.ts'
 import { Month, type ShowCadence, Week } from '../enums/ShowCadence.ts'
@@ -22,7 +22,7 @@ export const armsShowsRegistry = {
 } as const
 
 export type ArmsShowId = RegistryEntityId<typeof armsShowsRegistry>
-export type ArmsShowIds = typeof armsShowsRegistry[keyof typeof armsShowsRegistry]
+export type ArmsShowIds = (typeof armsShowsRegistry)[keyof typeof armsShowsRegistry]
 
 export type ArmsShowDefinition = {
   id: string

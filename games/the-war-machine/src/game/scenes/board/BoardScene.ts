@@ -161,14 +161,8 @@ export class BoardScene extends PotatoScene {
   }
 
   private handleRegionSelection(region: EarthRegion) {
-    const toastData: ToastData = {
-      id: `region-${Date.now()}`,
-      icon: imageRegistry.ROCKET,
-      title: `${region.replace('_', ' ')} selected`,
-      description: `You selected the ${region.replace('_', ' ')} region`,
-      timestamp: Date.now(),
-    }
-    this.toastContainer.addToast(toastData)
+    // Region selection handled silently
+    console.log('Region selected:', region)
   }
 
   private processTurn() {
@@ -199,15 +193,6 @@ export class BoardScene extends PotatoScene {
       turn: currentStatus.turn + 1,
     })
 
-    const toastData: ToastData = {
-      id: `turn-${Date.now()}`,
-      icon: imageRegistry.ROCKET,
-      title: 'Week Complete',
-      description: `Week ${newWeek} of ${this.getMonthName(newDate.getMonth())}`,
-      timestamp: Date.now(),
-    }
-    this.toastContainer.addToast(toastData)
-
     this.time.delayedCall(500, () => {
       this.nextTurnButton.setProcessing(false)
     })
@@ -230,16 +215,25 @@ export class BoardScene extends PotatoScene {
         }
 
         this.toastContainer.addToast(toastData)
+      }
+    })
 
-        // Add click handler to show location on map
-        this.toastContainer.once('toast-detail-requested', (data: ToastData) => {
-          if (data.id === `arms-show-${show.id}`) {
-            const capital = CountryCapitals[show.country]
-            if (capital) {
-              this.earthMap.addEventMarkerAtCapital(capital.x, capital.y, show.name)
-            }
+    // Set up listener for all toast clicks this turn
+    this.toastContainer.on('toast-detail-requested', (data: ToastData) => {
+      if (data.id.startsWith('arms-show-')) {
+        // Clear existing markers to show new selection
+        this.earthMap.clearEventMarkers()
+
+        // Find the corresponding show
+        const showId = data.id.replace('arms-show-', '')
+        const show = Object.values(armsShowsDefinitions).find(s => s.id === showId)
+
+        if (show) {
+          const capital = CountryCapitals[show.country]
+          if (capital) {
+            this.earthMap.addEventMarkerAtCapital(capital.x, capital.y, show.name)
           }
-        })
+        }
       }
     })
   }
