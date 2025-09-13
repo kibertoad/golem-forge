@@ -429,15 +429,6 @@ export class BoardScene extends PotatoScene {
         break
       // Add other navigation cases here as needed
     }
-
-    const toastData: ToastData = {
-      id: `nav-${Date.now()}`,
-      icon: imageRegistry.ROCKET,
-      title: `Switched to ${state}`,
-      description: `You are now viewing the ${state} panel`,
-      timestamp: Date.now(),
-    }
-    this.toastContainer.addToast(toastData)
   }
 
   private handleStockSale(item: ArmsStockModel) {
