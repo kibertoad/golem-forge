@@ -3,6 +3,7 @@ import type { PotatoScene } from '@potato-golem/ui'
 import type { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
 import { ArmsBranch } from '../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../model/enums/ArmsStockEnums.ts'
+import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
   NAME = 'name',
@@ -19,6 +20,7 @@ export class StockInventoryView extends GameObjects.Container {
   private displayedItems: ArmsStockModel[] = []
   private itemContainers: GameObjects.Container[] = []
   private filterContainer: GameObjects.Container | null = null
+  private detailView: ArmsDetailView | null = null
 
   // UI elements
   private scrollBar: GameObjects.Graphics | null = null
@@ -66,6 +68,12 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Setup mouse wheel scrolling
     this.setupScrolling(scene)
+
+    // Create detail view overlay
+    this.detailView = new ArmsDetailView(scene, scene.cameras.main.width / 2, scene.cameras.main.height / 2)
+    this.detailView.on('detail-closed', () => {
+      // Optional: handle detail view close event
+    })
 
     scene.add.existing(this)
     this.setDepth(1000)
@@ -743,8 +751,9 @@ export class StockInventoryView extends GameObjects.Container {
   }
 
   private showItemDetails(item: ArmsStockModel) {
-    // TODO: Implement detail view
-    console.log('Showing details for:', item.getName())
+    if (this.detailView) {
+      this.detailView.showItemDetails(item)
+    }
     this.emit('item-details', item)
   }
 
