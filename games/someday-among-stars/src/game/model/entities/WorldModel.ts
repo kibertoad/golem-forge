@@ -53,8 +53,8 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
     this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
 
-    // Initialize with starting area discovered
-    this.discoveredAreas.push({ x: 0, y: 0, radius: 150 })
+    // Initialize with Hub Systems discovered (4 scanning radiuses = 600 units)
+    this.discoveredAreas.push({ x: 0, y: 0, radius: 600 })
   }
 }
 

@@ -18,6 +18,7 @@ interface Star {
   name: string
   distance: number
   display: Phaser.GameObjects.Arc
+  region: string
 }
 
 export class StarmapScene extends PotatoScene {
@@ -51,6 +52,11 @@ export class StarmapScene extends PotatoScene {
   private fogRevealRadius = 150 // Radius around ship that gets revealed
   private fogResolution = 2048 // Resolution of fog texture
   private fogBounds = { minX: -2000, maxX: 2000, minY: -2000, maxY: 2000 } // World bounds for fog
+
+  // Hub Systems properties
+  private hubSystemsRadius = this.fogRevealRadius * 4 // Hub Systems is 4 scanning radiuses wide
+  private hubSystemsCenter = { x: 0, y: 0 } // Hub Systems at center of map
+  private regionLabels: Phaser.GameObjects.Text[] = []
 
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE })
@@ -229,13 +235,13 @@ export class StarmapScene extends PotatoScene {
       cam.setZoom(newZoom)
     })
 
-    // Generate stars only within the play area bounds
-    for (let i = 0; i < STAR_AMOUNT; i++) {
-      this.addStar(
-        Phaser.Math.Between(this.fogBounds.minX, this.fogBounds.maxX),
-        Phaser.Math.Between(this.fogBounds.minY, this.fogBounds.maxY),
-      )
-    }
+    // Generate universe with regions
+    this.generateUniverse()
+
+    // Add region labels
+    this.addRegionLabels()
+
+    // Center camera on player starting position (center of Hub Systems)
     this.cameras.main.centerOn(this.playerX, this.playerY)
 
     // Initial fog reveal
@@ -350,19 +356,124 @@ export class StarmapScene extends PotatoScene {
     )
   }
 
-  addStar(x: number, y: number) {
+  generateUniverse() {
+    // Generate Hub Systems (dense star cluster at center)
+    const hubStarCount = Math.floor(STAR_AMOUNT * 0.4) // 40% of stars in Hub Systems
+    for (let i = 0; i < hubStarCount; i++) {
+      // Generate stars within Hub Systems radius
+      const angle = Math.random() * Math.PI * 2
+      const radius = Math.random() * this.hubSystemsRadius
+      const x = this.hubSystemsCenter.x + Math.cos(angle) * radius
+      const y = this.hubSystemsCenter.y + Math.sin(angle) * radius
+      this.addStar(x, y, 'Hub Systems')
+    }
+
+    // Generate Frontier Systems (medium density ring around Hub)
+    const frontierStarCount = Math.floor(STAR_AMOUNT * 0.3) // 30% in Frontier
+    for (let i = 0; i < frontierStarCount; i++) {
+      const angle = Math.random() * Math.PI * 2
+      const radius = this.hubSystemsRadius + Math.random() * 400 // Ring from hub edge to +400
+      const x = Math.cos(angle) * radius
+      const y = Math.sin(angle) * radius
+      this.addStar(x, y, 'Frontier Systems')
+    }
+
+    // Generate Outer Rim (sparse stars at edges)
+    const outerRimStarCount = STAR_AMOUNT - hubStarCount - frontierStarCount // Remaining stars
+    for (let i = 0; i < outerRimStarCount; i++) {
+      // Generate in outer areas, avoiding center
+      let x: number, y: number
+      do {
+        x = Phaser.Math.Between(this.fogBounds.minX, this.fogBounds.maxX)
+        y = Phaser.Math.Between(this.fogBounds.minY, this.fogBounds.maxY)
+      } while (Phaser.Math.Distance.Between(0, 0, x, y) < this.hubSystemsRadius + 400)
+      this.addStar(x, y, 'Outer Rim')
+    }
+  }
+
+  addRegionLabels() {
+    // Add "The Hub Systems" label
+    const hubLabel = this.add
+      .text(
+        this.hubSystemsCenter.x,
+        this.hubSystemsCenter.y - this.hubSystemsRadius * 0.7,
+        'THE HUB SYSTEMS',
+        {
+          fontSize: '32px',
+          fontFamily: 'Arial',
+          color: '#aaaaff',
+          stroke: '#000033',
+          strokeThickness: 3,
+          align: 'center',
+        },
+      )
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0.6)
+      .setDepth(5) // Below stars but visible
+    this.regionLabels.push(hubLabel)
+
+    // Add "Frontier Systems" labels
+    const frontierLabel1 = this.add
+      .text(-800, -800, 'FRONTIER SYSTEMS', {
+        fontSize: '24px',
+        fontFamily: 'Arial',
+        color: '#88aa88',
+        stroke: '#002200',
+        strokeThickness: 2,
+        align: 'center',
+      })
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0.4)
+      .setDepth(5)
+    this.regionLabels.push(frontierLabel1)
+
+    const frontierLabel2 = this.add
+      .text(800, 800, 'FRONTIER SYSTEMS', {
+        fontSize: '24px',
+        fontFamily: 'Arial',
+        color: '#88aa88',
+        stroke: '#002200',
+        strokeThickness: 2,
+        align: 'center',
+      })
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0.4)
+      .setDepth(5)
+    this.regionLabels.push(frontierLabel2)
+
+    // Add "Outer Rim" labels
+    const outerLabel = this.add
+      .text(0, -1500, 'OUTER RIM', {
+        fontSize: '20px',
+        fontFamily: 'Arial',
+        color: '#666666',
+        stroke: '#000000',
+        strokeThickness: 2,
+        align: 'center',
+      })
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0.3)
+      .setDepth(5)
+    this.regionLabels.push(outerLabel)
+  }
+
+  addStar(x: number, y: number, region: string) {
     const color = getRandomStarColor()
     const name = getStarName()
     const distance = this.calcDistanceToPlayer(x, y)
 
+    // Adjust star size based on region (Hub Systems stars are slightly larger)
+    const baseSize = region === 'Hub Systems' ? 2 : 1
+    const starSize = Phaser.Math.Between(baseSize, baseSize + 2)
+
     const star = this.add
-      .circle(x, y, Phaser.Math.Between(1, 3), color)
+      .circle(x, y, starSize, color)
       .setAlpha(Phaser.Math.FloatBetween(0.5, 1))
       .setInteractive({ cursor: 'pointer' })
       .setDepth(10) // Stars should be below fog
 
     this.starGroup.add(star)
-    this.stars.push({ x, y, color, name, distance, display: star })
+    this.stars.push({ x, y, color, name, distance, display: star, region })
   }
 
   handleStarHover(pointer: Phaser.Input.Pointer) {
@@ -379,7 +490,10 @@ export class StarmapScene extends PotatoScene {
         // Check if star is within play area
         if (this.isPointInPlayArea(star.x, star.y)) {
           const distance = this.calcDistanceToPlayer(star.x, star.y)
-          const text = `Name: ${star.name}\n` + `Distance: ${distance.toFixed(1)} ly`
+          const text =
+            `Name: ${star.name}\n` +
+            `Region: ${star.region}\n` +
+            `Distance: ${distance.toFixed(1)} ly`
           const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any
           if (uiScene?.showOverlay) {
             uiScene.showOverlay(pointer.x, pointer.y, text)
