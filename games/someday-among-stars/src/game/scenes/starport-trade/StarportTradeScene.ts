@@ -1246,6 +1246,6 @@ export class StarportTradeScene extends PotatoScene {
   private returnToSystemVisit() {
     // Return to system visit scene
     this.scene.stop()
-    this.scene.wake(sceneRegistry.SYSTEM_VISIT_SCENE)
+    this.scene.start(sceneRegistry.SYSTEM_VISIT_SCENE, this.systemData)
   }
 }
