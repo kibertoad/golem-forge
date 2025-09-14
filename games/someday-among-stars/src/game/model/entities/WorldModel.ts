@@ -95,7 +95,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       contents: [],
     })
 
-    // Add some initial cargo to player ship
+    // Add some initial cargo to player ship (with purchasedAtPrice of 0 - free starting items)
     this.playerShip.addPublicCargo({
       id: 'initial-food',
       name: 'Food Rations',
@@ -103,6 +103,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       spacePerUnit: 1,
       illegal: false,
       value: 10,
+      purchasedAtPrice: 0,
     })
 
     this.playerShip.addPublicCargo({
@@ -112,6 +113,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       spacePerUnit: 1,
       illegal: false,
       value: 100,
+      purchasedAtPrice: 0,
     })
 
     this.playerShip.addConcealedCargo('smuggler-hold-1', {
@@ -121,6 +123,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       spacePerUnit: 3,
       illegal: true,
       value: 500,
+      purchasedAtPrice: 0,
     })
 
     // Initialize enemy ship with different stats and weapons

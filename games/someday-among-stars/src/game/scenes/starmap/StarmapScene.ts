@@ -103,11 +103,7 @@ export class StarmapScene extends PotatoScene {
 
     this.lineGraphics = this.add.graphics().setDepth(1000)
 
-    // Add the ship image sprite
-    this.playerShipSprite = this.add
-      .image(this.playerX, this.playerY, imageRegistry.ROCKET)
-      .setOrigin(0.5, 0.5)
-      .setDepth(1001) // on top of everything
+    // Don't create the player ship sprite yet - wait until after we know the starting position
 
     this.events.on('encounter_choice_selected', (choice: ChoiceDefinition) => {
       console.log(`Processing choice ${choice.id}`)
@@ -259,6 +255,12 @@ export class StarmapScene extends PotatoScene {
 
     // Find the closest inhabited star to center in Hub Systems and place player there
     this.setPlayerStartPosition()
+
+    // Now create the player ship sprite at the correct starting position
+    this.playerShipSprite = this.add
+      .image(this.playerX, this.playerY, imageRegistry.ROCKET)
+      .setOrigin(0.5, 0.5)
+      .setDepth(1001) // on top of everything
 
     // Center camera on player starting position
     this.cameras.main.centerOn(this.playerX, this.playerY)
@@ -509,8 +511,7 @@ export class StarmapScene extends PotatoScene {
       console.log('Warning: No inhabited stars found in Hub Systems, using center')
     }
 
-    // Update player ship position
-    this.playerShip.setPosition(this.playerX, this.playerY)
+    // Player ship sprite will be created after this method returns
   }
 
   addStar(x: number, y: number, region: string) {

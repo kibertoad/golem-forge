@@ -30,6 +30,7 @@ export interface CargoItem {
   spacePerUnit: number
   illegal?: boolean
   value?: number
+  purchasedAtPrice?: number  // Price paid when buying this item
 }
 
 export class ShipModel {

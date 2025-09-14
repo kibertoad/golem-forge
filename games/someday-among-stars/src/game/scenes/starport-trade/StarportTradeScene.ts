@@ -394,7 +394,7 @@ export class StarportTradeScene extends PotatoScene {
     const detailPanelX = panelX + panelWidth + 20
     const detailPanelY = panelY
     const detailPanelWidth = 280  // Wider detail panel
-    const detailPanelHeight = 250  // Taller to fit all content
+    const detailPanelHeight = 400  // Extended to fit all content including illegal goods
 
     // Panel background
     this.add
@@ -412,14 +412,15 @@ export class StarportTradeScene extends PotatoScene {
       })
       .setOrigin(0.5, 0)
 
-    // Item detail panel background
-    this.add
+    // Item detail panel background (initially hidden)
+    this.itemDetailBackground = this.add
       .rectangle(detailPanelX, detailPanelY, detailPanelWidth, detailPanelHeight, 0x1a1a2e, 0.9)
       .setOrigin(0, 0)
       .setStrokeStyle(2, 0x666666)
+      .setVisible(false)
 
-    // Item detail panel title
-    this.add
+    // Item detail panel title (initially hidden)
+    this.itemDetailTitle = this.add
       .text(detailPanelX + detailPanelWidth / 2, detailPanelY + 20, 'ITEM DETAILS', {
         fontSize: '20px',  // Increased from 16px
         fontFamily: 'Arial',
@@ -427,6 +428,7 @@ export class StarportTradeScene extends PotatoScene {
         fontStyle: 'bold',
       })
       .setOrigin(0.5, 0)
+      .setVisible(false)
 
     // Create the item detail container (initially empty)
     this.itemDetailPanel = this.add.container(detailPanelX + 10, detailPanelY + 50)
@@ -569,9 +571,21 @@ export class StarportTradeScene extends PotatoScene {
       const worldX = containerX + slotX + slotSize / 2
       const worldY = containerY + slotY + slotSize / 2
 
+      // Calculate profit margin for visual indicator
+      let bgColor = item.illegal ? 0x553333 : 0x335533
+      if (item.purchasedAtPrice !== undefined) {
+        const salePrice = Math.floor((item.value || 0) * 0.8)
+        const profit = salePrice - item.purchasedAtPrice
+        if (profit > 0) {
+          bgColor = item.illegal ? 0x665533 : 0x336633  // Green tint for profit
+        } else if (profit < 0) {
+          bgColor = item.illegal ? 0x663333 : 0x553333  // Red tint for loss
+        }
+      }
+
       // Slot background - non-interactive visual only
       const slotBg = this.add
-        .rectangle(slotX, slotY, slotSize, slotSize, item.illegal ? 0x553333 : 0x335533, 0.8)
+        .rectangle(slotX, slotY, slotSize, slotSize, bgColor, 0.8)
         .setOrigin(0, 0)
         .setStrokeStyle(1, 0x666666)
         .setDepth(0)
@@ -587,7 +601,6 @@ export class StarportTradeScene extends PotatoScene {
       // Store reference to icon
       cargoIcons.push(icon)
 
-      console.log(`Created icon for ${item.name} at world pos ${worldX}, ${worldY}, interactive:`, icon.input?.enabled)
 
       // Quantity text at world position
       if (item.quantity > 1) {
@@ -603,7 +616,6 @@ export class StarportTradeScene extends PotatoScene {
 
       // Click handler for selling - on the icon
       icon.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        console.log(`Icon clicked: ${item.name}`)
         pointer.event.stopPropagation()
 
         // Clear previous selection
@@ -618,11 +630,9 @@ export class StarportTradeScene extends PotatoScene {
 
         // Show item details in fixed panel
         this.showItemDetails(item, true)
-        console.log(`Selected cargo item: ${item.name} for sale`)
       })
 
       icon.on('pointerover', () => {
-        console.log(`Icon hover: ${item.name}`)
         // Only show hover details if this item isn't already selected
         if (this.selectedCargoItem?.item !== item) {
           slotBg.setStrokeStyle(2, 0xaaaaff)
@@ -635,7 +645,6 @@ export class StarportTradeScene extends PotatoScene {
       })
 
       icon.on('pointerout', () => {
-        console.log(`Icon hover out: ${item.name}`)
         // Keep selection highlight if this item is selected
         if (this.selectedCargoItem?.item === item) {
           slotBg.setStrokeStyle(3, 0xffff00)
@@ -670,7 +679,6 @@ export class StarportTradeScene extends PotatoScene {
 
     // Click handler for compartment selection
     bg.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      console.log(`Compartment bg clicked: ${id} at ${pointer.x}, ${pointer.y}`)
       // Get local position within the container
       const localX = pointer.x - (50 + 10) // panelX + container.x
       const localY = pointer.y - (150 + 60 + y) // panelY + shipCargoContainer.y + container.y
@@ -680,8 +688,6 @@ export class StarportTradeScene extends PotatoScene {
                            localX <= slotStartX + (12 * 35) && // 12 slots * (30 + 5 spacing)
                            localY >= slotStartY &&
                            localY <= slotStartY + 35 // one row of slots
-
-      console.log(`Local position: ${localX}, ${localY}, in cargo area: ${isInCargoArea}, slotStart: ${slotStartX}, ${slotStartY}`)
 
       if (!isInCargoArea) {
         this.selectCompartment(id)
@@ -701,47 +707,105 @@ export class StarportTradeScene extends PotatoScene {
 
   private itemDetailPanel?: Phaser.GameObjects.Container
 
+  private itemDetailBackground?: Phaser.GameObjects.Rectangle
+  private itemDetailTitle?: Phaser.GameObjects.Text
+
   private showItemDetails(item: CargoItem, isSelected: boolean) {
     // Clear existing details
     this.clearItemDetails()
 
     if (!this.itemDetailPanel) return
 
-    const lines: string[] = []
+    // Show the detail panel background and title
+    if (this.itemDetailBackground) {
+      this.itemDetailBackground.setVisible(true)
+    }
+    if (this.itemDetailTitle) {
+      this.itemDetailTitle.setVisible(true)
+    }
+
+    let yOffset = 0
+    const lineHeight = 20
+
+    // Helper function to add text with custom color
+    const addLine = (text: string, color: string = '#ffffff') => {
+      const textObj = this.add
+        .text(0, yOffset, text, {
+          fontSize: '16px',
+          fontFamily: 'monospace',
+          color: color,
+          lineSpacing: 4,
+        })
+        .setOrigin(0, 0)
+      this.itemDetailPanel.add(textObj)
+      yOffset += lineHeight
+    }
+
     if (isSelected) {
-      lines.push('SELECTED FOR SALE')
-      lines.push('─────────────────────────')
+      addLine('SELECTED FOR SALE', '#ffff00')
+      addLine('─────────────────────────', '#666666')
     }
-    lines.push(item.name)
-    lines.push('')
-    lines.push(`Value: ${item.value}¢`)
-    lines.push(`Size: ${item.spacePerUnit} units`)
-    lines.push(`Quantity: ${item.quantity}`)
-    lines.push('')
-    lines.push(`Total Value: ${(item.value || 0) * item.quantity}¢`)
-    lines.push(`Total Size: ${item.spacePerUnit * item.quantity} units`)
+
+    addLine(item.name, '#ffffff')
+    yOffset += 10 // Extra spacing
+    addLine(`Current Market: ${item.value}¢`, '#aaaaaa')
+
+    // Calculate profit/loss margin with color coding
+    if (item.purchasedAtPrice !== undefined) {
+      const purchasePrice = item.purchasedAtPrice
+      const currentPrice = item.value || 0
+      const salePrice = Math.floor(currentPrice * 0.8) // Sell at 80% of market value
+      const profitPerUnit = salePrice - purchasePrice
+      const profitPercent = purchasePrice > 0 ? Math.round((profitPerUnit / purchasePrice) * 100) : 100
+
+      addLine(`Purchased At: ${purchasePrice}¢`, '#aaaaaa')
+      addLine(`Sale Price: ${salePrice}¢ (80% market)`, '#ffff00')
+
+      // Color-coded profit/loss
+      if (profitPerUnit > 0) {
+        const profitColor = profitPercent >= 50 ? '#00ff00' : (profitPercent >= 20 ? '#88ff88' : '#ccffcc')
+        addLine(`Profit: +${profitPerUnit}¢ (+${profitPercent}%)`, profitColor)
+      } else if (profitPerUnit < 0) {
+        const lossColor = profitPercent <= -50 ? '#ff0000' : (profitPercent <= -20 ? '#ff8888' : '#ffcccc')
+        addLine(`Loss: ${profitPerUnit}¢ (${profitPercent}%)`, lossColor)
+      } else {
+        addLine(`Break Even: 0¢ (0%)`, '#ffffff')
+      }
+    }
+
+    yOffset += 10 // Extra spacing
+    addLine(`Size: ${item.spacePerUnit} units`, '#aaaaaa')
+    addLine(`Quantity: ${item.quantity}`, '#aaaaaa')
+    yOffset += 10 // Extra spacing
+    addLine(`Total Value: ${(item.value || 0) * item.quantity}¢`, '#ffff00')
+    addLine(`Total Size: ${item.spacePerUnit * item.quantity} units`, '#aaaaaa')
+
+    if (item.purchasedAtPrice !== undefined && item.purchasedAtPrice > 0) {
+      const totalProfit = (Math.floor((item.value || 0) * 0.8) - item.purchasedAtPrice) * item.quantity
+      if (totalProfit !== 0) {
+        const profitColor = totalProfit > 0 ? '#00ff00' : '#ff6666'
+        addLine(`Total ${totalProfit > 0 ? 'Profit' : 'Loss'}: ${totalProfit > 0 ? '+' : ''}${totalProfit}¢`, profitColor)
+      }
+    }
+
     if (item.illegal) {
-      lines.push('')
-      lines.push('[ILLEGAL GOODS]')
-      lines.push('Risk of confiscation')
-      lines.push('Higher profit margin')
+      yOffset += 10 // Extra spacing
+      addLine('[ILLEGAL GOODS]', '#ff4444')
+      addLine('Risk of confiscation', '#ff8888')
+      addLine('Higher profit margin', '#88ff88')
     }
-
-    const text = this.add
-      .text(0, 0, lines.join('\n'), {
-        fontSize: '16px',  // Increased from 14px
-        fontFamily: 'monospace',
-        color: isSelected ? '#ffff00' : '#ffffff',
-        lineSpacing: 4,
-      })
-      .setOrigin(0, 0)
-
-    this.itemDetailPanel.add(text)
   }
 
   private clearItemDetails() {
     if (this.itemDetailPanel) {
       this.itemDetailPanel.removeAll(true)
+    }
+    // Hide the detail panel background and title when clearing
+    if (this.itemDetailBackground) {
+      this.itemDetailBackground.setVisible(false)
+    }
+    if (this.itemDetailTitle) {
+      this.itemDetailTitle.setVisible(false)
     }
   }
 
@@ -1008,7 +1072,7 @@ export class StarportTradeScene extends PotatoScene {
       return
     }
 
-    // Create cargo item
+    // Create cargo item with purchase price
     const cargoItem: CargoItem = {
       id: `${good.id}-${Date.now()}`,
       name: good.name,
@@ -1016,6 +1080,7 @@ export class StarportTradeScene extends PotatoScene {
       spacePerUnit: good.spacePerUnit,
       illegal: good.illegal,
       value: good.basePrice,
+      purchasedAtPrice: good.basePrice,  // Track the price we paid
     }
 
     // Try to add to selected compartment
@@ -1051,6 +1116,11 @@ export class StarportTradeScene extends PotatoScene {
     const { compartmentId, item } = this.selectedCargoItem
     const salePrice = Math.floor((item.value || 50) * 0.8) // Sell at 80% of value
 
+    // Calculate profit/loss
+    const purchasePrice = item.purchasedAtPrice || 0
+    const profit = salePrice - purchasePrice
+    const profitText = profit > 0 ? `+${profit}¢ profit` : profit < 0 ? `${profit}¢ loss` : 'break even'
+
     // Remove from compartment
     let removed: CargoItem | null = null
     if (compartmentId === 'public') {
@@ -1070,7 +1140,9 @@ export class StarportTradeScene extends PotatoScene {
       // Refresh display
       this.refreshCargoDisplay()
 
-      this.showMessage(`Sold ${item.name} for ${salePrice}¢`, '#00ff00')
+      // Show message with profit/loss info
+      const messageColor = profit > 0 ? '#00ff00' : profit < 0 ? '#ff8800' : '#ffff00'
+      this.showMessage(`Sold ${item.name} for ${salePrice}¢ (${profitText})`, messageColor)
     } else {
       this.showMessage('Failed to sell item!', '#ff0000')
     }

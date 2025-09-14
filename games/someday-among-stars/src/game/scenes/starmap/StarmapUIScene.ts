@@ -228,24 +228,42 @@ export class StarmapUIScene extends Phaser.Scene {
 
   // --- Travel/Stop button ---
   showTravelButton(show: boolean, text?: string) {
-    if (this.planetOverlayBox.visible || this.encounterOverlayBox.visible) {
+    // Check if UI elements exist before accessing them
+    if (!this.travelButton) {
+      return
+    }
+
+    // Check if overlays are visible (if they exist)
+    if ((this.planetOverlayBox && this.planetOverlayBox.visible) ||
+        (this.encounterOverlayBox && this.encounterOverlayBox.visible)) {
       this.travelButton.setVisible(false)
       return
     }
+
     if (text) this.travelButtonText = text
     this.travelButton.setText(this.travelButtonText)
     this.travelButton.setVisible(show)
     this.positionTravelButton()
   }
   hideTravelButton() {
-    this.travelButton.setVisible(false)
+    if (this.travelButton) {
+      this.travelButton.setVisible(false)
+    }
   }
   private positionTravelButton() {
-    this.travelButton.setPosition(this.scale.width - this.travelButton.width - 36, 24)
+    if (this.travelButton) {
+      this.travelButton.setPosition(this.scale.width - this.travelButton.width - 36, 24)
+    }
   }
 
   // --- Planet arrival overlay ---
   showPlanetOverlay(data: PlanetOverlayData) {
+    // Check if required elements exist
+    if (!this.planetOverlayBox || !this.planetTitle || !this.planetInfo ||
+        !this.planetButtonGroup) {
+      return
+    }
+
     this.hideOverlay()
     this.hideTravelButton()
     this.hideEncounterOverlay()
@@ -348,15 +366,21 @@ export class StarmapUIScene extends Phaser.Scene {
       y += 56
     }
 
-    this.planetOverlayBox.setVisible(true)
-    this.centerPlanetOverlay()
+    if (this.planetOverlayBox) {
+      this.planetOverlayBox.setVisible(true)
+      this.centerPlanetOverlay()
+    }
   }
 
   hidePlanetOverlay() {
-    this.planetOverlayBox.setVisible(false)
+    if (this.planetOverlayBox) {
+      this.planetOverlayBox.setVisible(false)
+    }
   }
   private centerPlanetOverlay() {
-    this.planetOverlayBox.setPosition(this.scale.width / 2 - 310, this.scale.height / 2 - 260)
+    if (this.planetOverlayBox) {
+      this.planetOverlayBox.setPosition(this.scale.width / 2 - 310, this.scale.height / 2 - 260)
+    }
   }
 
   private makeButton(label: string, y: number, onClick: () => void): Phaser.GameObjects.Text {
@@ -480,6 +504,9 @@ export class StarmapUIScene extends Phaser.Scene {
 
   // --- Tooltip always next to overlay, aligned to hovered button ---
   private showEncounterTooltip(desc: string, btnY: number) {
+    if (!this.encounterTooltipBox || !this.encounterTooltipText || !this.encounterTooltipBg) {
+      return
+    }
     this.encounterTooltipText.setText(desc)
     this.encounterTooltipBg.setSize(
       this.encounterTooltipText.width + 16,
@@ -497,6 +524,8 @@ export class StarmapUIScene extends Phaser.Scene {
   }
 
   private hideEncounterTooltip() {
-    this.encounterTooltipBox.setVisible(false)
+    if (this.encounterTooltipBox) {
+      this.encounterTooltipBox.setVisible(false)
+    }
   }
 }
