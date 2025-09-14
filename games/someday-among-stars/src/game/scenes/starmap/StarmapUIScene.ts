@@ -234,8 +234,10 @@ export class StarmapUIScene extends Phaser.Scene {
     }
 
     // Check if overlays are visible (if they exist)
-    if ((this.planetOverlayBox && this.planetOverlayBox.visible) ||
-        (this.encounterOverlayBox && this.encounterOverlayBox.visible)) {
+    if (
+      (this.planetOverlayBox && this.planetOverlayBox.visible) ||
+      (this.encounterOverlayBox && this.encounterOverlayBox.visible)
+    ) {
       this.travelButton.setVisible(false)
       return
     }
@@ -259,8 +261,12 @@ export class StarmapUIScene extends Phaser.Scene {
   // --- Planet arrival overlay ---
   showPlanetOverlay(data: PlanetOverlayData) {
     // Check if required elements exist
-    if (!this.planetOverlayBox || !this.planetTitle || !this.planetInfo ||
-        !this.planetButtonGroup) {
+    if (
+      !this.planetOverlayBox ||
+      !this.planetTitle ||
+      !this.planetInfo ||
+      !this.planetButtonGroup
+    ) {
       return
     }
 

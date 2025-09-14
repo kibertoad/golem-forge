@@ -21,6 +21,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly playerShip: ShipModel
   public readonly enemyShip: ShipModel
 
+  // Player resources
+  public playerCredits: number
+
   // Fog of war: stores discovered areas as circles (x, y, radius)
   public discoveredAreas: Array<{ x: number; y: number; radius: number }> = []
 
@@ -38,6 +41,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       },
     ]
     this.planets = [generatePlanet(this.races[0])]
+
+    // Initialize player credits
+    this.playerCredits = 100000
 
     this.playerShip = new ShipModel()
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))

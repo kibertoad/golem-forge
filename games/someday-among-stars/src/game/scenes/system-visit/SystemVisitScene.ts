@@ -144,20 +144,18 @@ export class SystemVisitScene extends PotatoScene {
       info += `Economic Focus: ${typeLabel} Hub\n`
     }
 
-    // Facilities
-    info += '\n━━━ FACILITIES ━━━\n'
-    const facilities: string[] = []
-    if (this.systemData.colonized) facilities.push('Spaceport')
-    if (this.systemData.hasShipyard) facilities.push('Shipyard')
-    if (this.systemData.hasMercenaryGuild) facilities.push('Mercenary Guild')
-    if (this.systemData.economicType) facilities.push('Trade Hub')
+    // Facilities (only for colonized systems)
+    if (this.systemData.colonized) {
+      info += '\n━━━ FACILITIES ━━━\n'
+      const facilities: string[] = []
+      facilities.push('Spaceport')
+      if (this.systemData.hasShipyard) facilities.push('Shipyard')
+      if (this.systemData.hasMercenaryGuild) facilities.push('Mercenary Guild')
+      if (this.systemData.economicType) facilities.push('Trade Hub')
 
-    if (facilities.length > 0) {
       facilities.forEach((f) => {
         info += `  ▸ ${f}\n`
       })
-    } else {
-      info += '  None available\n'
     }
 
     return info
@@ -253,8 +251,8 @@ export class SystemVisitScene extends PotatoScene {
 
   private visitShipyard() {
     console.log('Visiting shipyard...')
-    // TODO: Implement shipyard interaction
-    this.showTemporaryMessage('Ship upgrades and repairs coming soon!')
+    // Launch the shipyard scene
+    this.scene.start(sceneRegistry.SHIPYARD_SCENE)
   }
 
   private visitMercenaryGuild() {

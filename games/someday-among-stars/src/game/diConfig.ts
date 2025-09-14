@@ -13,6 +13,7 @@ import { getWorldModel, type WorldModel } from './model/entities/WorldModel.ts'
 import { TravelTurnProcessor } from './model/processors/TravelTurnProcessor.ts'
 import { ChoiceScene } from './scenes/choices/ChoiceScene.ts'
 import { MainMenuScene } from './scenes/main-menu/MainMenuScene.ts'
+import { ShipyardScene } from './scenes/shipyard/ShipyardScene.ts'
 import { SpaceScene } from './scenes/space/SpaceScene.ts'
 import { SpaceCombatScene } from './scenes/space-combat/SpaceCombatScene.ts'
 import { StarmapScene } from './scenes/starmap/StarmapScene.ts'
@@ -33,6 +34,7 @@ export interface Dependencies {
   choicesScene: ChoiceScene
   systemVisitScene: SystemVisitScene
   starportTradeScene: StarportTradeScene
+  shipyardScene: ShipyardScene
   travelTurnProcessor: TravelTurnProcessor
   choicesDirector: ChoiceDirector
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
@@ -57,6 +59,7 @@ export function instantiateContainer() {
     choicesScene: asClass(ChoiceScene, SINGLETON_CONFIG),
     systemVisitScene: asClass(SystemVisitScene, SINGLETON_CONFIG),
     starportTradeScene: asClass(StarportTradeScene, SINGLETON_CONFIG),
+    shipyardScene: asClass(ShipyardScene, SINGLETON_CONFIG),
     travelTurnProcessor: asClass(TravelTurnProcessor, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoiceDirector, SINGLETON_CONFIG),
   }

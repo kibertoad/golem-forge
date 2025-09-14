@@ -9,6 +9,37 @@ export type ScannerType =
   | 'bioscan'
   | 'quantum'
 
+// Ship system types
+export type SystemType =
+  | 'weapon'
+  | 'engine'
+  | 'shield_generator'
+  | 'scanner'
+  | 'power_generator'
+  | 'central_computer'
+  | 'special'
+  | 'extension'
+
+// Ship system template (for shop items)
+export interface ShipSystemTemplate {
+  templateId: string
+  name: string
+  type: SystemType
+  description?: string
+  powerRequirement?: number
+  stats?: Record<string, number>
+  price?: number
+}
+
+// Ship system instance (for owned systems)
+export interface ShipSystem extends ShipSystemTemplate {
+  id: string // Unique instance ID
+  condition?: number // 0-100, degradation over time
+  upgrades?: string[] // List of applied upgrades
+  installed: boolean
+  slotIndex?: number
+}
+
 // Interface for concealed cargo compartments
 export interface ConcealedCompartment {
   id: string
@@ -30,7 +61,7 @@ export interface CargoItem {
   spacePerUnit: number
   illegal?: boolean
   value?: number
-  purchasedAtPrice?: number  // Price paid when buying this item
+  purchasedAtPrice?: number // Price paid when buying this item
 }
 
 export class ShipModel {
@@ -47,6 +78,14 @@ export class ShipModel {
   public publicCargo: CargoItem[]
   public concealedSpaceSlots: ConcealedCompartment[]
 
+  // Ship systems and slots
+  public maxWeaponSlots: number
+  public maxEngineSlots: number
+  public maxSpecialSlots: number
+  public maxExtensionSlots: number
+  public installedSystems: ShipSystem[]
+  public storedSystems: ShipSystem[] // Not installed systems in storage
+
   constructor() {
     this.weapons = []
     this.maxEnergy = 5
@@ -60,6 +99,14 @@ export class ShipModel {
     this.currentPublicSpace = 100 // Available space
     this.publicCargo = []
     this.concealedSpaceSlots = []
+
+    // Initialize ship system slots (default ship configuration)
+    this.maxWeaponSlots = 3
+    this.maxEngineSlots = 2
+    this.maxSpecialSlots = 3
+    this.maxExtensionSlots = 5
+    this.installedSystems = []
+    this.storedSystems = []
   }
 
   // Add cargo to public space
@@ -157,5 +204,97 @@ export class ShipModel {
       0,
     )
     return publicUsed + concealedUsed
+  }
+
+  // Ship system management methods
+
+  // Install a system to the ship
+  installSystem(system: ShipSystem, slotIndex: number): boolean {
+    // Check if system is already installed
+    if (system.installed) return false
+
+    // Check slot availability based on system type
+    const slotsUsed = this.getUsedSlotsByType(system.type)
+    const maxSlots = this.getMaxSlotsByType(system.type)
+
+    if (slotsUsed >= maxSlots) return false
+    if (slotIndex < 0 || slotIndex >= maxSlots) return false
+
+    // Check if slot is already occupied
+    const existingSystem = this.installedSystems.find(
+      (s) => s.type === system.type && s.slotIndex === slotIndex,
+    )
+    if (existingSystem) return false
+
+    // Install the system
+    system.installed = true
+    system.slotIndex = slotIndex
+    this.installedSystems.push(system)
+
+    // Remove from storage if it was there
+    const storageIndex = this.storedSystems.indexOf(system)
+    if (storageIndex !== -1) {
+      this.storedSystems.splice(storageIndex, 1)
+    }
+
+    return true
+  }
+
+  // Uninstall a system from the ship
+  uninstallSystem(systemId: string): ShipSystem | null {
+    const index = this.installedSystems.findIndex((s) => s.id === systemId)
+    if (index === -1) return null
+
+    const system = this.installedSystems.splice(index, 1)[0]
+    system.installed = false
+    system.slotIndex = undefined
+
+    // Add to storage
+    this.storedSystems.push(system)
+
+    return system
+  }
+
+  // Get number of used slots by type
+  getUsedSlotsByType(type: SystemType): number {
+    return this.installedSystems.filter((s) => s.type === type).length
+  }
+
+  // Get maximum slots by type
+  getMaxSlotsByType(type: SystemType): number {
+    switch (type) {
+      case 'weapon':
+        return this.maxWeaponSlots
+      case 'engine':
+        return this.maxEngineSlots
+      case 'special':
+        return this.maxSpecialSlots
+      case 'extension':
+        return this.maxExtensionSlots
+      default:
+        return 1 // Single slot for shield_generator, scanner, power_generator, central_computer
+    }
+  }
+
+  // Get all systems of a specific type
+  getSystemsByType(type: SystemType, installedOnly = false): ShipSystem[] {
+    const systems = installedOnly
+      ? this.installedSystems
+      : [...this.installedSystems, ...this.storedSystems]
+    return systems.filter((s) => s.type === type)
+  }
+
+  // Add a system to storage
+  addSystemToStorage(system: ShipSystem): void {
+    if (!system.installed && !this.storedSystems.includes(system)) {
+      this.storedSystems.push(system)
+    }
+  }
+
+  // Remove a system from storage
+  removeSystemFromStorage(systemId: string): ShipSystem | null {
+    const index = this.storedSystems.findIndex((s) => s.id === systemId)
+    if (index === -1) return null
+    return this.storedSystems.splice(index, 1)[0]
   }
 }

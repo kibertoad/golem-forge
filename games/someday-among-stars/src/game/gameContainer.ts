@@ -22,6 +22,7 @@ const scenes = [
   container.cradle.spaceCombatScene,
   container.cradle.systemVisitScene,
   container.cradle.starportTradeScene,
+  container.cradle.shipyardScene,
 ]
 
 const config: PhaserTypes.Core.GameConfig = {

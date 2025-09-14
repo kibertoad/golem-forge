@@ -521,7 +521,8 @@ export class StarmapScene extends PotatoScene {
 
     // Colonization probability based on region
     let colonizationChance = 0
-    if (region === 'Hub Systems') colonizationChance = 0.85  // Increased from 0.7
+    if (region === 'Hub Systems')
+      colonizationChance = 0.85 // Increased from 0.7
     else if (region === 'Frontier Systems') colonizationChance = 0.4
     else colonizationChance = 0.15
 
@@ -530,12 +531,12 @@ export class StarmapScene extends PotatoScene {
       ? this.alienRaces[Math.floor(Math.random() * this.alienRaces.length)]
       : undefined
 
-    // Facilities more common in Hub Systems
+    // Facilities only exist in colonized systems
     const facilityModifier = region === 'Hub Systems' ? 2 : region === 'Frontier Systems' ? 1 : 0.5
-    const hasShipyard = Math.random() < 0.15 * facilityModifier
-    const hasMercenaryGuild = Math.random() < 0.1 * facilityModifier
+    const hasShipyard = colonized && Math.random() < 0.15 * facilityModifier
+    const hasMercenaryGuild = colonized && Math.random() < 0.1 * facilityModifier
 
-    // Economic type (more likely if colonized)
+    // Economic type (only if colonized)
     let economicType: 'industrial' | 'scientific' | 'mining' | 'agricultural' | null = null
     if (colonized && Math.random() < 0.6) {
       const types: Array<'industrial' | 'scientific' | 'mining' | 'agricultural'> = [

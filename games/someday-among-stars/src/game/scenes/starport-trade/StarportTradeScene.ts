@@ -46,7 +46,6 @@ export class StarportTradeScene extends PotatoScene {
   // Trade goods data
   private allTradeGoods: TradeGood[] = []
   private filteredTradeGoods: TradeGood[] = []
-  private playerCredits = 5000 // Starting credits
 
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARPORT_TRADE_SCENE })
@@ -77,7 +76,7 @@ export class StarportTradeScene extends PotatoScene {
 
     // Credits display
     this.creditsText = this.add
-      .text(width / 2, 70, `Credits: ${this.playerCredits}`, {
+      .text(width / 2, 70, `Credits: ${this.worldModel.playerCredits}`, {
         fontSize: '24px',
         fontFamily: 'monospace',
         color: '#ffff00',
@@ -287,7 +286,7 @@ export class StarportTradeScene extends PotatoScene {
       const x = index * (buttonWidth + buttonSpacing)
       const button = this.add
         .text(x, 0, filter.label, {
-          fontSize: '18px',  // Increased from 16px
+          fontSize: '18px', // Increased from 16px
           fontFamily: 'Arial',
           color: this.activeFilter === filter.key ? '#000000' : '#ffffff',
           backgroundColor: this.activeFilter === filter.key ? '#ffff00' : '#333333',
@@ -328,14 +327,14 @@ export class StarportTradeScene extends PotatoScene {
         this.filteredTradeGoods = [...this.allTradeGoods]
         break
       case 'legal':
-        this.filteredTradeGoods = this.allTradeGoods.filter(g => !g.illegal)
+        this.filteredTradeGoods = this.allTradeGoods.filter((g) => !g.illegal)
         break
       case 'illegal':
-        this.filteredTradeGoods = this.allTradeGoods.filter(g => g.illegal)
+        this.filteredTradeGoods = this.allTradeGoods.filter((g) => g.illegal)
         break
       case 'specialty':
         // Show items that are cheap in this system type
-        this.filteredTradeGoods = this.allTradeGoods.filter(g => {
+        this.filteredTradeGoods = this.allTradeGoods.filter((g) => {
           const systemType = this.systemData?.economicType
           if (systemType === 'agricultural' && g.category === 'food') return true
           if (systemType === 'industrial' && g.category === 'industrial') return true
@@ -346,7 +345,7 @@ export class StarportTradeScene extends PotatoScene {
         break
       case 'demand':
         // Show items that are expensive in this system type (high demand)
-        this.filteredTradeGoods = this.allTradeGoods.filter(g => {
+        this.filteredTradeGoods = this.allTradeGoods.filter((g) => {
           const systemType = this.systemData?.economicType
           if (!systemType || systemType === 'agricultural') {
             return g.category === 'industrial' || g.category === 'electronics'
@@ -387,14 +386,14 @@ export class StarportTradeScene extends PotatoScene {
     const { width, height } = this.scale
     const panelX = 50
     const panelY = 150
-    const panelWidth = width / 2 - 350  // Further reduced for wider detail panel
+    const panelWidth = width / 2 - 350 // Further reduced for wider detail panel
     const panelHeight = height - 250
 
     // Create fixed item detail panel area
     const detailPanelX = panelX + panelWidth + 20
     const detailPanelY = panelY
-    const detailPanelWidth = 280  // Wider detail panel
-    const detailPanelHeight = 400  // Extended to fit all content including illegal goods
+    const detailPanelWidth = 280 // Wider detail panel
+    const detailPanelHeight = 400 // Extended to fit all content including illegal goods
 
     // Panel background
     this.add
@@ -405,7 +404,7 @@ export class StarportTradeScene extends PotatoScene {
     // Panel title
     this.add
       .text(panelX + panelWidth / 2, panelY + 20, 'SHIP CARGO HOLDS', {
-        fontSize: '28px',  // Increased from 24px
+        fontSize: '28px', // Increased from 24px
         fontFamily: 'Arial',
         color: '#88ff88',
         fontStyle: 'bold',
@@ -422,7 +421,7 @@ export class StarportTradeScene extends PotatoScene {
     // Item detail panel title (initially hidden)
     this.itemDetailTitle = this.add
       .text(detailPanelX + detailPanelWidth / 2, detailPanelY + 20, 'ITEM DETAILS', {
-        fontSize: '20px',  // Increased from 16px
+        fontSize: '20px', // Increased from 16px
         fontFamily: 'Arial',
         color: '#aaaaaa',
         fontStyle: 'bold',
@@ -496,7 +495,7 @@ export class StarportTradeScene extends PotatoScene {
     // Name
     const nameText = this.add
       .text(10, 10, name, {
-        fontSize: '20px',  // Increased from 18px
+        fontSize: '20px', // Increased from 18px
         fontFamily: 'monospace',
         color: isConcealed ? '#ff8888' : '#88ff88',
       })
@@ -511,7 +510,7 @@ export class StarportTradeScene extends PotatoScene {
           30,
           `Concealment: ${'★'.repeat(compartment.concealmentLevel)}${'☆'.repeat(10 - compartment.concealmentLevel)}`,
           {
-            fontSize: '16px',  // Increased from 14px
+            fontSize: '16px', // Increased from 14px
             fontFamily: 'monospace',
             color: '#ffaa00',
           },
@@ -528,7 +527,7 @@ export class StarportTradeScene extends PotatoScene {
 
       const protectionText = this.add
         .text(10, 50, `Protection: ${bestProtection}`, {
-          fontSize: '14px',  // Increased from 12px
+          fontSize: '14px', // Increased from 12px
           fontFamily: 'monospace',
           color: '#888888',
         })
@@ -541,7 +540,7 @@ export class StarportTradeScene extends PotatoScene {
     const usedSpace = maxSpace - currentSpace
     const spaceText = this.add
       .text(10, scannerInfoY, `Space: ${usedSpace}/${maxSpace} units taken`, {
-        fontSize: '18px',  // Increased from 16px
+        fontSize: '18px', // Increased from 16px
         fontFamily: 'monospace',
         color: '#ffffff',
       })
@@ -555,7 +554,7 @@ export class StarportTradeScene extends PotatoScene {
     const slotsPerRow = 12
 
     // Calculate base world position for this container
-    const panelX = 50  // from createShipCargoPanel
+    const panelX = 50 // from createShipCargoPanel
     const panelY = 150 // from createShipCargoPanel
     const containerX = panelX + 10 // container x position
     const containerY = panelY + 60 + y // container y position in shipCargoContainer
@@ -577,9 +576,9 @@ export class StarportTradeScene extends PotatoScene {
         const salePrice = Math.floor((item.value || 0) * 0.8)
         const profit = salePrice - item.purchasedAtPrice
         if (profit > 0) {
-          bgColor = item.illegal ? 0x665533 : 0x336633  // Green tint for profit
+          bgColor = item.illegal ? 0x665533 : 0x336633 // Green tint for profit
         } else if (profit < 0) {
-          bgColor = item.illegal ? 0x663333 : 0x553333  // Red tint for loss
+          bgColor = item.illegal ? 0x663333 : 0x553333 // Red tint for loss
         }
       }
 
@@ -601,12 +600,11 @@ export class StarportTradeScene extends PotatoScene {
       // Store reference to icon
       cargoIcons.push(icon)
 
-
       // Quantity text at world position
       if (item.quantity > 1) {
         const qtyText = this.add
-          .text(worldX + slotSize/2 - 2, worldY + slotSize/2 - 2, `${item.quantity}`, {
-            fontSize: '12px',  // Increased from 10px
+          .text(worldX + slotSize / 2 - 2, worldY + slotSize / 2 - 2, `${item.quantity}`, {
+            fontSize: '12px', // Increased from 10px
             fontFamily: 'monospace',
             color: '#ffff00',
           })
@@ -684,10 +682,11 @@ export class StarportTradeScene extends PotatoScene {
       const localY = pointer.y - (150 + 60 + y) // panelY + shipCargoContainer.y + container.y
 
       // Check if click is in the cargo slots area
-      const isInCargoArea = localX >= slotStartX &&
-                           localX <= slotStartX + (12 * 35) && // 12 slots * (30 + 5 spacing)
-                           localY >= slotStartY &&
-                           localY <= slotStartY + 35 // one row of slots
+      const isInCargoArea =
+        localX >= slotStartX &&
+        localX <= slotStartX + 12 * 35 && // 12 slots * (30 + 5 spacing)
+        localY >= slotStartY &&
+        localY <= slotStartY + 35 // one row of slots
 
       if (!isInCargoArea) {
         this.selectCompartment(id)
@@ -756,17 +755,20 @@ export class StarportTradeScene extends PotatoScene {
       const currentPrice = item.value || 0
       const salePrice = Math.floor(currentPrice * 0.8) // Sell at 80% of market value
       const profitPerUnit = salePrice - purchasePrice
-      const profitPercent = purchasePrice > 0 ? Math.round((profitPerUnit / purchasePrice) * 100) : 100
+      const profitPercent =
+        purchasePrice > 0 ? Math.round((profitPerUnit / purchasePrice) * 100) : 100
 
       addLine(`Purchased At: ${purchasePrice}¢`, '#aaaaaa')
       addLine(`Sale Price: ${salePrice}¢ (80% market)`, '#ffff00')
 
       // Color-coded profit/loss
       if (profitPerUnit > 0) {
-        const profitColor = profitPercent >= 50 ? '#00ff00' : (profitPercent >= 20 ? '#88ff88' : '#ccffcc')
+        const profitColor =
+          profitPercent >= 50 ? '#00ff00' : profitPercent >= 20 ? '#88ff88' : '#ccffcc'
         addLine(`Profit: +${profitPerUnit}¢ (+${profitPercent}%)`, profitColor)
       } else if (profitPerUnit < 0) {
-        const lossColor = profitPercent <= -50 ? '#ff0000' : (profitPercent <= -20 ? '#ff8888' : '#ffcccc')
+        const lossColor =
+          profitPercent <= -50 ? '#ff0000' : profitPercent <= -20 ? '#ff8888' : '#ffcccc'
         addLine(`Loss: ${profitPerUnit}¢ (${profitPercent}%)`, lossColor)
       } else {
         addLine(`Break Even: 0¢ (0%)`, '#ffffff')
@@ -781,10 +783,14 @@ export class StarportTradeScene extends PotatoScene {
     addLine(`Total Size: ${item.spacePerUnit * item.quantity} units`, '#aaaaaa')
 
     if (item.purchasedAtPrice !== undefined && item.purchasedAtPrice > 0) {
-      const totalProfit = (Math.floor((item.value || 0) * 0.8) - item.purchasedAtPrice) * item.quantity
+      const totalProfit =
+        (Math.floor((item.value || 0) * 0.8) - item.purchasedAtPrice) * item.quantity
       if (totalProfit !== 0) {
         const profitColor = totalProfit > 0 ? '#00ff00' : '#ff6666'
-        addLine(`Total ${totalProfit > 0 ? 'Profit' : 'Loss'}: ${totalProfit > 0 ? '+' : ''}${totalProfit}¢`, profitColor)
+        addLine(
+          `Total ${totalProfit > 0 ? 'Profit' : 'Loss'}: ${totalProfit > 0 ? '+' : ''}${totalProfit}¢`,
+          profitColor,
+        )
       }
     }
 
@@ -853,7 +859,7 @@ export class StarportTradeScene extends PotatoScene {
     // Panel title
     this.add
       .text(panelX + panelWidth / 2, panelY + 20, 'AVAILABLE GOODS', {
-        fontSize: '28px',  // Increased from 24px
+        fontSize: '28px', // Increased from 24px
         fontFamily: 'Arial',
         color: '#88ff88',
         fontStyle: 'bold',
@@ -900,7 +906,7 @@ export class StarportTradeScene extends PotatoScene {
     // Name
     const nameText = this.add
       .text(60, 5, good.name + (good.illegal ? ' [ILLEGAL]' : ''), {
-        fontSize: '18px',  // Increased from 16px
+        fontSize: '18px', // Increased from 16px
         fontFamily: 'monospace',
         color: good.illegal ? '#ff4444' : '#ffffff',
       })
@@ -910,7 +916,7 @@ export class StarportTradeScene extends PotatoScene {
     if (good.description) {
       const descText = this.add
         .text(60, 25, good.description, {
-          fontSize: '14px',  // Increased from 12px
+          fontSize: '14px', // Increased from 12px
           fontFamily: 'monospace',
           color: '#aaaaaa',
         })
@@ -925,7 +931,7 @@ export class StarportTradeScene extends PotatoScene {
         45,
         `Price: ${good.basePrice}¢  Size: ${good.spacePerUnit}u  Stock: ${good.available}`,
         {
-          fontSize: '16px',  // Increased from 14px
+          fontSize: '16px', // Increased from 14px
           fontFamily: 'monospace',
           color: '#ffff00',
         },
@@ -1061,7 +1067,7 @@ export class StarportTradeScene extends PotatoScene {
     const price = good.basePrice
 
     // Check credits
-    if (this.playerCredits < price) {
+    if (this.worldModel.playerCredits < price) {
       this.showMessage('Insufficient credits!', '#ff0000')
       return
     }
@@ -1080,7 +1086,7 @@ export class StarportTradeScene extends PotatoScene {
       spacePerUnit: good.spacePerUnit,
       illegal: good.illegal,
       value: good.basePrice,
-      purchasedAtPrice: good.basePrice,  // Track the price we paid
+      purchasedAtPrice: good.basePrice, // Track the price we paid
     }
 
     // Try to add to selected compartment
@@ -1093,9 +1099,9 @@ export class StarportTradeScene extends PotatoScene {
 
     if (success) {
       // Deduct credits and stock
-      this.playerCredits -= price
+      this.worldModel.playerCredits -= price
       good.available--
-      this.creditsText.setText(`Credits: ${this.playerCredits}`)
+      this.creditsText.setText(`Credits: ${this.worldModel.playerCredits}`)
 
       // Refresh displays
       this.refreshCargoDisplay()
@@ -1119,7 +1125,8 @@ export class StarportTradeScene extends PotatoScene {
     // Calculate profit/loss
     const purchasePrice = item.purchasedAtPrice || 0
     const profit = salePrice - purchasePrice
-    const profitText = profit > 0 ? `+${profit}¢ profit` : profit < 0 ? `${profit}¢ loss` : 'break even'
+    const profitText =
+      profit > 0 ? `+${profit}¢ profit` : profit < 0 ? `${profit}¢ loss` : 'break even'
 
     // Remove from compartment
     let removed: CargoItem | null = null
@@ -1131,8 +1138,8 @@ export class StarportTradeScene extends PotatoScene {
 
     if (removed) {
       // Add credits
-      this.playerCredits += salePrice
-      this.creditsText.setText(`Credits: ${this.playerCredits}`)
+      this.worldModel.playerCredits += salePrice
+      this.creditsText.setText(`Credits: ${this.worldModel.playerCredits}`)
 
       // Clear selection
       this.clearCargoSelection()
@@ -1150,10 +1157,12 @@ export class StarportTradeScene extends PotatoScene {
 
   private refreshCargoDisplay() {
     // Clean up any cargo icons that were added to the scene
-    this.cargoCompartments.forEach(comp => {
+    this.cargoCompartments.forEach((comp) => {
       const icons = comp.getData('cargoIcons') as Phaser.GameObjects.Image[]
       if (icons) {
-        icons.forEach(icon => icon.destroy())
+        icons.forEach((icon) => {
+          icon.destroy()
+        })
       }
     })
 
@@ -1206,7 +1215,7 @@ export class StarportTradeScene extends PotatoScene {
         )
       } else {
         // Find the stats text (last text object in container)
-        const texts = slot.getAll().filter(obj => obj instanceof Phaser.GameObjects.Text)
+        const texts = slot.getAll().filter((obj) => obj instanceof Phaser.GameObjects.Text)
         const lastText = texts[texts.length - 1] as Phaser.GameObjects.Text
         if (lastText) {
           lastText.setText(

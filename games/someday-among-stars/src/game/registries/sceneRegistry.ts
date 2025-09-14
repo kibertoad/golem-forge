@@ -11,4 +11,5 @@ export const sceneRegistry = {
   SPACE_COMBAT: 'spaceCombat',
   SYSTEM_VISIT_SCENE: 'systemVisit',
   STARPORT_TRADE_SCENE: 'starportTrade',
+  SHIPYARD_SCENE: 'shipyard',
 } as const
