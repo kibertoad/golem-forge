@@ -15,9 +15,12 @@ export class TravelTurnProcessor implements TurnProcessor {
   processTurn(): EncounterModel | null {
     const diceRoll = Phaser.Math.Between(1, 100)
 
+      /*
     if (diceRoll < 5) {
       return SPACE_ENCOUNTERS.PIRATES
     }
+    
+       */
 
     return null
   }

@@ -38,6 +38,7 @@ export class StarmapScene extends PotatoScene {
   private playerY = 0
 
   private selectedStar: Star | null = null
+  private selectedPoint: { x: number; y: number } | null = null
   private lineGraphics!: Phaser.GameObjects.Graphics
 
   private isTraveling = false
@@ -79,7 +80,7 @@ export class StarmapScene extends PotatoScene {
       if (this.isTraveling) {
         this.isTraveling = false
         this.showTravelButtonIfAvailable()
-      } else if (this.selectedStar) {
+      } else if (this.selectedStar || this.selectedPoint) {
         this.isTraveling = true
         this.showTravelButtonIfAvailable()
       }
@@ -98,6 +99,10 @@ export class StarmapScene extends PotatoScene {
       }
       if (pointer.rightButtonDown()) return
 
+      // Get world coordinates from pointer
+      const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y)
+
+      // Check if clicking on a star
       const objectsUnderPointer = this.input.hitTestPointer(
         pointer,
       ) as Phaser.GameObjects.GameObject[]
@@ -108,13 +113,47 @@ export class StarmapScene extends PotatoScene {
       if (arc) {
         const star = this.stars.find((s) => s.display === arc)
         if (star) {
-          this.selectedStar = star
+          // If we have a selected point/star and click on it again, start traveling
+          if (
+            this.selectedStar === star ||
+            (this.selectedPoint &&
+              this.selectedPoint.x === star.x &&
+              this.selectedPoint.y === star.y)
+          ) {
+            if (!this.isTraveling) {
+              this.isTraveling = true
+              this.showTravelButtonIfAvailable()
+            }
+          } else {
+            // Select the star
+            this.selectedStar = star
+            this.selectedPoint = { x: star.x, y: star.y }
+            this.showTravelButtonIfAvailable()
+          }
+          return
+        }
+      }
+
+      // If clicking on the currently selected point, start traveling
+      if (this.selectedPoint && !this.isTraveling) {
+        const distance = Phaser.Math.Distance.Between(
+          worldPoint.x,
+          worldPoint.y,
+          this.selectedPoint.x,
+          this.selectedPoint.y,
+        )
+        if (distance < 10) {
+          // Close enough to the selected point
+          this.isTraveling = true
           this.showTravelButtonIfAvailable()
           return
         }
       }
+
+      // Otherwise, select the clicked point in space
       this.selectedStar = null
-      this.hideTravelButton()
+      this.selectedPoint = { x: worldPoint.x, y: worldPoint.y }
+      this.showTravelButtonIfAvailable()
     })
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -209,7 +248,7 @@ export class StarmapScene extends PotatoScene {
 
   showTravelButtonIfAvailable() {
     const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as StarmapUIScene
-    if (this.selectedStar && uiScene?.showTravelButton) {
+    if ((this.selectedStar || this.selectedPoint) && uiScene?.showTravelButton) {
       uiScene.showTravelButton(true, this.isTraveling ? 'Stop' : 'Travel to destination')
     }
   }
@@ -226,16 +265,19 @@ export class StarmapScene extends PotatoScene {
   }
 
   drawDestinationLine(): void {
+    const destX = this.selectedPoint?.x ?? this.selectedStar!.x
+    const destY = this.selectedPoint?.y ?? this.selectedStar!.y
+
     this.lineGraphics.fillStyle(0xff0000, 1)
     this.lineGraphics.fillCircle(this.playerX, this.playerY, 6)
 
     this.lineGraphics.fillStyle(0x00ff00, 1)
-    this.lineGraphics.fillCircle(this.selectedStar!.x, this.selectedStar!.y, 6)
+    this.lineGraphics.fillCircle(destX, destY, 6)
 
     const dashLength = 12
     const gapLength = 8
-    const dx = this.selectedStar!.x - this.playerX
-    const dy = this.selectedStar!.y - this.playerY
+    const dx = destX - this.playerX
+    const dy = destY - this.playerY
     const dist = Math.sqrt(dx * dx + dy * dy)
     const angle = Math.atan2(dy, dx)
     let drawn = 0
@@ -261,9 +303,9 @@ export class StarmapScene extends PotatoScene {
       const arrowLength = 12
       const arrowAngle = Phaser.Math.DegToRad(25)
 
-      // End position of the line is the star
-      const destX = this.selectedStar!.x
-      const destY = this.selectedStar!.y
+      // End position of the line is the destination
+      const destX = this.selectedPoint?.x ?? this.selectedStar!.x
+      const destY = this.selectedPoint?.y ?? this.selectedStar!.y
 
       // Draw left side
       this.lineGraphics.lineStyle(2, 0xffffff, 1)
@@ -290,18 +332,23 @@ export class StarmapScene extends PotatoScene {
     this.lineGraphics.clear()
 
     // Move the ship if traveling
-    if (this.isTraveling && this.selectedStar) {
-      const dx = this.selectedStar.x - this.playerX
-      const dy = this.selectedStar.y - this.playerY
+    if (this.isTraveling && (this.selectedStar || this.selectedPoint)) {
+      const destX = this.selectedPoint?.x ?? this.selectedStar!.x
+      const destY = this.selectedPoint?.y ?? this.selectedStar!.y
+      const dx = destX - this.playerX
+      const dy = destY - this.playerY
       const dist = Math.sqrt(dx * dx + dy * dy)
 
       // Arrive if close enough
       if (dist < this.travelSpeed * (delta / 1000)) {
-        this.playerX = this.selectedStar.x
-        this.playerY = this.selectedStar.y
+        this.playerX = destX
+        this.playerY = destY
         this.isTraveling = false
         this.showTravelButtonIfAvailable()
-        this.onShipArrivedAtDestination()
+        // Only show planet overlay if arriving at a star
+        if (this.selectedStar) {
+          this.onShipArrivedAtDestination()
+        }
       } else {
         const angle = Math.atan2(dy, dx)
         const step = this.travelSpeed * (delta / 1000)
@@ -323,7 +370,7 @@ export class StarmapScene extends PotatoScene {
     this.playerShipSprite.setPosition(this.playerX, this.playerY)
 
     // paint line towards destination
-    if (this.selectedStar) {
+    if (this.selectedStar || this.selectedPoint) {
       this.drawDestinationLine()
     }
 

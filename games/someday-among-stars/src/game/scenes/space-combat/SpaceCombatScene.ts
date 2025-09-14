@@ -308,7 +308,9 @@ export class SpaceCombatScene extends PotatoScene {
       sourceComponent = attackingShip.weapons[weaponIndex]
     } else if (sourceShip === 'enemy' && weaponIndex < attackingShip.weapons.length) {
       sourceComponent = attackingShip.weapons[weaponIndex]
-      console.log(`[TARGET EFFECTS] Enemy attack using weapon component: ${sourceComponent.definition.name}`)
+      console.log(
+        `[TARGET EFFECTS] Enemy attack using weapon component: ${sourceComponent.definition.name}`,
+      )
     }
 
     const source: ActivationSource | undefined = sourceComponent
@@ -830,11 +832,11 @@ export class SpaceCombatScene extends PotatoScene {
   // --- SLOT SIDES OVERLAY ---
   showSlotSides(slot: any, baseX: number, baseY: number) {
     this.hideSlotSides()
-    
+
     // Handle both player slots (with reelSides) and enemy weapon components (with definition.defaultSlots)
     const slotName = slot.name || slot.definition?.name
     const slotSides = slot.reelSides || slot.definition?.defaultSlots
-    
+
     console.log('[SLOT SIDES] Showing slot sides overlay for', slotName)
     console.log('[SLOT SIDES] Available sides:', slotSides?.length || 0)
 
@@ -869,10 +871,8 @@ export class SpaceCombatScene extends PotatoScene {
       const slotSide = slotSides[s]
       const sideImage = slotSide.image
       const sideDescription = slotSide.description || slotSide.id
-      
-      const side = this.add
-        .image(sx + cell / 2, sy + cell / 2, sideImage)
-        .setScale(0.15)
+
+      const side = this.add.image(sx + cell / 2, sy + cell / 2, sideImage).setScale(0.15)
 
       // Tooltip logic
       side
@@ -1112,7 +1112,10 @@ export class SpaceCombatScene extends PotatoScene {
         )
         let resultSide = 0
         if (weapon && weapon.definition.defaultSlots && weapon.definition.defaultSlots.length > 0) {
-          resultSide = Phaser.Math.Between(0, Math.min(5, weapon.definition.defaultSlots.length - 1))
+          resultSide = Phaser.Math.Between(
+            0,
+            Math.min(5, weapon.definition.defaultSlots.length - 1),
+          )
           sprite.setTexture(weapon.definition.defaultSlots[resultSide].image)
         } else {
           console.error(`[ENEMY ERROR] Invalid enemy weapon data for idx ${idx}:`, weapon)
@@ -1126,7 +1129,11 @@ export class SpaceCombatScene extends PotatoScene {
           ease: 'Sine.InOut',
         })
         done++
-        if (weapon && weapon.definition.defaultSlots && weapon.definition.defaultSlots[resultSide]) {
+        if (
+          weapon &&
+          weapon.definition.defaultSlots &&
+          weapon.definition.defaultSlots[resultSide]
+        ) {
           const slotSideId = weapon.definition.defaultSlots[resultSide].id
           const weaponName = weapon.definition.name
           console.log(
