@@ -385,9 +385,6 @@ export class BoardScene extends PotatoScene {
     // Position toasts below the status display area
     this.toastContainer = new ToastContainer(this, width - 160, 200)
     this.toastContainer.setDepth(1000)
-    this.toastContainer.on('toast-detail-requested', (data: ToastData) => {
-      console.log('Toast detail requested:', data)
-    })
 
     this.navigationBar = new NavigationBar(this, 70, height / 2)
     this.navigationBar.setDepth(900)
@@ -545,6 +542,9 @@ export class BoardScene extends PotatoScene {
       }
     })
 
+    // Remove any existing listener before adding a new one
+    this.toastContainer.off('toast-detail-requested')
+
     // Set up listener for all toast clicks this turn
     this.toastContainer.on('toast-detail-requested', (data: ToastData) => {
       if (data.id.startsWith('arms-show-')) {
@@ -576,12 +576,12 @@ export class BoardScene extends PotatoScene {
     const currentCash = this.worldModel.gameStatus.money
     const canAfford = currentCash >= armsShow.entranceFee
 
-    // Create button near the map marker
-    const capital = CountryCapitals[armsShow.country]
+    // Create button to the left of the Next Turn button
+    // This ensures it's visible and not overlapping with other UI elements
     this.scheduleAttendanceButton = new ScheduleAttendanceButton(
       this,
-      this.cameras.main.width / 2 + capital.x,
-      this.cameras.main.height / 2 + capital.y + 80,
+      this.cameras.main.width - 320, // To the left of Next Turn button (which is at width - 110)
+      250, // Same y position as Next Turn button
       canAfford,
       () => this.openAgentSelectionWindow(armsShow),
     )

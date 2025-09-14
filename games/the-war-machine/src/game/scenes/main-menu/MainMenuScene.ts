@@ -12,7 +12,7 @@ export class MainMenuScene extends PrefabMainMenuScene<SceneId> {
       credits: [],
       gameStartScene: sceneRegistry.BOARD_SCENE,
       mainMenuSceneId: sceneRegistry.MAIN_MENU_SCENE,
-      subtitleText: 'Game template',
+      subtitleText: 'The Arms Bazaar',
     })
   }
 

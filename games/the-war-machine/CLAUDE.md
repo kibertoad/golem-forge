@@ -110,9 +110,11 @@ class EntityView extends GameObjects.Container {
 - Board-specific events via `boardEmitter`
 
 ## Testing Approach
-- Check README or search codebase for test framework
+- Test framework: **Vitest**
+- Run tests: `npm test`
 - Run linting before commits: `npm run lint`
-- TypeScript checking: `tsc --noEmit`
+- TypeScript checking: `tsc --noEmit` or `npm run build`
+- Test files located alongside source files with `.test.ts` extension
 
 ## Asset Management
 - Images go in `/public/assets/`
@@ -144,3 +146,44 @@ class EntityView extends GameObjects.Container {
 - Use TypeScript strict mode
 - Prefer composition over inheritance
 - Keep views and models separated
+
+## Important Game Data Files
+
+### City and Country Data
+- **CityData.ts**: Contains city positions for all countries on the game board
+  - Each country has 10-25 cities with x,y coordinates
+  - Cities marked as capitals have `isCapital: true`
+  - Grid coordinates range from 0-19 for both x and y
+
+- **CityNeighbors.ts**: Defines connections between cities within each country
+  - Each city lists its neighboring cities for movement/connection purposes
+  - Connections must be bidirectional (if A connects to B, B must connect to A)
+  - Average 2-3 connections per city
+  - **Important**: When fixing duplicates, keep the LATER definitions (usually after line 650+)
+
+- **Country.ts**: Enum of all playable countries
+- **ContinentData.ts**: Maps countries to continents and defines continent positions
+
+### Game Mechanics
+- **WarSystem.ts**: Handles war declarations and combat between countries
+  - Expansionist countries automatically declare wars
+  - Countries can only attack weaker neighbors (lower military budget)
+
+- **WorldModel.ts**: Main game state management
+  - Tracks all countries, cities, wars, and game progression
+  - Handles turn processing and victory conditions
+
+## Common Issues and Fixes
+
+### Duplicate Country Entries
+If you encounter "An object literal cannot have multiple properties with the same name" errors:
+1. Search for duplicate country entries in the affected file
+2. Keep the SECOND occurrence (usually the one that appears later in the file)
+3. Remove the FIRST occurrence
+4. The tests expect the later definitions, not the earlier ones
+
+### Testing Best Practices
+- Always run `npm test` after making changes to game data files
+- Check for bidirectional connections in CityNeighbors
+- Verify no cities overlap in CityData (same x,y coordinates)
+- Ensure each country has exactly one capital city

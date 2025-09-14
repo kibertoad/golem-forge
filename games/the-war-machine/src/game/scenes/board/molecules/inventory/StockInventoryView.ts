@@ -67,8 +67,9 @@ export class StockInventoryView extends GameObjects.Container {
     this.createSummarySection(scene)
     this.createScrollBar(scene)
 
-    // Setup mouse wheel scrolling
+    // Setup mouse wheel scrolling and right-click to close
     this.setupScrolling(scene)
+    this.setupRightClickClose(scene)
 
     // Create detail view overlay
     this.detailView = new ArmsDetailView(
@@ -81,7 +82,7 @@ export class StockInventoryView extends GameObjects.Container {
     })
 
     scene.add.existing(this)
-    this.setDepth(1000)
+    this.setDepth(3000) // Higher than continent zoom view (2000)
   }
 
   private createFilterSection(scene: PotatoScene) {
@@ -90,12 +91,12 @@ export class StockInventoryView extends GameObjects.Container {
     this.filterButtons.clear()
 
     // Get window dimensions
-    const windowHeight = (this.background as any).currentHeight || 700
+    const windowHeight = (this.background as any).currentHeight || 800
     const halfHeight = windowHeight / 2
 
     // Position filter section relative to window top
     const filterLabelY = -halfHeight + 70 // 70px from top (after title)
-    const baseX = -580
+    const baseX = -780
 
     // Filter label
     const filterLabel = scene.add.text(baseX, filterLabelY, 'FILTERS:', {
@@ -202,7 +203,7 @@ export class StockInventoryView extends GameObjects.Container {
 
   private createSummarySection(scene: PotatoScene) {
     // Total value - will be repositioned dynamically
-    this.totalValueText = scene.add.text(-580, 0, 'Total Value: $0', {
+    this.totalValueText = scene.add.text(-780, 0, 'Total Value: $0', {
       fontSize: '24px',
       fontFamily: 'Courier',
       color: '#00ff00',
@@ -311,6 +312,17 @@ export class StockInventoryView extends GameObjects.Container {
     })
   }
 
+  private setupRightClickClose(scene: PotatoScene) {
+    // Right-click to close the inventory view
+    scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // Check if right mouse button and inventory is visible
+      if (pointer.rightButtonDown() && this.visible) {
+        this.hide()
+        this.emit('inventory-closed')
+      }
+    })
+  }
+
   private scroll(direction: number) {
     this.scrollOffset = Math.max(0, Math.min(this.maxScroll, this.scrollOffset + direction))
     this.updateDisplay()
@@ -339,7 +351,7 @@ export class StockInventoryView extends GameObjects.Container {
     const headerHeight = calculatedFilterHeight + 80 // Filter section + sort section (with more padding)
     const footerHeight = 60 // Summary
     const maxHeight = 900 // Max window height
-    const minHeight = 700 // Min window height
+    const minHeight = 800 // Min window height
 
     // Calculate needed height for all items
     const neededItemsHeight = items.length * itemHeight
@@ -359,9 +371,9 @@ export class StockInventoryView extends GameObjects.Container {
     const halfHeight = windowHeight / 2
     this.background.clear()
     this.background.fillStyle(0x1a1a1a, 0.95)
-    this.background.fillRoundedRect(-600, -halfHeight, 1200, windowHeight, 10)
+    this.background.fillRoundedRect(-800, -halfHeight, 1600, windowHeight, 10)
     this.background.lineStyle(2, 0x444444, 1)
-    this.background.strokeRoundedRect(-600, -halfHeight, 1200, windowHeight, 10)
+    this.background.strokeRoundedRect(-800, -halfHeight, 1600, windowHeight, 10)
     // Store height for later reference
     ;(this.background as any).currentHeight = windowHeight
 
@@ -496,7 +508,7 @@ export class StockInventoryView extends GameObjects.Container {
     const endIndex = Math.min(startIndex + this.maxVisibleItems, this.displayedItems.length)
 
     // Calculate starting Y position based on window height
-    const windowHeight = (this.background as any).currentHeight || 700
+    const windowHeight = (this.background as any).currentHeight || 800
     const halfHeight = windowHeight / 2
     // Items start after filter section and sort section with extra padding
     const itemsStartY = -halfHeight + this.filterSectionHeight + 80
@@ -514,7 +526,7 @@ export class StockInventoryView extends GameObjects.Container {
 
   private createItemDisplay(item: ArmsStockModel, yPos: number): GameObjects.Container {
     const scene = this.scene as PotatoScene
-    const container = scene.add.container(-570, yPos)
+    const container = scene.add.container(-770, yPos)
 
     // Item background
     const bg = scene.add.graphics()
@@ -650,7 +662,7 @@ export class StockInventoryView extends GameObjects.Container {
     this.scrollBar.clear()
 
     if (this.maxScroll > 0) {
-      const windowHeight = (this.background as any).currentHeight || 700
+      const windowHeight = (this.background as any).currentHeight || 800
       const halfHeight = windowHeight / 2
       // Scroll track height accounts for filter section, sort section, and footer
       const scrollTrackHeight = windowHeight - (this.filterSectionHeight + 80 + 60)
