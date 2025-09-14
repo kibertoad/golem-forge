@@ -6,6 +6,7 @@ import { CountryCapitals } from '../../../../model/enums/CountryCapitals.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 import { WarSystem } from '../../../../model/WarSystem.ts'
 import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
+import { CityZoomView } from './CityZoomView.ts'
 
 interface CountryBlock {
   country: Country
@@ -221,8 +222,8 @@ export class ContinentZoomView extends GameObjects.Container {
 
       graphics.on('pointerdown', () => {
         this.selectCountry(countryInfo.country)
-        // Show country info overlay instead of emitting event
-        new CountryInfoOverlay(scene, countryInfo.country, this.warSystem)
+        // Show city zoom view
+        this.showCityView(countryInfo.country)
       })
 
       this.add(graphics)
@@ -480,5 +481,25 @@ export class ContinentZoomView extends GameObjects.Container {
       // Auto-select the country
       this.selectCountry(country)
     }
+  }
+
+  private showCityView(country: Country) {
+    // Hide continent view
+    this.setVisible(false)
+
+    // Create city zoom view
+    const cityView = new CityZoomView(this.scene as PotatoScene, this.x, this.y, country)
+
+    // Listen for close event to return to continent view
+    cityView.on('close', () => {
+      this.setVisible(true)
+    })
+
+    // Listen for city selection
+    cityView.on('city-selected', (data: { country: Country; city: string }) => {
+      console.log(`City selected: ${data.city} in ${CountryNames[data.country]}`)
+      // Show country info overlay after city selection
+      new CountryInfoOverlay(this.scene as PotatoScene, data.country, this.warSystem)
+    })
   }
 }

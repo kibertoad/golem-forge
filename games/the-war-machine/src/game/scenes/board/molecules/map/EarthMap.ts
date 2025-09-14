@@ -49,7 +49,7 @@ export class EarthMap extends GameObjects.Container {
           title: 'War Declaration!',
           description: `${aggressorName} attacks ${defenderName}`,
           timestamp: Date.now(),
-          metadata: { aggressor } // Store aggressor country for click handling
+          metadata: { aggressor }, // Store aggressor country for click handling
         }
         this.toastContainer.addToast(warToast)
       }
