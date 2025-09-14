@@ -45,6 +45,13 @@ export class StarmapScene extends PotatoScene {
 
   private playerShipSprite!: Phaser.GameObjects.Image // <--- ADDED
 
+  // Fog of war properties
+  private fogTexture!: Phaser.Textures.CanvasTexture
+  private fogSprite!: Phaser.GameObjects.Image
+  private fogRevealRadius = 150 // Radius around ship that gets revealed
+  private fogResolution = 2048 // Resolution of fog texture
+  private fogBounds = { minX: -2000, maxX: 2000, minY: -2000, maxY: 2000 } // World bounds for fog
+
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE })
     this.worldModel = dependencies.worldModel
@@ -60,7 +67,17 @@ export class StarmapScene extends PotatoScene {
     }
 
     this.cameras.main.setZoom(DEFAULT_ZOOM)
+
+    // Add a dark background for space
+    this.cameras.main.setBackgroundColor(0x0a0a0f)
+
     this.starGroup = this.add.group()
+
+    // Initialize fog of war
+    this.initializeFogOfWar()
+
+    // Draw play area boundary
+    this.drawPlayAreaBoundary()
 
     this.lineGraphics = this.add.graphics().setDepth(1000)
 
@@ -113,6 +130,12 @@ export class StarmapScene extends PotatoScene {
       if (arc) {
         const star = this.stars.find((s) => s.display === arc)
         if (star) {
+          // Check if star is within play area bounds
+          if (!this.isPointInPlayArea(star.x, star.y)) {
+            // Star is outside play area, don't select it
+            return
+          }
+
           // If we have a selected point/star and click on it again, start traveling
           if (
             this.selectedStar === star ||
@@ -150,6 +173,32 @@ export class StarmapScene extends PotatoScene {
         }
       }
 
+      // Check if the clicked point is within play area bounds
+      if (!this.isPointInPlayArea(worldPoint.x, worldPoint.y)) {
+        // Point is outside play area, don't select it - show visual feedback
+        this.selectedStar = null
+        this.selectedPoint = null
+        this.hideTravelButton()
+
+        // Flash a red circle to indicate area is out of bounds
+        const flashCircle = this.add
+          .circle(worldPoint.x, worldPoint.y, 20, 0xff0000, 0.5)
+          .setDepth(1002)
+
+        this.tweens.add({
+          targets: flashCircle,
+          alpha: 0,
+          scale: 2,
+          duration: 300,
+          ease: 'Power2',
+          onComplete: () => {
+            flashCircle.destroy()
+          },
+        })
+
+        return
+      }
+
       // Otherwise, select the clicked point in space
       this.selectedStar = null
       this.selectedPoint = { x: worldPoint.x, y: worldPoint.y }
@@ -180,10 +229,125 @@ export class StarmapScene extends PotatoScene {
       cam.setZoom(newZoom)
     })
 
+    // Generate stars only within the play area bounds
     for (let i = 0; i < STAR_AMOUNT; i++) {
-      this.addStar(Phaser.Math.Between(-1000, 1000), Phaser.Math.Between(-1000, 1000))
+      this.addStar(
+        Phaser.Math.Between(this.fogBounds.minX, this.fogBounds.maxX),
+        Phaser.Math.Between(this.fogBounds.minY, this.fogBounds.maxY),
+      )
     }
     this.cameras.main.centerOn(this.playerX, this.playerY)
+
+    // Initial fog reveal
+    this.updateFogOfWar()
+  }
+
+  drawPlayAreaBoundary() {
+    // Draw a border around the play area
+    const borderGraphics = this.add.graphics()
+    borderGraphics.lineStyle(3, 0x4444ff, 0.5)
+    borderGraphics.strokeRect(
+      this.fogBounds.minX,
+      this.fogBounds.minY,
+      this.fogBounds.maxX - this.fogBounds.minX,
+      this.fogBounds.maxY - this.fogBounds.minY,
+    )
+    borderGraphics.setDepth(998) // Just below fog
+  }
+
+  initializeFogOfWar() {
+    // Create fog texture
+    this.fogTexture = this.textures.createCanvas('fogOfWar', this.fogResolution, this.fogResolution)
+    const context = this.fogTexture.getContext()
+
+    // Fill with gray fog initially for better visibility
+    context.fillStyle = 'rgba(128, 128, 128, 1)'
+    context.fillRect(0, 0, this.fogResolution, this.fogResolution)
+
+    // Create fog sprite covering the entire world
+    this.fogSprite = this.add
+      .image(0, 0, 'fogOfWar')
+      .setOrigin(0.5, 0.5)
+      .setDepth(999) // Below line graphics but above stars
+      .setAlpha(0.75) // More opaque to clearly distinguish explored/unexplored
+      .setBlendMode(Phaser.BlendModes.NORMAL)
+
+    // Scale fog to cover world bounds
+    const worldWidth = this.fogBounds.maxX - this.fogBounds.minX
+    const worldHeight = this.fogBounds.maxY - this.fogBounds.minY
+    this.fogSprite.setScale(worldWidth / this.fogResolution, worldHeight / this.fogResolution)
+
+    // Apply previously discovered areas
+    const context2d = this.fogTexture.getContext()
+    context2d.globalCompositeOperation = 'destination-out'
+
+    for (const area of this.worldModel.discoveredAreas) {
+      this.revealFogArea(area.x, area.y, area.radius, false)
+    }
+
+    this.fogTexture.refresh()
+  }
+
+  revealFogArea(worldX: number, worldY: number, radius: number, addToModel = true) {
+    const context = this.fogTexture.getContext()
+
+    // Convert world coordinates to texture coordinates
+    const texX =
+      ((worldX - this.fogBounds.minX) / (this.fogBounds.maxX - this.fogBounds.minX)) *
+      this.fogResolution
+    const texY =
+      ((worldY - this.fogBounds.minY) / (this.fogBounds.maxY - this.fogBounds.minY)) *
+      this.fogResolution
+    const texRadius = (radius / (this.fogBounds.maxX - this.fogBounds.minX)) * this.fogResolution
+
+    // Create gradient for smooth edges with more distinct transition
+    const gradient = context.createRadialGradient(texX, texY, 0, texX, texY, texRadius)
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+    gradient.addColorStop(0.6, 'rgba(255, 255, 255, 1)')
+    gradient.addColorStop(0.9, 'rgba(255, 255, 255, 0.5)')
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+
+    context.globalCompositeOperation = 'destination-out'
+    context.fillStyle = gradient
+    context.beginPath()
+    context.arc(texX, texY, texRadius, 0, Math.PI * 2)
+    context.fill()
+
+    // Store in world model if needed
+    if (addToModel) {
+      // Check if this area overlaps with existing areas
+      let merged = false
+      for (const area of this.worldModel.discoveredAreas) {
+        const dist = Phaser.Math.Distance.Between(area.x, area.y, worldX, worldY)
+        if (dist < area.radius + radius) {
+          // Merge areas by expanding the existing one
+          const newRadius = Math.max(area.radius, dist + radius)
+          area.radius = newRadius
+          merged = true
+          break
+        }
+      }
+
+      if (!merged) {
+        this.worldModel.discoveredAreas.push({ x: worldX, y: worldY, radius })
+      }
+    }
+  }
+
+  updateFogOfWar() {
+    // Reveal area around current player position
+    this.revealFogArea(this.playerX, this.playerY, this.fogRevealRadius)
+    this.fogTexture.refresh()
+  }
+
+  isPointInPlayArea(x: number, y: number): boolean {
+    // Check if the point is within the fog bounds (playable area)
+    return (
+      x >= this.fogBounds.minX &&
+      x <= this.fogBounds.maxX &&
+      y >= this.fogBounds.minY &&
+      y <= this.fogBounds.maxY
+    )
   }
 
   addStar(x: number, y: number) {
@@ -195,6 +359,7 @@ export class StarmapScene extends PotatoScene {
       .circle(x, y, Phaser.Math.Between(1, 3), color)
       .setAlpha(Phaser.Math.FloatBetween(0.5, 1))
       .setInteractive({ cursor: 'pointer' })
+      .setDepth(10) // Stars should be below fog
 
     this.starGroup.add(star)
     this.stars.push({ x, y, color, name, distance, display: star })
@@ -211,17 +376,26 @@ export class StarmapScene extends PotatoScene {
     if (arc) {
       const star = this.stars.find((s) => s.display === arc)
       if (star) {
-        const distance = this.calcDistanceToPlayer(star.x, star.y)
-        const text = `Name: ${star.name}\n` + `Distance: ${distance.toFixed(1)} ly`
-        const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any
-        if (uiScene?.showOverlay) {
-          uiScene.showOverlay(pointer.x, pointer.y, text)
+        // Check if star is within play area
+        if (this.isPointInPlayArea(star.x, star.y)) {
+          const distance = this.calcDistanceToPlayer(star.x, star.y)
+          const text = `Name: ${star.name}\n` + `Distance: ${distance.toFixed(1)} ly`
+          const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any
+          if (uiScene?.showOverlay) {
+            uiScene.showOverlay(pointer.x, pointer.y, text)
+          }
+          // Set pointer cursor for stars in play area
+          this.input.setDefaultCursor('pointer')
+        } else {
+          // Set default cursor for out-of-bounds stars
+          this.input.setDefaultCursor('default')
         }
         return
       }
     }
     const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any
     if (uiScene?.hideOverlay) uiScene.hideOverlay()
+    this.input.setDefaultCursor('default')
   }
 
   hideOverlay() {
@@ -357,6 +531,9 @@ export class StarmapScene extends PotatoScene {
 
         // Rotate ship toward destination as it moves
         this.playerShipSprite.setRotation(angle + Phaser.Math.DegToRad(90))
+
+        // Reveal fog as we travel
+        this.updateFogOfWar()
 
         const encounter = this.travelTurnProcessor.processTurn()
         if (encounter) {

@@ -21,6 +21,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly playerShip: ShipModel
   public readonly enemyShip: ShipModel
 
+  // Fog of war: stores discovered areas as circles (x, y, radius)
+  public discoveredAreas: Array<{ x: number; y: number; radius: number }> = []
+
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
     this.globalSceneEventEmitter = globalSceneEventEmitter
     this.state = {
@@ -49,6 +52,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.enemyShip.maxHull = 5
     this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
     this.enemyShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
+
+    // Initialize with starting area discovered
+    this.discoveredAreas.push({ x: 0, y: 0, radius: 150 })
   }
 }
 
