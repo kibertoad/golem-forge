@@ -9,4 +9,5 @@ export const sceneRegistry = {
   STARMAP_SCENE: 'starmap',
   STARMAP_UI_SCENE: 'starmapUI',
   SPACE_COMBAT: 'spaceCombat',
+  SYSTEM_VISIT_SCENE: 'systemVisit',
 } as const

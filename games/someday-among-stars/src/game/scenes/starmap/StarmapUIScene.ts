@@ -9,6 +9,12 @@ export interface PlanetOverlayData {
   biome: string
   government?: string
   onMission?: boolean
+  region?: string
+  inhabitant?: string
+  hasShipyard?: boolean
+  hasMercenaryGuild?: boolean
+  economicType?: 'industrial' | 'scientific' | 'mining' | 'agricultural' | null
+  distance?: number
 }
 
 /**
@@ -51,14 +57,15 @@ export class StarmapUIScene extends Phaser.Scene {
   create() {
     // --- Star hover overlay ---
     this.overlayBg = this.add
-      .rectangle(0, 0, 160, 50, 0x222233, 0.95)
-      .setStrokeStyle(1, 0xffffff)
+      .rectangle(0, 0, 280, 180, 0x222233, 0.95)
+      .setStrokeStyle(2, 0xffffff)
       .setOrigin(0, 0)
     this.overlayText = this.add.text(0, 0, '', {
-      fontSize: '14px',
+      fontSize: '16px',
       color: '#ffffff',
       fontFamily: 'monospace',
-      padding: { x: 6, y: 4 },
+      padding: { x: 10, y: 8 },
+      lineSpacing: 4,
     })
     this.overlayBox = this.add
       .container(0, 0, [this.overlayBg, this.overlayText])
@@ -92,7 +99,7 @@ export class StarmapUIScene extends Phaser.Scene {
 
     // --- Planet overlay modal (hidden by default) ---
     this.planetBg = this.add
-      .rectangle(0, 0, 520, 420, 0x151525, 0.97)
+      .rectangle(0, 0, 620, 520, 0x151525, 0.97)
       .setOrigin(0, 0)
       .setDepth(10001)
     this.planetImg = this.add
@@ -120,7 +127,7 @@ export class StarmapUIScene extends Phaser.Scene {
     this.planetButtonGroup = this.add.container(240, 200).setDepth(10002)
 
     this.planetOverlayBox = this.add
-      .container(this.scale.width / 2 - 260, this.scale.height / 2 - 210, [
+      .container(this.scale.width / 2 - 310, this.scale.height / 2 - 260, [
         this.planetBg,
         this.planetImg,
         this.planetTitle,
@@ -191,7 +198,7 @@ export class StarmapUIScene extends Phaser.Scene {
   showOverlay(x: number, y: number, text: string) {
     if (this.planetOverlayBox.visible || this.encounterOverlayBox.visible) return
     this.overlayText.setText(text)
-    this.overlayBg.setSize(this.overlayText.width + 12, this.overlayText.height + 8)
+    this.overlayBg.setSize(this.overlayText.width + 20, this.overlayText.height + 16)
     const margin = 4
     const boxW = this.overlayBg.width
     const boxH = this.overlayBg.height
@@ -237,13 +244,52 @@ export class StarmapUIScene extends Phaser.Scene {
     this.hideTravelButton()
     this.hideEncounterOverlay()
 
-    this.planetTitle.setText(data.name)
+    this.planetTitle.setText(`SYSTEM: ${data.name}`)
+
     let info = ''
-    info += data.colonized ? '[COLONIZED]\n' : '[UNCLAIMED]\n'
-    info += `Biome: ${data.biome}\n`
-    if (data.colonized && data.government) {
-      info += `Gov: ${data.government}\n`
+    // Region and distance
+    if (data.region) {
+      info += `Region: ${data.region}\n`
     }
+    if (data.distance !== undefined) {
+      info += `Distance: ${data.distance.toFixed(1)} ly\n`
+    }
+    info += '─────────────────────\n'
+
+    // Colonization status
+    if (data.colonized) {
+      info += 'Status: COLONIZED\n'
+      if (data.inhabitant) {
+        info += `Inhabitants: ${data.inhabitant}\n`
+      }
+      if (data.government) {
+        info += `Government: ${data.government}\n`
+      }
+    } else {
+      info += 'Status: UNINHABITED\n'
+    }
+
+    // Biome
+    info += `Biome: ${data.biome}\n`
+
+    // Economic type
+    if (data.economicType) {
+      const typeLabel = data.economicType.charAt(0).toUpperCase() + data.economicType.slice(1)
+      info += `Economy: ${typeLabel} Hub\n`
+    }
+
+    // Facilities
+    const facilities: string[] = []
+    if (data.hasShipyard) facilities.push('Shipyard')
+    if (data.hasMercenaryGuild) facilities.push('Mercenary Guild')
+
+    if (facilities.length > 0) {
+      info += `\nFacilities Available:\n`
+      facilities.forEach((f) => {
+        info += `  • ${f}\n`
+      })
+    }
+
     this.planetInfo.setText(info)
 
     this.planetButtonGroup.removeAll(true)
@@ -252,12 +298,27 @@ export class StarmapUIScene extends Phaser.Scene {
     let y = 0
     const buttonConfigs: { label: string; visible: boolean; cb: () => void }[] = [
       {
-        label: 'Land to a spaceport',
+        label: 'Land at Spaceport',
         visible: data.colonized,
         cb: () => this.events.emit('overlay_land', data),
       },
       {
-        label: 'Explore',
+        label: 'Visit Shipyard',
+        visible: !!data.hasShipyard,
+        cb: () => this.events.emit('overlay_shipyard', data),
+      },
+      {
+        label: 'Mercenary Guild',
+        visible: !!data.hasMercenaryGuild,
+        cb: () => this.events.emit('overlay_mercenary_guild', data),
+      },
+      {
+        label: 'Trade Hub',
+        visible: !!data.economicType,
+        cb: () => this.events.emit('overlay_trade', data),
+      },
+      {
+        label: 'Explore Planet',
         visible: !data.colonized,
         cb: () => this.events.emit('overlay_explore', data),
       },
@@ -267,7 +328,7 @@ export class StarmapUIScene extends Phaser.Scene {
         cb: () => this.events.emit('overlay_mission', data),
       },
       {
-        label: 'Leave',
+        label: 'Leave System',
         visible: true,
         cb: () => this.hidePlanetOverlay(),
       },
@@ -289,7 +350,7 @@ export class StarmapUIScene extends Phaser.Scene {
     this.planetOverlayBox.setVisible(false)
   }
   private centerPlanetOverlay() {
-    this.planetOverlayBox.setPosition(this.scale.width / 2 - 260, this.scale.height / 2 - 210)
+    this.planetOverlayBox.setPosition(this.scale.width / 2 - 310, this.scale.height / 2 - 260)
   }
 
   private makeButton(label: string, y: number, onClick: () => void): Phaser.GameObjects.Text {

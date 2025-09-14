@@ -2,14 +2,13 @@ import { ActivationContainer, type ChoiceDefinition } from '@potato-golem/core'
 import { PotatoScene } from '@potato-golem/ui'
 import Phaser from 'phaser'
 import type { Dependencies } from '../../diConfig.ts'
-import type { PlanetModel } from '../../model/entities/PlanetModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { TravelTurnProcessor } from '../../model/processors/TravelTurnProcessor.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { DEFAULT_ZOOM, STAR_AMOUNT } from './internal/starmapConstants.ts'
 import { getRandomStarColor, getStarName } from './internal/starUtils.ts'
-import type { PlanetOverlayData, StarmapUIScene } from './StarmapUIScene.ts'
+import type { StarmapUIScene } from './StarmapUIScene.ts'
 
 interface Star {
   x: number
@@ -19,6 +18,11 @@ interface Star {
   distance: number
   display: Phaser.GameObjects.Arc
   region: string
+  colonized: boolean
+  inhabitant?: string
+  hasShipyard: boolean
+  hasMercenaryGuild: boolean
+  economicType?: 'industrial' | 'scientific' | 'mining' | 'agricultural' | null
 }
 
 export class StarmapScene extends PotatoScene {
@@ -57,6 +61,18 @@ export class StarmapScene extends PotatoScene {
   private hubSystemsRadius = this.fogRevealRadius * 4 // Hub Systems is 4 scanning radiuses wide
   private hubSystemsCenter = { x: 0, y: 0 } // Hub Systems at center of map
   private regionLabels: Phaser.GameObjects.Text[] = []
+
+  // Alien races for colonization
+  private alienRaces = [
+    'Terrans',
+    'Zephyrians',
+    'Crystallites',
+    'Void Dancers',
+    'Mechanoids',
+    'Drifters',
+    'Swarm Collective',
+    'Ancient Ones',
+  ]
 
   constructor(dependencies: Dependencies) {
     super(dependencies.globalSceneEventEmitter, { key: sceneRegistry.STARMAP_SCENE })
@@ -462,9 +478,38 @@ export class StarmapScene extends PotatoScene {
     const name = getStarName()
     const distance = this.calcDistanceToPlayer(x, y)
 
-    // Adjust star size based on region (Hub Systems stars are slightly larger)
+    // Colonization probability based on region
+    let colonizationChance = 0
+    if (region === 'Hub Systems') colonizationChance = 0.7
+    else if (region === 'Frontier Systems') colonizationChance = 0.4
+    else colonizationChance = 0.15
+
+    const colonized = Math.random() < colonizationChance
+    const inhabitant = colonized
+      ? this.alienRaces[Math.floor(Math.random() * this.alienRaces.length)]
+      : undefined
+
+    // Facilities more common in Hub Systems
+    const facilityModifier = region === 'Hub Systems' ? 2 : region === 'Frontier Systems' ? 1 : 0.5
+    const hasShipyard = Math.random() < 0.15 * facilityModifier
+    const hasMercenaryGuild = Math.random() < 0.1 * facilityModifier
+
+    // Economic type (more likely if colonized)
+    let economicType: 'industrial' | 'scientific' | 'mining' | 'agricultural' | null = null
+    if (colonized && Math.random() < 0.6) {
+      const types: Array<'industrial' | 'scientific' | 'mining' | 'agricultural'> = [
+        'industrial',
+        'scientific',
+        'mining',
+        'agricultural',
+      ]
+      economicType = types[Math.floor(Math.random() * types.length)]
+    }
+
+    // Adjust star size based on importance
     const baseSize = region === 'Hub Systems' ? 2 : 1
-    const starSize = Phaser.Math.Between(baseSize, baseSize + 2)
+    const importanceBonus = hasShipyard || hasMercenaryGuild || economicType ? 1 : 0
+    const starSize = Phaser.Math.Between(baseSize, baseSize + 2) + importanceBonus
 
     const star = this.add
       .circle(x, y, starSize, color)
@@ -473,7 +518,20 @@ export class StarmapScene extends PotatoScene {
       .setDepth(10) // Stars should be below fog
 
     this.starGroup.add(star)
-    this.stars.push({ x, y, color, name, distance, display: star, region })
+    this.stars.push({
+      x,
+      y,
+      color,
+      name,
+      distance,
+      display: star,
+      region,
+      colonized,
+      inhabitant,
+      hasShipyard,
+      hasMercenaryGuild,
+      economicType,
+    })
   }
 
   handleStarHover(pointer: Phaser.Input.Pointer) {
@@ -490,10 +548,36 @@ export class StarmapScene extends PotatoScene {
         // Check if star is within play area
         if (this.isPointInPlayArea(star.x, star.y)) {
           const distance = this.calcDistanceToPlayer(star.x, star.y)
-          const text =
-            `Name: ${star.name}\n` +
-            `Region: ${star.region}\n` +
-            `Distance: ${distance.toFixed(1)} ly`
+
+          // Build system information text
+          let text = `SYSTEM: ${star.name}\n`
+          text += `Region: ${star.region}\n`
+          text += `Distance: ${distance.toFixed(1)} ly\n`
+          text += `─────────────────\n`
+
+          // Colonization status
+          if (star.colonized) {
+            text += `Status: COLONIZED\n`
+            text += `Inhabitants: ${star.inhabitant}\n`
+          } else {
+            text += `Status: UNINHABITED\n`
+          }
+
+          // Economic type
+          if (star.economicType) {
+            const typeLabel = star.economicType.charAt(0).toUpperCase() + star.economicType.slice(1)
+            text += `Economy: ${typeLabel} Hub\n`
+          }
+
+          // Facilities
+          const facilities: string[] = []
+          if (star.hasShipyard) facilities.push('Shipyard')
+          if (star.hasMercenaryGuild) facilities.push('Merc Guild')
+
+          if (facilities.length > 0) {
+            text += `Facilities: ${facilities.join(', ')}\n`
+          }
+
           const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as any
           if (uiScene?.showOverlay) {
             uiScene.showOverlay(pointer.x, pointer.y, text)
@@ -517,21 +601,30 @@ export class StarmapScene extends PotatoScene {
     if (uiScene?.hideOverlay) uiScene.hideOverlay()
   }
 
-  private toOverlayData(planet: PlanetModel): PlanetOverlayData {
-    return {
-      biome: planet.biome.name,
-      colonized: !!planet.race,
-      government: 'dummy',
-      name: planet.name,
-      onMission: false,
-    }
-  }
-
   private onShipArrivedAtDestination(): void {
     console.log('Ship arrived at destination!')
-    const uiScene = this.scene.get(sceneRegistry.STARMAP_UI_SCENE) as StarmapUIScene
 
-    uiScene.showPlanetOverlay(this.toOverlayData(this.worldModel.planets[0]))
+    // Get the star system data if we arrived at a star
+    if (this.selectedStar) {
+      const systemData = {
+        name: this.selectedStar.name,
+        colonized: this.selectedStar.colonized,
+        biome: this.worldModel.planets[0]?.biome?.name || 'Unknown',
+        inhabitant: this.selectedStar.inhabitant,
+        region: this.selectedStar.region,
+        hasShipyard: this.selectedStar.hasShipyard,
+        hasMercenaryGuild: this.selectedStar.hasMercenaryGuild,
+        economicType: this.selectedStar.economicType,
+        distance: this.selectedStar.distance,
+      }
+
+      // Sleep the starmap scenes (preserve state)
+      this.scene.sleep(sceneRegistry.STARMAP_SCENE)
+      this.scene.sleep(sceneRegistry.STARMAP_UI_SCENE)
+
+      // Launch the system visit scene with the system data
+      this.scene.launch(sceneRegistry.SYSTEM_VISIT_SCENE, systemData)
+    }
   }
 
   showTravelButtonIfAvailable() {

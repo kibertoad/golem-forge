@@ -17,6 +17,7 @@ import { SpaceScene } from './scenes/space/SpaceScene.ts'
 import { SpaceCombatScene } from './scenes/space-combat/SpaceCombatScene.ts'
 import { StarmapScene } from './scenes/starmap/StarmapScene.ts'
 import { StarmapUIScene } from './scenes/starmap/StarmapUIScene.ts'
+import { SystemVisitScene } from './scenes/system-visit/SystemVisitScene.ts'
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -29,6 +30,7 @@ export interface Dependencies {
   spaceCombatScene: SpaceCombatScene
   mainMenuScene: MainMenuScene
   choicesScene: ChoiceScene
+  systemVisitScene: SystemVisitScene
   travelTurnProcessor: TravelTurnProcessor
   choicesDirector: ChoiceDirector
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
@@ -51,6 +53,7 @@ export function instantiateContainer() {
     spaceCombatScene: asClass(SpaceCombatScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     choicesScene: asClass(ChoiceScene, SINGLETON_CONFIG),
+    systemVisitScene: asClass(SystemVisitScene, SINGLETON_CONFIG),
     travelTurnProcessor: asClass(TravelTurnProcessor, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoiceDirector, SINGLETON_CONFIG),
   }
