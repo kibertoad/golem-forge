@@ -11,6 +11,9 @@ export interface PlanetOverlayData {
   onMission?: boolean
 }
 
+/**
+ * Needs to be a separate scene so that UI could be scaled separately from the map.
+ */
 export class StarmapUIScene extends Phaser.Scene {
   // --- Star hover overlay ---
   private overlayBg!: Phaser.GameObjects.Rectangle
