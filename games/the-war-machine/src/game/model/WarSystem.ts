@@ -1,4 +1,4 @@
-import { type Country, CountryNames } from './enums/Countries.ts'
+import type { Country } from './enums/Countries.ts'
 import { CountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
 import { CountryNeighbors } from './enums/CountryNeighbors.ts'
 

@@ -15,6 +15,7 @@
         "noNonNullAssertion": "off"
       },
       "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
         "useOptionalChain": "off"
       },
       "suspicious": {

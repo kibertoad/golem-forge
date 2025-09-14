@@ -1,4 +1,5 @@
 import type { PotatoScene } from '@potato-golem/ui'
+import * as Phaser from 'phaser'
 import { GameObjects, Geom } from 'phaser'
 import { CountryCities } from '../../../../model/enums/Cities.ts'
 import { CountryCityNeighbors } from '../../../../model/enums/CityNeighbors.ts'

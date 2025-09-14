@@ -1,4 +1,5 @@
 import type { PotatoScene } from '@potato-golem/ui'
+import * as Phaser from 'phaser'
 import { GameObjects } from 'phaser'
 import {
   type ArmsManufacturer,
