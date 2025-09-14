@@ -1,6 +1,7 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom } from 'phaser'
 import { CountryCities } from '../../../../model/enums/Cities.ts'
+import { CountryCityNeighbors } from '../../../../model/enums/CityNeighbors.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 
 export class CityZoomView extends GameObjects.Container {
@@ -105,6 +106,9 @@ export class CityZoomView extends GameObjects.Container {
     const startX = -gridWidth / 2
     const startY = -gridHeight / 2 + 40 // Offset for title
 
+    // Draw connection lines first (so they appear under cities)
+    this.drawCityConnections(scene, cityData, startX, startY, blockSizeX, blockSizeY)
+
     cityData.forEach((city) => {
       const cityX = startX + city.x * blockSizeX + blockSizeX / 2
       const cityY = startY + city.y * blockSizeY + blockSizeY / 2
@@ -195,6 +199,55 @@ export class CityZoomView extends GameObjects.Container {
       this.add(cityContainer)
       this.cities.set(city.name, cityContainer)
     })
+  }
+
+  private drawCityConnections(
+    scene: PotatoScene,
+    cityData: any[],
+    startX: number,
+    startY: number,
+    blockSizeX: number,
+    blockSizeY: number,
+  ) {
+    const neighbors = CountryCityNeighbors[this.country]
+    if (!neighbors) return
+
+    const cityPositions = new Map<string, { x: number; y: number }>()
+
+    // Calculate all city positions
+    cityData.forEach((city) => {
+      const cityX = startX + city.x * blockSizeX + blockSizeX / 2
+      const cityY = startY + city.y * blockSizeY + blockSizeY / 2
+      cityPositions.set(city.name, { x: cityX, y: cityY })
+    })
+
+    // Draw connection lines
+    const connectionsGraphics = scene.add.graphics()
+    connectionsGraphics.lineStyle(2, 0x00ffff, 0.3) // Cyan lines with transparency
+
+    const drawnConnections = new Set<string>()
+
+    for (const [cityName, cityNeighbors] of Object.entries(neighbors)) {
+      const cityPos = cityPositions.get(cityName)
+      if (!cityPos) continue
+
+      for (const neighborName of cityNeighbors) {
+        // Create a unique key for this connection (sorted to avoid duplicates)
+        const connectionKey = [cityName, neighborName].sort().join('-')
+        if (drawnConnections.has(connectionKey)) continue
+        drawnConnections.add(connectionKey)
+
+        const neighborPos = cityPositions.get(neighborName)
+        if (!neighborPos) continue
+
+        // Draw line between cities
+        connectionsGraphics.moveTo(cityPos.x, cityPos.y)
+        connectionsGraphics.lineTo(neighborPos.x, neighborPos.y)
+      }
+    }
+
+    connectionsGraphics.strokePath()
+    this.add(connectionsGraphics)
   }
 
   private selectCity(cityName: string) {
