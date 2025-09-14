@@ -50,6 +50,10 @@ export const ContinentCountries: Record<EarthRegion, CountryInfo[]> = {
     { country: Country.SERBIA, relativeSize: 1, gridX: 6, gridY: 6 },
     { country: Country.CROATIA, relativeSize: 1, gridX: 4, gridY: 6 },
     { country: Country.PORTUGAL, relativeSize: 2, gridX: 0, gridY: 5 },
+    // Baltic states
+    { country: Country.ESTONIA, relativeSize: 1, gridX: 8, gridY: 0 }, // Moved to top to avoid Russia
+    { country: Country.LATVIA, relativeSize: 1, gridX: 7, gridY: 0 }, // Moved to top to avoid overlaps
+    { country: Country.LITHUANIA, relativeSize: 1, gridX: 5, gridY: 1 }, // Moved up to avoid Czech Republic
   ],
 
   [EarthRegion.AFRICA]: [
@@ -61,16 +65,16 @@ export const ContinentCountries: Record<EarthRegion, CountryInfo[]> = {
     { country: Country.MOROCCO, relativeSize: 2, gridX: 1, gridY: 1 },
     { country: Country.ALGERIA, relativeSize: 3, gridX: 3, gridY: 1 },
     // New Africa countries
-    { country: Country.TANZANIA, relativeSize: 2, gridX: 8, gridY: 6 },  // Moved right to avoid overlap
-    { country: Country.SUDAN, relativeSize: 3, gridX: 5, gridY: 3 },  // Moved to center to avoid all overlaps
+    { country: Country.TANZANIA, relativeSize: 2, gridX: 8, gridY: 6 }, // Moved right to avoid overlap
+    { country: Country.SUDAN, relativeSize: 3, gridX: 5, gridY: 3 }, // Moved to center to avoid all overlaps
     { country: Country.LIBYA, relativeSize: 3, gridX: 5, gridY: 0 },
     { country: Country.TUNISIA, relativeSize: 1, gridX: 4, gridY: 0 },
-    { country: Country.GHANA, relativeSize: 2, gridX: 1, gridY: 5 },  // Moved left to avoid Nigeria
-    { country: Country.UGANDA, relativeSize: 1, gridX: 8, gridY: 4 },  // Moved more right to avoid Ethiopia
-    { country: Country.ZAMBIA, relativeSize: 2, gridX: 4, gridY: 6 },  // Moved left
-    { country: Country.ZIMBABWE, relativeSize: 2, gridX: 3, gridY: 8 },  // Moved more left to avoid South Africa
+    { country: Country.GHANA, relativeSize: 2, gridX: 1, gridY: 5 }, // Moved left to avoid Nigeria
+    { country: Country.UGANDA, relativeSize: 1, gridX: 8, gridY: 4 }, // Moved more right to avoid Ethiopia
+    { country: Country.ZAMBIA, relativeSize: 2, gridX: 4, gridY: 6 }, // Moved left
+    { country: Country.ZIMBABWE, relativeSize: 2, gridX: 3, gridY: 8 }, // Moved more left to avoid South Africa
     { country: Country.SENEGAL, relativeSize: 1, gridX: 0, gridY: 3 },
-    { country: Country.ANGOLA, relativeSize: 2, gridX: 2, gridY: 7 },  // Moved left to avoid overlaps
+    { country: Country.ANGOLA, relativeSize: 2, gridX: 2, gridY: 7 }, // Moved left to avoid overlaps
   ],
 
   [EarthRegion.ASIA]: [
@@ -102,9 +106,9 @@ export const ContinentCountries: Record<EarthRegion, CountryInfo[]> = {
     // New Oceania countries
     { country: Country.PAPUA_NEW_GUINEA, relativeSize: 2, gridX: 3, gridY: 2 },
     { country: Country.FIJI, relativeSize: 1, gridX: 8, gridY: 4 },
-    { country: Country.SOLOMON_ISLANDS, relativeSize: 1, gridX: 5, gridY: 2 },  // Moved more left to avoid Micronesia
+    { country: Country.SOLOMON_ISLANDS, relativeSize: 1, gridX: 5, gridY: 2 }, // Moved more left to avoid Micronesia
     { country: Country.VANUATU, relativeSize: 1, gridX: 7, gridY: 3 },
-    { country: Country.SAMOA, relativeSize: 1, gridX: 7, gridY: 1 },  // Moved left and up to avoid Marshall Islands
+    { country: Country.SAMOA, relativeSize: 1, gridX: 7, gridY: 1 }, // Moved left and up to avoid Marshall Islands
     { country: Country.TONGA, relativeSize: 1, gridX: 9, gridY: 4 },
     { country: Country.KIRIBATI, relativeSize: 1, gridX: 9, gridY: 1 },
     { country: Country.MICRONESIA, relativeSize: 1, gridX: 6, gridY: 1 },

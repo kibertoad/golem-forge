@@ -62,6 +62,10 @@ export enum Country {
   SERBIA = 'serbia',
   CROATIA = 'croatia',
   PORTUGAL = 'portugal',
+  // Baltic states
+  ESTONIA = 'estonia',
+  LATVIA = 'latvia',
+  LITHUANIA = 'lithuania',
   // Africa additions
   TANZANIA = 'tanzania',
   SUDAN = 'sudan',
@@ -150,6 +154,10 @@ export const CountryNames: Record<Country, string> = {
   [Country.SERBIA]: 'Serbia',
   [Country.CROATIA]: 'Croatia',
   [Country.PORTUGAL]: 'Portugal',
+  // Baltic states
+  [Country.ESTONIA]: 'Estonia',
+  [Country.LATVIA]: 'Latvia',
+  [Country.LITHUANIA]: 'Lithuania',
   // Africa additions
   [Country.TANZANIA]: 'Tanzania',
   [Country.SUDAN]: 'Sudan',

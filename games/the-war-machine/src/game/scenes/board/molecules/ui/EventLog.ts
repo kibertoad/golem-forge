@@ -53,7 +53,9 @@ export class EventLog extends GameObjects.Container {
 
   private updateDisplay() {
     // Clear existing entries
-    this.entries.forEach((text) => text.destroy())
+    this.entries.forEach((text) => {
+      text.destroy()
+    })
     this.entries = []
 
     // Display entries
@@ -107,7 +109,9 @@ export class EventLog extends GameObjects.Container {
 
   clear() {
     this.logData = []
-    this.entries.forEach((text) => text.destroy())
+    this.entries.forEach((text) => {
+      text.destroy()
+    })
     this.entries = []
   }
 }

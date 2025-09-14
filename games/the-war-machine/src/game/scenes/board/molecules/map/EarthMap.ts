@@ -1,8 +1,11 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom } from 'phaser'
 import { getCountryContinent } from '../../../../model/enums/ContinentData.ts'
-import type { Country } from '../../../../model/enums/Countries.ts'
+import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
+import { WarSystem } from '../../../../model/WarSystem.ts'
+import { imageRegistry } from '../../../../registries/imageRegistry.ts'
+import type { ToastContainer, ToastData } from '../ui/ToastContainer.ts'
 import { ContinentZoomView } from './ContinentZoomView.ts'
 
 interface RegionData {
@@ -24,10 +27,45 @@ export class EarthMap extends GameObjects.Container {
   private eventMarkers: Array<GameObjects.Graphics | GameObjects.Text> = []
   private zoomView: ContinentZoomView | null = null
   private potatoScene: PotatoScene
+  private warSystem: WarSystem
+  private toastContainer?: ToastContainer
 
-  constructor(scene: PotatoScene, x: number, y: number) {
+  constructor(scene: PotatoScene, x: number, y: number, toastContainer?: ToastContainer) {
     super(scene, x, y)
     this.potatoScene = scene
+    this.toastContainer = toastContainer
+
+    // Initialize war system
+    this.warSystem = new WarSystem()
+
+    // Hook up war declaration notifications using existing toast system
+    this.warSystem.onWarDeclared = (aggressor: Country, defender: Country) => {
+      if (this.toastContainer) {
+        const aggressorName = CountryNames[aggressor] || aggressor
+        const defenderName = CountryNames[defender] || defender
+        const warToast: ToastData = {
+          id: `war-${Date.now()}-${Math.random()}`,
+          icon: imageRegistry.EXPLOSION, // Use explosion icon for wars
+          title: 'War Declaration!',
+          description: `${aggressorName} attacks ${defenderName}`,
+          timestamp: Date.now(),
+          metadata: { aggressor } // Store aggressor country for click handling
+        }
+        this.toastContainer.addToast(warToast)
+      }
+    }
+
+    // Listen for toast clicks to open continent view
+    if (this.toastContainer) {
+      this.toastContainer.on('toast-detail-requested', (toastData: ToastData) => {
+        if (toastData.metadata?.aggressor) {
+          const continent = getCountryContinent(toastData.metadata.aggressor as Country)
+          if (continent) {
+            this.showContinentZoom(continent)
+          }
+        }
+      })
+    }
 
     // Create ocean background - larger frame (increased by 10px on each side)
     this.earthBackground = scene.add.graphics()
@@ -60,6 +98,12 @@ export class EarthMap extends GameObjects.Container {
     border.lineStyle(3, 0x00ffff, 0.8)
     border.strokeRect(-760, -400, 1520, 800)
     this.add(border)
+
+    // Initialize wars after UI is ready (with a small delay)
+    scene.time.delayedCall(1000, () => {
+      this.warSystem.initializeWars()
+      console.log('Active wars:', this.warSystem.getActiveWars())
+    })
   }
 
   private createContinents(scene: PotatoScene) {
@@ -423,13 +467,7 @@ export class EarthMap extends GameObjects.Container {
     }
 
     // Create new zoom view at the same position as the Earth map
-    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region)
-
-    // Listen for country selection
-    this.zoomView.on('country-selected', (country: Country) => {
-      this.emit('country-selected', country)
-      console.log('Country selected:', country)
-    })
+    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region, this.warSystem)
 
     // Listen for close event to return to Earth view
     this.zoomView.on('close', () => {

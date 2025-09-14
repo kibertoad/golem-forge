@@ -99,6 +99,10 @@ export const CountryCapitals: Record<Country, CapitalPosition> = {
   [Country.PERU]: { x: -500, y: 25, name: 'Lima' },
   [Country.VENEZUELA]: { x: -450, y: -25, name: 'Caracas' },
   [Country.ECUADOR]: { x: -500, y: 0, name: 'Quito' },
+  // Baltic states
+  [Country.ESTONIA]: { x: 100, y: -175, name: 'Tallinn' },
+  [Country.LATVIA]: { x: 100, y: -160, name: 'Riga' },
+  [Country.LITHUANIA]: { x: 100, y: -145, name: 'Vilnius' },
   // Africa additions
   [Country.TANZANIA]: { x: 175, y: 50, name: 'Dodoma' },
   [Country.SUDAN]: { x: 125, y: 0, name: 'Khartoum' },
@@ -116,7 +120,7 @@ export const CountryCapitals: Record<Country, CapitalPosition> = {
   [Country.SOLOMON_ISLANDS]: { x: 525, y: 225, name: 'Honiara' },
   [Country.VANUATU]: { x: 525, y: 250, name: 'Port Vila' },
   [Country.SAMOA]: { x: 575, y: 250, name: 'Apia' },
-  [Country.TONGA]: { x: 575, y: 275, name: 'Nuku\'alofa' },
+  [Country.TONGA]: { x: 575, y: 275, name: "Nuku'alofa" },
   [Country.KIRIBATI]: { x: 550, y: 200, name: 'Tarawa' },
   [Country.MICRONESIA]: { x: 525, y: 175, name: 'Palikir' },
   [Country.PALAU]: { x: 475, y: 175, name: 'Ngerulmud' },

@@ -4,6 +4,8 @@ import { ContinentCountries, type CountryInfo } from '../../../../model/enums/Co
 import { Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { CountryCapitals } from '../../../../model/enums/CountryCapitals.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
+import { WarSystem } from '../../../../model/WarSystem.ts'
+import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
 
 interface CountryBlock {
   country: Country
@@ -19,10 +21,18 @@ export class ContinentZoomView extends GameObjects.Container {
   private title: GameObjects.Text
   private selectedCountry: Country | null = null
   private armsShowMarker: GameObjects.Container | null = null
+  private warSystem: WarSystem
 
-  constructor(scene: PotatoScene, x: number, y: number, continent: EarthRegion) {
+  constructor(
+    scene: PotatoScene,
+    x: number,
+    y: number,
+    continent: EarthRegion,
+    warSystem?: WarSystem,
+  ) {
     super(scene, x, y)
     this.continent = continent
+    this.warSystem = warSystem || new WarSystem()
 
     // Create background panel - larger size matching Earth map (increased by 10px on each side)
     this.background = scene.add.graphics()
@@ -211,11 +221,17 @@ export class ContinentZoomView extends GameObjects.Container {
 
       graphics.on('pointerdown', () => {
         this.selectCountry(countryInfo.country)
-        this.emit('country-selected', countryInfo.country)
+        // Show country info overlay instead of emitting event
+        new CountryInfoOverlay(scene, countryInfo.country, this.warSystem)
       })
 
       this.add(graphics)
       this.add(label)
+
+      // Add war icon if country is at war
+      if (this.warSystem.isAtWar(countryInfo.country)) {
+        this.addWarIcon(scene, blockX, blockY, blockSize, countryInfo.country)
+      }
 
       this.countryBlocks.set(countryInfo.country, {
         country: countryInfo.country,
@@ -350,6 +366,66 @@ export class ContinentZoomView extends GameObjects.Container {
 
   getSelectedCountry(): Country | null {
     return this.selectedCountry
+  }
+
+  private addWarIcon(
+    scene: PotatoScene,
+    x: number,
+    y: number,
+    blockSize: { width: number; height: number },
+    country: Country,
+  ) {
+    // Create war icon using flame unicode symbol
+    const iconX = x + blockSize.width / 2 - 15
+    const iconY = y - blockSize.height / 2 + 15
+
+    // Create flame text symbol
+    const warIcon = scene.add.text(iconX, iconY, '🔥', {
+      fontSize: '24px',
+      fontFamily: 'Arial',
+    })
+    warIcon.setOrigin(0.5)
+
+    // Add pulsing animation
+    scene.tweens.add({
+      targets: warIcon,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    // Make interactive for tooltip
+    warIcon.setInteractive()
+
+    const wars = this.warSystem.getWarsForCountry(country)
+    if (wars.length > 0) {
+      const war = wars[0]
+      const isAggressor = war.aggressor === country
+      const opponent = isAggressor ? war.defender : war.aggressor
+      const role = isAggressor ? 'Attacking' : 'Defending against'
+
+      warIcon.on('pointerover', () => {
+        const tooltip = scene.add.text(iconX, iconY - 25, `${role} ${CountryNames[opponent]}`, {
+          fontSize: '12px',
+          fontFamily: 'Courier',
+          color: '#ffffff',
+          backgroundColor: '#000000',
+          padding: { x: 4, y: 2 },
+        })
+        tooltip.setOrigin(0.5)
+        tooltip.setDepth(3000)
+        this.add(tooltip)
+
+        warIcon.once('pointerout', () => {
+          tooltip.destroy()
+        })
+      })
+    }
+
+    this.add(warIcon)
   }
 
   highlightCountry(country: Country, armsShowName: string) {

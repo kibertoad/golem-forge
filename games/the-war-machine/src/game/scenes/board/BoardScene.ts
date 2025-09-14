@@ -404,7 +404,7 @@ export class BoardScene extends PotatoScene {
       this.handleStockSale(item)
     })
 
-    this.earthMap = new EarthMap(this, width / 2, height / 2)
+    this.earthMap = new EarthMap(this, width / 2, height / 2 + 100, this.toastContainer)
     this.earthMap.setDepth(100)
     this.earthMap.on('region-selected', (region: EarthRegion) => {
       console.log('Region selected:', region)
@@ -712,6 +712,8 @@ export class BoardScene extends PotatoScene {
   }
 
   private demoToast() {
+    // Welcome toast removed - war declarations will show instead
+    /*
     this.time.delayedCall(1000, () => {
       const welcomeToast: ToastData = {
         id: 'welcome',
@@ -722,5 +724,6 @@ export class BoardScene extends PotatoScene {
       }
       this.toastContainer.addToast(welcomeToast)
     })
+    */
   }
 }
