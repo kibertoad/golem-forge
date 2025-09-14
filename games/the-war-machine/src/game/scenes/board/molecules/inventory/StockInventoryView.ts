@@ -1,5 +1,5 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
 import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
@@ -70,7 +70,11 @@ export class StockInventoryView extends GameObjects.Container {
     this.setupScrolling(scene)
 
     // Create detail view overlay
-    this.detailView = new ArmsDetailView(scene, scene.cameras.main.width / 2, scene.cameras.main.height / 2)
+    this.detailView = new ArmsDetailView(
+      scene,
+      scene.cameras.main.width / 2,
+      scene.cameras.main.height / 2,
+    )
     this.detailView.on('detail-closed', () => {
       // Optional: handle detail view close event
     })
@@ -89,7 +93,7 @@ export class StockInventoryView extends GameObjects.Container {
     const halfHeight = windowHeight / 2
 
     // Position filter section relative to window top
-    const filterLabelY = -halfHeight + 70  // 70px from top (after title)
+    const filterLabelY = -halfHeight + 70 // 70px from top (after title)
     const baseX = -580
 
     // Filter label
@@ -144,7 +148,7 @@ export class StockInventoryView extends GameObjects.Container {
     })
 
     // Condition filters on next row after branches with proper spacing
-    const conditionY = branchStartY + (Math.ceil(branchesArray.length / buttonsPerRow)) * 40 + 15
+    const conditionY = branchStartY + Math.ceil(branchesArray.length / buttonsPerRow) * 40 + 15
     const conditions = [
       { condition: ArmsCondition.NEW, label: 'New', x: baseX, y: conditionY },
       { condition: ArmsCondition.GOOD, label: 'Good', x: baseX + 100, y: conditionY },
@@ -214,7 +218,13 @@ export class StockInventoryView extends GameObjects.Container {
     this.add(this.itemCountText)
   }
 
-  private createFilterButton(scene: PotatoScene, label: string, x: number, y: number, onClick: () => void): GameObjects.Container {
+  private createFilterButton(
+    scene: PotatoScene,
+    label: string,
+    x: number,
+    y: number,
+    onClick: () => void,
+  ): GameObjects.Container {
     const container = scene.add.container(x, y)
 
     const bg = scene.add.graphics()
@@ -253,7 +263,13 @@ export class StockInventoryView extends GameObjects.Container {
     return container
   }
 
-  private createSortButton(scene: PotatoScene, label: string, x: number, y: number, sortType: SortBy): GameObjects.Container {
+  private createSortButton(
+    scene: PotatoScene,
+    label: string,
+    x: number,
+    y: number,
+    sortType: SortBy,
+  ): GameObjects.Container {
     const container = scene.add.container(x, y)
 
     const bg = scene.add.graphics()
@@ -305,7 +321,7 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Analyze available branches in stock
     this.availableBranches.clear()
-    items.forEach(item => {
+    items.forEach((item) => {
       const def = item.getDefinition()
       if (def) {
         this.availableBranches.add(def.branch)
@@ -315,7 +331,7 @@ export class StockInventoryView extends GameObjects.Container {
     // Calculate filter section height first
     const numBranchRows = Math.ceil(this.availableBranches.size / 6)
     // Title: 70px, Filter label: 35px, Branch rows: numBranchRows * 40px, spacing: 15px, Condition row: 40px, Bottom padding: 25px
-    const calculatedFilterHeight = 70 + 35 + (numBranchRows * 40) + 15 + 40 + 25
+    const calculatedFilterHeight = 70 + 35 + numBranchRows * 40 + 15 + 40 + 25
 
     // Calculate window height based on number of items (show all without scrolling if possible)
     const itemHeight = 75
@@ -360,15 +376,15 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Reposition sort section right after filter section with padding
     const sortY = -halfHeight + this.filterSectionHeight + 10
-    this.list.forEach(child => {
+    this.list.forEach((child) => {
       if (child.getData && child.getData('isSortLabel')) {
-        (child as GameObjects.Text).setY(sortY)
+        ;(child as GameObjects.Text).setY(sortY)
       }
     })
 
     // Reposition sort buttons
     const sortButtonY = sortY + 30
-    this.sortButtons.forEach(button => {
+    this.sortButtons.forEach((button) => {
       button.setY(sortButtonY)
     })
 
@@ -416,7 +432,7 @@ export class StockInventoryView extends GameObjects.Container {
 
   private applyFiltersAndSort() {
     // Apply filters
-    this.displayedItems = this.stockItems.filter(item => {
+    this.displayedItems = this.stockItems.filter((item) => {
       const def = item.getDefinition()
       if (!def) return false
 
@@ -445,17 +461,19 @@ export class StockInventoryView extends GameObjects.Container {
         case SortBy.VALUE:
           comparison = a.getCurrentMarketValue() - b.getCurrentMarketValue()
           break
-        case SortBy.CONDITION:
+        case SortBy.CONDITION: {
           const conditions = Object.values(ArmsCondition)
           comparison = conditions.indexOf(a.condition) - conditions.indexOf(b.condition)
           break
-        case SortBy.BRANCH:
+        }
+        case SortBy.BRANCH: {
           const aDef = a.getDefinition()
           const bDef = b.getDefinition()
           if (aDef && bDef) {
             comparison = aDef.branch.localeCompare(bDef.branch)
           }
           break
+        }
       }
 
       return this.sortAscending ? comparison : -comparison
@@ -469,7 +487,7 @@ export class StockInventoryView extends GameObjects.Container {
 
   private updateDisplay() {
     // Clear existing item displays
-    this.itemContainers.forEach(container => container.destroy())
+    this.itemContainers.forEach((container) => container.destroy())
     this.itemContainers = []
 
     // Display visible items based on calculated max
@@ -554,11 +572,16 @@ export class StockInventoryView extends GameObjects.Container {
     const profit = item.getPotentialProfit()
     const profitColor = profit >= 0 ? '#00ff00' : '#ff0000'
     const profitSymbol = profit >= 0 ? '+' : ''
-    const profitText = scene.add.text(700, 45, `${profitSymbol}$${Math.abs(profit).toLocaleString()}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: profitColor,
-    })
+    const profitText = scene.add.text(
+      700,
+      45,
+      `${profitSymbol}$${Math.abs(profit).toLocaleString()}`,
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: profitColor,
+      },
+    )
     container.add(profitText)
 
     // Action buttons
@@ -576,7 +599,13 @@ export class StockInventoryView extends GameObjects.Container {
     return container
   }
 
-  private createActionButton(scene: PotatoScene, label: string, x: number, y: number, onClick: () => void): GameObjects.Container {
+  private createActionButton(
+    scene: PotatoScene,
+    label: string,
+    x: number,
+    y: number,
+    onClick: () => void,
+  ): GameObjects.Container {
     const container = scene.add.container(x, y)
 
     const bg = scene.add.graphics()
@@ -632,8 +661,12 @@ export class StockInventoryView extends GameObjects.Container {
       this.scrollBar.fillRoundedRect(580, scrollStartY, 10, scrollTrackHeight, 5)
 
       // Draw scrollbar thumb
-      const thumbHeight = Math.max(30, scrollTrackHeight / (this.displayedItems.length / this.maxVisibleItems))
-      const thumbY = scrollStartY + (this.scrollOffset / this.maxScroll) * (scrollTrackHeight - thumbHeight)
+      const thumbHeight = Math.max(
+        30,
+        scrollTrackHeight / (this.displayedItems.length / this.maxVisibleItems),
+      )
+      const thumbY =
+        scrollStartY + (this.scrollOffset / this.maxScroll) * (scrollTrackHeight - thumbHeight)
 
       this.scrollBar.fillStyle(0x666666, 0.8)
       this.scrollBar.fillRoundedRect(580, thumbY, 10, thumbHeight, 5)
@@ -641,7 +674,10 @@ export class StockInventoryView extends GameObjects.Container {
   }
 
   private updateSummary() {
-    const totalValue = this.displayedItems.reduce((sum, item) => sum + item.getCurrentMarketValue(), 0)
+    const totalValue = this.displayedItems.reduce(
+      (sum, item) => sum + item.getCurrentMarketValue(),
+      0,
+    )
     const totalItems = this.displayedItems.reduce((sum, item) => sum + item.quantity, 0)
 
     if (this.totalValueText) {
@@ -699,11 +735,19 @@ export class StockInventoryView extends GameObjects.Container {
 
       // Get original label without arrow
       let label = ''
-      switch(sortType) {
-        case SortBy.NAME: label = 'Name'; break;
-        case SortBy.QUANTITY: label = 'Qty'; break;
-        case SortBy.VALUE: label = 'Value'; break;
-        case SortBy.CONDITION: label = 'Cond'; break;
+      switch (sortType) {
+        case SortBy.NAME:
+          label = 'Name'
+          break
+        case SortBy.QUANTITY:
+          label = 'Qty'
+          break
+        case SortBy.VALUE:
+          label = 'Value'
+          break
+        case SortBy.CONDITION:
+          label = 'Cond'
+          break
       }
 
       bg.clear()

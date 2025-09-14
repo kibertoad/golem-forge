@@ -48,7 +48,8 @@ export const manufacturerDetails: Record<ArmsManufacturer, ManufacturerInfo> = {
     technologyLevel: 5,
     manufacturingScale: 4,
     branches: [ArmsBranch.MISSILES, ArmsBranch.ELECTRONIC_WARFARE, ArmsBranch.CYBER_WARFARE],
-    description: 'Premier high-tech defense contractor specializing in advanced missile systems and electronic warfare',
+    description:
+      'Premier high-tech defense contractor specializing in advanced missile systems and electronic warfare',
     specialties: ['radar_guided_missiles', 'ecm_systems', 'cyber_defense'],
   },
   [ArmsManufacturer.TITAN_AEROSPACE]: {
@@ -213,7 +214,8 @@ export const manufacturerDetails: Record<ArmsManufacturer, ManufacturerInfo> = {
     technologyLevel: 2,
     manufacturingScale: 3,
     branches: [ArmsBranch.SMALL_ARMS, ArmsBranch.AMMUNITION, ArmsBranch.ARMORED_VEHICLES],
-    description: 'Regional supplier of basic military equipment, known for rugged desert-tested gear',
+    description:
+      'Regional supplier of basic military equipment, known for rugged desert-tested gear',
     specialties: ['simple_firearms', 'light_armor', 'surplus_ammo'],
   },
   [ArmsManufacturer.LIBERTY_SURPLUS]: {
@@ -224,7 +226,8 @@ export const manufacturerDetails: Record<ArmsManufacturer, ManufacturerInfo> = {
     technologyLevel: 1,
     manufacturingScale: 2,
     branches: [ArmsBranch.SMALL_ARMS, ArmsBranch.LOGISTICS, ArmsBranch.COMMUNICATIONS],
-    description: 'Refurbishes and resells military surplus, popular with militias and budget forces',
+    description:
+      'Refurbishes and resells military surplus, popular with militias and budget forces',
     specialties: ['surplus_rifles', 'used_radios', 'refurbished_gear'],
   },
   [ArmsManufacturer.IRON_CURTAIN]: {
@@ -287,19 +290,19 @@ export const manufacturerDetails: Record<ArmsManufacturer, ManufacturerInfo> = {
 // Helper functions
 export function getManufacturersByCountry(country: Country): ArmsManufacturer[] {
   return Object.values(ArmsManufacturer).filter(
-    (manufacturer) => manufacturerDetails[manufacturer].country === country
+    (manufacturer) => manufacturerDetails[manufacturer].country === country,
   )
 }
 
 export function getManufacturersByBranch(branch: ArmsBranch): ArmsManufacturer[] {
-  return Object.values(ArmsManufacturer).filter(
-    (manufacturer) => manufacturerDetails[manufacturer].branches.includes(branch)
+  return Object.values(ArmsManufacturer).filter((manufacturer) =>
+    manufacturerDetails[manufacturer].branches.includes(branch),
   )
 }
 
 export function getManufacturersByPrestige(minPrestige: number): ArmsManufacturer[] {
   return Object.values(ArmsManufacturer).filter(
-    (manufacturer) => manufacturerDetails[manufacturer].prestigeLevel >= minPrestige
+    (manufacturer) => manufacturerDetails[manufacturer].prestigeLevel >= minPrestige,
   )
 }
 

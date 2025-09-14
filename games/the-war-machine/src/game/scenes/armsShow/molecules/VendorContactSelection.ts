@@ -1,6 +1,10 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-import { ArmsManufacturer, manufacturerDetails, type ManufacturerInfo } from '../../../model/enums/ArmsManufacturer.ts'
+import { GameObjects } from 'phaser'
+import {
+  type ArmsManufacturer,
+  type ManufacturerInfo,
+  manufacturerDetails,
+} from '../../../model/enums/ArmsManufacturer.ts'
 import { DepthRegistry } from '../../../registries/depthRegistry.ts'
 
 export interface VendorCard {
@@ -17,7 +21,7 @@ export class VendorContactSelection extends GameObjects.Container {
   constructor(
     scene: PotatoScene,
     vendors: ArmsManufacturer[],
-    onSelect: (manufacturer: ArmsManufacturer | null) => void
+    onSelect: (manufacturer: ArmsManufacturer | null) => void,
   ) {
     super(scene, scene.cameras.main.width / 2, scene.cameras.main.height / 2)
     this.onSelectCallback = onSelect
@@ -29,7 +33,7 @@ export class VendorContactSelection extends GameObjects.Container {
       -scene.cameras.main.width / 2,
       -scene.cameras.main.height / 2,
       scene.cameras.main.width,
-      scene.cameras.main.height
+      scene.cameras.main.height,
     )
     this.add(this.overlay)
 
@@ -86,7 +90,7 @@ export class VendorContactSelection extends GameObjects.Container {
     manufacturer: ArmsManufacturer,
     info: ManufacturerInfo,
     width: number,
-    height: number
+    height: number,
   ): GameObjects.Container {
     const card = scene.add.container(x, y)
 
@@ -146,7 +150,14 @@ export class VendorContactSelection extends GameObjects.Container {
     })
     card.add(techLabel)
 
-    const techLevels = this.createLevelIndicators(scene, -width / 2 + 85, techY, info.technologyLevel, 5, 0x00aaff)
+    const techLevels = this.createLevelIndicators(
+      scene,
+      -width / 2 + 85,
+      techY,
+      info.technologyLevel,
+      5,
+      0x00aaff,
+    )
     card.add(techLevels)
 
     // Manufacturing scale - increased spacing from 30 to 45
@@ -158,7 +169,14 @@ export class VendorContactSelection extends GameObjects.Container {
     })
     card.add(scaleLabel)
 
-    const scaleLevels = this.createLevelIndicators(scene, -width / 2 + 85, scaleY, info.manufacturingScale, 5, 0x00ff00)
+    const scaleLevels = this.createLevelIndicators(
+      scene,
+      -width / 2 + 85,
+      scaleY,
+      info.manufacturingScale,
+      5,
+      0x00ff00,
+    )
     card.add(scaleLevels)
 
     // Specialties - adjusted spacing due to increased scale row position
@@ -210,7 +228,7 @@ export class VendorContactSelection extends GameObjects.Container {
     // Make card interactive
     bg.setInteractive(
       new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
-      Phaser.Geom.Rectangle.Contains
+      Phaser.Geom.Rectangle.Contains,
     )
 
     bg.on('pointerover', () => {
@@ -239,7 +257,7 @@ export class VendorContactSelection extends GameObjects.Container {
     y: number,
     value: number,
     maxValue: number,
-    color: number
+    color: number,
   ): GameObjects.Container {
     const container = scene.add.container(x, y)
     const boxSize = 28
@@ -294,7 +312,7 @@ export class VendorContactSelection extends GameObjects.Container {
 
     confirmBg.setInteractive(
       new Phaser.Geom.Rectangle(-100, -25, 200, 50),
-      Phaser.Geom.Rectangle.Contains
+      Phaser.Geom.Rectangle.Contains,
     )
 
     confirmBg.on('pointerdown', () => {
@@ -320,12 +338,17 @@ export class VendorContactSelection extends GameObjects.Container {
     msgText.setOrigin(0.5)
     this.add(msgText)
 
-    const subText = scene.add.text(0, 20, 'You failed to establish any new vendor contacts.\nAll eligible manufacturers are already known to you.', {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-      align: 'center',
-    })
+    const subText = scene.add.text(
+      0,
+      20,
+      'You failed to establish any new vendor contacts.\nAll eligible manufacturers are already known to you.',
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: '#ffffff',
+        align: 'center',
+      },
+    )
     subText.setOrigin(0.5)
     this.add(subText)
 
@@ -348,7 +371,7 @@ export class VendorContactSelection extends GameObjects.Container {
 
     btnBg.setInteractive(
       new Phaser.Geom.Rectangle(-80, -20, 160, 40),
-      Phaser.Geom.Rectangle.Contains
+      Phaser.Geom.Rectangle.Contains,
     )
 
     btnBg.on('pointerdown', () => {

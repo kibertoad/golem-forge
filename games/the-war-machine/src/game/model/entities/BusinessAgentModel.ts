@@ -1,15 +1,15 @@
 import { v4 as uuidv4 } from 'uuid'
-import { Country } from '../enums/Countries.ts'
 import {
-  AgentSkills,
+  type AgentSkills,
   AgentStatus,
-  Gender,
+  type Gender,
   LegalStatus,
-  NegativeTrait,
-  PositiveTrait,
-  RegionalBonus,
-  SpecialPerk,
+  type NegativeTrait,
+  type PositiveTrait,
+  type RegionalBonus,
+  type SpecialPerk,
 } from '../enums/AgentEnums.ts'
+import { Country } from '../enums/Countries.ts'
 
 export interface LegalStatusByCountry {
   country: Country

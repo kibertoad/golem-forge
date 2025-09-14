@@ -45,12 +45,25 @@ export const ArmoredVehicleSubcategories: SubcategoryGroup[] = [
   {
     name: 'type',
     mutuallyExclusive: true,
-    categories: ['main_battle_tank', 'light_tank', 'apc', 'ifv', 'armored_car', 'self_propelled_artillery'],
+    categories: [
+      'main_battle_tank',
+      'light_tank',
+      'apc',
+      'ifv',
+      'armored_car',
+      'self_propelled_artillery',
+    ],
   },
   {
     name: 'features',
     mutuallyExclusive: false,
-    categories: ['amphibious', 'mine_resistant', 'reactive_armor', 'active_protection', 'nbc_protection'],
+    categories: [
+      'amphibious',
+      'mine_resistant',
+      'reactive_armor',
+      'active_protection',
+      'nbc_protection',
+    ],
   },
   {
     name: 'mobility',
@@ -88,7 +101,15 @@ export const SmallArmsSubcategories: SubcategoryGroup[] = [
   {
     name: 'type',
     mutuallyExclusive: true,
-    categories: ['assault_rifle', 'sniper_rifle', 'machine_gun', 'submachine_gun', 'handgun', 'shotgun', 'grenade_launcher'],
+    categories: [
+      'assault_rifle',
+      'sniper_rifle',
+      'machine_gun',
+      'submachine_gun',
+      'handgun',
+      'shotgun',
+      'grenade_launcher',
+    ],
   },
   {
     name: 'action',
@@ -107,7 +128,16 @@ export const NavalSubcategories: SubcategoryGroup[] = [
   {
     name: 'type',
     mutuallyExclusive: true,
-    categories: ['carrier', 'destroyer', 'frigate', 'submarine', 'patrol_boat', 'corvette', 'landing_craft', 'cruiser'],
+    categories: [
+      'carrier',
+      'destroyer',
+      'frigate',
+      'submarine',
+      'patrol_boat',
+      'corvette',
+      'landing_craft',
+      'cruiser',
+    ],
   },
   {
     name: 'propulsion',
@@ -204,9 +234,11 @@ export function validateSubcategories(branch: ArmsBranch, subcategories: Set<str
 
   for (const group of groups) {
     if (group.mutuallyExclusive) {
-      const matchingCategories = group.categories.filter(cat => subcategories.has(cat))
+      const matchingCategories = group.categories.filter((cat) => subcategories.has(cat))
       if (matchingCategories.length > 1) {
-        console.warn(`Multiple mutually exclusive subcategories from group '${group.name}': ${matchingCategories.join(', ')}`)
+        console.warn(
+          `Multiple mutually exclusive subcategories from group '${group.name}': ${matchingCategories.join(', ')}`,
+        )
         return false
       }
     }

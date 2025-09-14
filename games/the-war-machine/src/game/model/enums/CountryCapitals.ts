@@ -52,4 +52,51 @@ export const CountryCapitals: Record<Country, CapitalPosition> = {
 
   // Oceania (250 to 450 x, 150 to 300 y)
   [Country.AUSTRALIA]: { x: 350, y: 225, name: 'Canberra' },
+  [Country.NEW_ZEALAND]: { x: 475, y: 275, name: 'Wellington' },
+
+  // Additional North America
+  [Country.MEXICO]: { x: -475, y: -100, name: 'Mexico City' },
+
+  // Additional South America
+  [Country.ARGENTINA]: { x: -475, y: 175, name: 'Buenos Aires' },
+  [Country.CHILE]: { x: -500, y: 150, name: 'Santiago' },
+  [Country.COLOMBIA]: { x: -475, y: 0, name: 'Bogotá' },
+
+  // Additional Asia
+  [Country.INDONESIA]: { x: 375, y: 25, name: 'Jakarta' },
+  [Country.THAILAND]: { x: 350, y: -25, name: 'Bangkok' },
+  [Country.VIETNAM]: { x: 375, y: -50, name: 'Hanoi' },
+  [Country.PHILIPPINES]: { x: 425, y: -25, name: 'Manila' },
+  [Country.MALAYSIA]: { x: 350, y: 0, name: 'Kuala Lumpur' },
+
+  // Additional Europe
+  [Country.GREECE]: { x: -75, y: -175, name: 'Athens' },
+  [Country.ROMANIA]: { x: -25, y: -200, name: 'Bucharest' },
+  [Country.FINLAND]: { x: -75, y: -275, name: 'Helsinki' },
+  [Country.DENMARK]: { x: -100, y: -260, name: 'Copenhagen' },
+  [Country.AUSTRIA]: { x: -50, y: -210, name: 'Vienna' },
+  [Country.HUNGARY]: { x: -25, y: -210, name: 'Budapest' },
+  [Country.BULGARIA]: { x: -25, y: -185, name: 'Sofia' },
+  [Country.SERBIA]: { x: -50, y: -195, name: 'Belgrade' },
+  [Country.CROATIA]: { x: -75, y: -200, name: 'Zagreb' },
+  [Country.PORTUGAL]: { x: -175, y: -200, name: 'Lisbon' },
+
+  // Middle East additions
+  [Country.IRAN]: { x: 225, y: -100, name: 'Tehran' },
+  [Country.IRAQ]: { x: 175, y: -100, name: 'Baghdad' },
+  [Country.SYRIA]: { x: 150, y: -125, name: 'Damascus' },
+  [Country.JORDAN]: { x: 150, y: -100, name: 'Amman' },
+  [Country.LEBANON]: { x: 150, y: -125, name: 'Beirut' },
+
+  // Africa additions
+  [Country.NIGERIA]: { x: -100, y: 0, name: 'Abuja' },
+  [Country.KENYA]: { x: -50, y: 0, name: 'Nairobi' },
+  [Country.ETHIOPIA]: { x: -50, y: -25, name: 'Addis Ababa' },
+  [Country.MOROCCO]: { x: -150, y: -100, name: 'Rabat' },
+  [Country.ALGERIA]: { x: -125, y: -75, name: 'Algiers' },
+
+  // South America additions
+  [Country.PERU]: { x: -500, y: 25, name: 'Lima' },
+  [Country.VENEZUELA]: { x: -450, y: -25, name: 'Caracas' },
+  [Country.ECUADOR]: { x: -500, y: 0, name: 'Quito' },
 }

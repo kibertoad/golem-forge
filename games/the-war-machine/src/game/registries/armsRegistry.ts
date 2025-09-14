@@ -1,6 +1,6 @@
-import { armsDefinitions, type ArmsDefinition } from '../model/definitions/armsDefinitions.ts'
-import { ArmsBranch } from '../model/enums/ArmsBranches.ts'
-import { ArmsManufacturer } from '../model/enums/ArmsManufacturer.ts'
+import { type ArmsDefinition, armsDefinitions } from '../model/definitions/armsDefinitions.ts'
+import type { ArmsBranch } from '../model/enums/ArmsBranches.ts'
+import type { ArmsManufacturer } from '../model/enums/ArmsManufacturer.ts'
 
 class ArmsRegistry {
   private definitions: Map<string, ArmsDefinition>
@@ -11,7 +11,7 @@ class ArmsRegistry {
   }
 
   private loadDefinitions() {
-    Object.values(armsDefinitions).forEach(def => {
+    Object.values(armsDefinitions).forEach((def) => {
       this.definitions.set(def.id, def)
     })
   }
@@ -28,13 +28,13 @@ class ArmsRegistry {
 
   // Get definitions by branch
   getDefinitionsByBranch(branch: ArmsBranch): ArmsDefinition[] {
-    return Array.from(this.definitions.values()).filter(def => def.branch === branch)
+    return Array.from(this.definitions.values()).filter((def) => def.branch === branch)
   }
 
   // Get definitions that match specific subcategories
   getDefinitionsBySubcategories(subcategories: Set<string> | string[]): ArmsDefinition[] {
     const searchSet = subcategories instanceof Set ? subcategories : new Set(subcategories)
-    return Array.from(this.definitions.values()).filter(def => {
+    return Array.from(this.definitions.values()).filter((def) => {
       for (const cat of searchSet) {
         if (!def.subcategories.has(cat)) {
           return false
@@ -47,22 +47,20 @@ class ArmsRegistry {
   // Search definitions by name (partial match)
   searchByName(query: string): ArmsDefinition[] {
     const lowerQuery = query.toLowerCase()
-    return Array.from(this.definitions.values()).filter(def =>
-      def.name.toLowerCase().includes(lowerQuery)
+    return Array.from(this.definitions.values()).filter((def) =>
+      def.name.toLowerCase().includes(lowerQuery),
     )
   }
 
   // Get definitions by manufacturer
   getDefinitionsByManufacturer(manufacturer: ArmsManufacturer): ArmsDefinition[] {
-    return Array.from(this.definitions.values()).filter(
-      def => def.manufacturer === manufacturer
-    )
+    return Array.from(this.definitions.values()).filter((def) => def.manufacturer === manufacturer)
   }
 
   // Filter definitions by price range
   getDefinitionsByPriceRange(minPrice: number, maxPrice: number): ArmsDefinition[] {
     return Array.from(this.definitions.values()).filter(
-      def => def.basePrice >= minPrice && def.basePrice <= maxPrice
+      (def) => def.basePrice >= minPrice && def.basePrice <= maxPrice,
     )
   }
 
@@ -73,9 +71,7 @@ class ArmsRegistry {
 
   // Get random definition (useful for generating market offers)
   getRandomDefinition(branch?: ArmsBranch): ArmsDefinition | undefined {
-    const candidates = branch
-      ? this.getDefinitionsByBranch(branch)
-      : this.getAllDefinitions()
+    const candidates = branch ? this.getDefinitionsByBranch(branch) : this.getAllDefinitions()
 
     if (candidates.length === 0) return undefined
     return candidates[Math.floor(Math.random() * candidates.length)]
@@ -84,9 +80,9 @@ class ArmsRegistry {
   // Get definitions suitable for a specific tech level
   getDefinitionsByTechLevel(availableTech: string[]): ArmsDefinition[] {
     const techSet = new Set(availableTech)
-    return Array.from(this.definitions.values()).filter(def => {
+    return Array.from(this.definitions.values()).filter((def) => {
       if (!def.requiredTech) return true
-      return def.requiredTech.every(tech => techSet.has(tech))
+      return def.requiredTech.every((tech) => techSet.has(tech))
     })
   }
 }

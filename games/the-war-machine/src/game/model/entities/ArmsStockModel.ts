@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
-import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
 import { armsRegistry } from '../../registries/armsRegistry.ts'
 import type { ArmsDefinition } from '../definitions/armsDefinitions.ts'
+import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
 
 export interface ArmsStockParams {
   armsId: string // Reference to the arms definition
@@ -68,7 +68,7 @@ export class ArmsStockModel {
 
   // Calculate profit/loss if sold at current market value
   getPotentialProfit(): number {
-    return this.getCurrentMarketValue() - (this.purchasePrice * this.quantity)
+    return this.getCurrentMarketValue() - this.purchasePrice * this.quantity
   }
 
   // Get condition multiplier for value calculations
@@ -98,7 +98,7 @@ export class ArmsStockModel {
 
     const attributes = Object.values(def.qualityAttributes)
     const avgQuality = attributes.reduce((sum, val) => sum + val, 0) / attributes.length
-    return 0.5 + (avgQuality / 100) // 0.5 to 1.5 multiplier
+    return 0.5 + avgQuality / 100 // 0.5 to 1.5 multiplier
   }
 
   // Update quantity (for sales, losses, etc.)
@@ -177,9 +177,8 @@ export class ArmsStockModel {
     const def = this.getDefinition()
     if (!def) return `Unknown Arms - Qty: ${this.quantity}`
 
-    const subcatString = def.subcategories.size > 0
-      ? ` [${Array.from(def.subcategories).join(', ')}]`
-      : ''
+    const subcatString =
+      def.subcategories.size > 0 ? ` [${Array.from(def.subcategories).join(', ')}]` : ''
     return `${def.name} (${def.branch}${subcatString}) - Qty: ${this.quantity}, Condition: ${this.condition}`
   }
 
@@ -212,7 +211,8 @@ export class ArmsStockModel {
     }
 
     // Calculate weighted average purchase price
-    const totalValue = (this.purchasePrice * this.quantity) + (otherStock.purchasePrice * otherStock.quantity)
+    const totalValue =
+      this.purchasePrice * this.quantity + otherStock.purchasePrice * otherStock.quantity
     const totalQuantity = this.quantity + otherStock.quantity
     this.purchasePrice = totalValue / totalQuantity
 

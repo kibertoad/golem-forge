@@ -1,6 +1,6 @@
 import { ArmsBranch } from '../enums/ArmsBranches.ts'
-import type { BranchQuality } from '../enums/ArmsStockEnums.ts'
 import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import type { BranchQuality } from '../enums/ArmsStockEnums.ts'
 
 // Immutable definition of an arms product
 export interface ArmsDefinition {
@@ -23,7 +23,13 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
     id: 'viper_7_aam',
     name: 'Viper-7 AAM',
     branch: ArmsBranch.MISSILES,
-    subcategories: new Set(['medium_range', 'air_to_air', 'guided', 'radar_guided', 'fire_and_forget']),
+    subcategories: new Set([
+      'medium_range',
+      'air_to_air',
+      'guided',
+      'radar_guided',
+      'fire_and_forget',
+    ]),
     manufacturer: ArmsManufacturer.NEXUS_DEFENSE,
     basePrice: 1200000,
     qualityAttributes: {
@@ -217,7 +223,13 @@ export const armsDefinitions: Record<string, ArmsDefinition> = {
     id: 'leviathan_destroyer',
     name: 'Leviathan-class Destroyer',
     branch: ArmsBranch.NAVAL,
-    subcategories: new Set(['destroyer', 'gas_turbine', 'aegis', 'vertical_launch', 'anti_submarine']),
+    subcategories: new Set([
+      'destroyer',
+      'gas_turbine',
+      'aegis',
+      'vertical_launch',
+      'anti_submarine',
+    ]),
     manufacturer: ArmsManufacturer.MARITIME_DEFENSE,
     basePrice: 1800000000,
     qualityAttributes: {

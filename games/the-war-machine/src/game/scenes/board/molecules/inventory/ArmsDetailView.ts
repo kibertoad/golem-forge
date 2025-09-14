@@ -1,8 +1,11 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
-import { getManufacturerDisplayName, manufacturerDetails } from '../../../../model/enums/ArmsManufacturer.ts'
 import { ArmsBranchNames } from '../../../../model/enums/ArmsBranches.ts'
+import {
+  getManufacturerDisplayName,
+  manufacturerDetails,
+} from '../../../../model/enums/ArmsManufacturer.ts'
 
 export class ArmsDetailView extends GameObjects.Container {
   private background: GameObjects.Graphics
@@ -16,7 +19,12 @@ export class ArmsDetailView extends GameObjects.Container {
     // Create semi-transparent overlay background
     const overlayBg = scene.add.graphics()
     overlayBg.fillStyle(0x000000, 0.7)
-    overlayBg.fillRect(-scene.cameras.main.width / 2, -scene.cameras.main.height / 2, scene.cameras.main.width, scene.cameras.main.height)
+    overlayBg.fillRect(
+      -scene.cameras.main.width / 2,
+      -scene.cameras.main.height / 2,
+      scene.cameras.main.width,
+      scene.cameras.main.height,
+    )
     this.add(overlayBg)
 
     // Create main detail window
@@ -42,12 +50,15 @@ export class ArmsDetailView extends GameObjects.Container {
     this.add(this.closeButton)
 
     // Make overlay interactive to block clicks
-    overlayBg.setInteractive(new Phaser.Geom.Rectangle(
-      -scene.cameras.main.width / 2,
-      -scene.cameras.main.height / 2,
-      scene.cameras.main.width,
-      scene.cameras.main.height
-    ), Phaser.Geom.Rectangle.Contains)
+    overlayBg.setInteractive(
+      new Phaser.Geom.Rectangle(
+        -scene.cameras.main.width / 2,
+        -scene.cameras.main.height / 2,
+        scene.cameras.main.width,
+        scene.cameras.main.height,
+      ),
+      Phaser.Geom.Rectangle.Contains,
+    )
 
     scene.add.existing(this)
     this.setDepth(2000)
@@ -101,8 +112,13 @@ export class ArmsDetailView extends GameObjects.Container {
     if (!def) return
 
     // Clear previous content (except background and close button)
-    this.list.forEach(child => {
-      if (child !== this.background && child !== this.closeButton && child !== this.titleText && child !== this.list[0]) {
+    this.list.forEach((child) => {
+      if (
+        child !== this.background &&
+        child !== this.closeButton &&
+        child !== this.titleText &&
+        child !== this.list[0]
+      ) {
         child.destroy()
       }
     })
@@ -170,19 +186,29 @@ export class ArmsDetailView extends GameObjects.Container {
     this.add(manufCountry)
     yPos += 25
 
-    const manufPrestige = scene.add.text(leftX, yPos, `Prestige: ${'★'.repeat(manufInfo.prestigeLevel)}${'☆'.repeat(5 - manufInfo.prestigeLevel)}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#ffaa00',
-    })
+    const manufPrestige = scene.add.text(
+      leftX,
+      yPos,
+      `Prestige: ${'★'.repeat(manufInfo.prestigeLevel)}${'☆'.repeat(5 - manufInfo.prestigeLevel)}`,
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: '#ffaa00',
+      },
+    )
     this.add(manufPrestige)
     yPos += 25
 
-    const manufTech = scene.add.text(leftX, yPos, `Technology: ${'▮'.repeat(manufInfo.technologyLevel)}${'▯'.repeat(5 - manufInfo.technologyLevel)}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#00aaff',
-    })
+    const manufTech = scene.add.text(
+      leftX,
+      yPos,
+      `Technology: ${'▮'.repeat(manufInfo.technologyLevel)}${'▯'.repeat(5 - manufInfo.technologyLevel)}`,
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: '#00aaff',
+      },
+    )
     this.add(manufTech)
     yPos += 40
 
@@ -212,19 +238,29 @@ export class ArmsDetailView extends GameObjects.Container {
     this.add(condition)
     yPos += 25
 
-    const purchasePrice = scene.add.text(leftX, yPos, `Purchase Price: $${item.purchasePrice.toLocaleString()}/unit`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
-    })
+    const purchasePrice = scene.add.text(
+      leftX,
+      yPos,
+      `Purchase Price: $${item.purchasePrice.toLocaleString()}/unit`,
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: '#aaaaaa',
+      },
+    )
     this.add(purchasePrice)
     yPos += 25
 
-    const marketValue = scene.add.text(leftX, yPos, `Market Value: $${def.basePrice.toLocaleString()}/unit`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
-    })
+    const marketValue = scene.add.text(
+      leftX,
+      yPos,
+      `Market Value: $${def.basePrice.toLocaleString()}/unit`,
+      {
+        fontSize: '18px',
+        fontFamily: 'Courier',
+        color: '#00ff00',
+      },
+    )
     this.add(marketValue)
 
     // Right column - Quality attributes
@@ -342,7 +378,10 @@ export class ArmsDetailView extends GameObjects.Container {
   }
 
   private formatAttributeName(key: string): string {
-    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim()
   }
 
   private getAttributeColor(value: number): string {
@@ -363,12 +402,12 @@ export class ArmsDetailView extends GameObjects.Container {
 
   private getConditionColor(condition: string): string {
     const conditionColors: Record<string, string> = {
-      'new': '#00ff00',
-      'excellent': '#88ff00',
-      'good': '#ffff00',
-      'fair': '#ff8800',
-      'poor': '#ff4400',
-      'salvage': '#ff0000',
+      new: '#00ff00',
+      excellent: '#88ff00',
+      good: '#ffff00',
+      fair: '#ff8800',
+      poor: '#ff4400',
+      salvage: '#ff0000',
     }
     return conditionColors[condition.toLowerCase()] || '#ffffff'
   }

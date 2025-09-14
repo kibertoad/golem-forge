@@ -1,12 +1,18 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 import type { ArmsShowDefinition } from '../../../model/definitions/armsShowsDefinitions.ts'
 
 export class ShowDetailsPanel extends GameObjects.Container {
   private background: GameObjects.Graphics
   private armsShow: ArmsShowDefinition
 
-  constructor(scene: PotatoScene, x: number, y: number, width: number, armsShow: ArmsShowDefinition) {
+  constructor(
+    scene: PotatoScene,
+    x: number,
+    y: number,
+    width: number,
+    armsShow: ArmsShowDefinition,
+  ) {
     super(scene, x, y)
     this.armsShow = armsShow
 

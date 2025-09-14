@@ -7,34 +7,45 @@ import {
   updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
-import { armsShowsDefinitions, type ArmsShowDefinition } from '../../model/definitions/armsShowsDefinitions.ts'
+import {
+  type ArmsShowDefinition,
+  armsShowsDefinitions,
+} from '../../model/definitions/armsShowsDefinitions.ts'
 import { entityDefinitions } from '../../model/definitions/entityDefinitions.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
+import { ArmsStockModel } from '../../model/entities/ArmsStockModel.ts'
+import { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
 import { EntityModel } from '../../model/entities/EntityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
-import { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
-import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
-import { Country } from '../../model/enums/Countries.ts'
 import { Gender, PositiveTrait } from '../../model/enums/AgentEnums.ts'
+import { ArmsCondition } from '../../model/enums/ArmsStockEnums.ts'
+import { Country, CountryNames } from '../../model/enums/Countries.ts'
+import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
+import type { EarthRegion } from '../../model/enums/EarthRegions.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import type { ArmsShowSceneData } from '../armsShow/ArmsShowScene.ts'
-import { EarthMap, type EarthRegion } from './molecules/map/EarthMap.ts'
+import {
+  createArmsShowContextPanel,
+  createArmsShowCostCalculator,
+  createArmsShowSelectionValidator,
+} from './molecules/agents/ArmsShowContextPanel.ts'
+import {
+  type AgentSelectionContext,
+  BusinessAgentSelector,
+} from './molecules/agents/BusinessAgentSelector.ts'
+import { ScheduleAttendanceButton } from './molecules/agents/ScheduleAttendanceButton.ts'
 import { EntityView } from './molecules/entities/EntityView.js'
+import { StockInventoryView } from './molecules/inventory/StockInventoryView.ts'
+import { EarthMap } from './molecules/map/EarthMap.ts'
 import { NavigationBar, NavigationState } from './molecules/navigation/NavigationBar.ts'
+import { EventLog } from './molecules/ui/EventLog.ts'
 import { NextTurnButton } from './molecules/ui/NextTurnButton.ts'
 import { type StatusData, StatusDisplay } from './molecules/ui/StatusDisplay.ts'
 import { ToastContainer, type ToastData } from './molecules/ui/ToastContainer.ts'
-import { ScheduleAttendanceButton } from './molecules/agents/ScheduleAttendanceButton.ts'
-import { BusinessAgentSelector, type AgentSelectionContext } from './molecules/agents/BusinessAgentSelector.ts'
-import { createArmsShowContextPanel, createArmsShowCostCalculator, createArmsShowSelectionValidator } from './molecules/agents/ArmsShowContextPanel.ts'
-import { EventLog } from './molecules/ui/EventLog.ts'
-import { StockInventoryView } from './molecules/inventory/StockInventoryView.ts'
-import { ArmsStockModel } from '../../model/entities/ArmsStockModel.ts'
-import { ArmsCondition } from '../../model/enums/ArmsStockEnums.ts'
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -54,7 +65,10 @@ export class BoardScene extends PotatoScene {
   private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
   private selectedArmsShow: ArmsShowDefinition | null = null
   private agentSelector: BusinessAgentSelector | null = null
-  private scheduledArmsShowData: { agent: BusinessAgentModel; armsShow: ArmsShowDefinition } | null = null
+  private scheduledArmsShowData: {
+    agent: BusinessAgentModel
+    armsShow: ArmsShowDefinition
+  } | null = null
   private stockInventoryView: StockInventoryView | null = null
 
   constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
@@ -315,7 +329,7 @@ export class BoardScene extends PotatoScene {
     ]
 
     // Add all stock to world model
-    startingStock.forEach(stock => this.worldModel.addStock(stock))
+    startingStock.forEach((stock) => this.worldModel.addStock(stock))
   }
 
   addEntity() {
@@ -396,6 +410,10 @@ export class BoardScene extends PotatoScene {
       console.log('Region selected:', region)
       this.handleRegionSelection(region)
     })
+    this.earthMap.on('country-selected', (country: Country) => {
+      console.log('Country selected:', country)
+      this.handleCountrySelection(country)
+    })
 
     const initialStatus: StatusData = {
       date: this.worldModel.gameStatus.date,
@@ -444,7 +462,10 @@ export class BoardScene extends PotatoScene {
     this.statusDisplay.updateStatus({
       ...this.worldModel.gameStatus,
     })
-    this.eventLog.addEntry(`Sold 1x ${item.getName()} for $${salePrice.toLocaleString()}`, 'success')
+    this.eventLog.addEntry(
+      `Sold 1x ${item.getName()} for $${salePrice.toLocaleString()}`,
+      'success',
+    )
 
     // Update the inventory view
     if (this.stockInventoryView) {
@@ -457,6 +478,15 @@ export class BoardScene extends PotatoScene {
     console.log('Region selected:', region)
   }
 
+  private handleCountrySelection(country: Country) {
+    // Handle country selection from zoomed view
+    const countryName = CountryNames[country]
+    const capital = CountryCapitals[country]
+    if (capital) {
+      this.eventLog.addEntry(`Selected: ${countryName} (Capital: ${capital.name})`, 'info')
+    }
+  }
+
   private processTurn() {
     this.nextTurnButton.setProcessing(true)
 
@@ -467,7 +497,10 @@ export class BoardScene extends PotatoScene {
     this.worldModel.addMoney(Math.floor(Math.random() * 100000)) // Random income
 
     // Check for arms shows this week
-    this.checkArmsShows(this.worldModel.gameStatus.date.getMonth() + 1, this.worldModel.gameStatus.week)
+    this.checkArmsShows(
+      this.worldModel.gameStatus.date.getMonth() + 1,
+      this.worldModel.gameStatus.week,
+    )
 
     // Update display from world model
     this.statusDisplay.updateStatus({
@@ -482,7 +515,7 @@ export class BoardScene extends PotatoScene {
       // Transition to arms show scene after a brief delay
       this.time.delayedCall(1000, () => {
         const sceneData: ArmsShowSceneData = { agent, armsShow }
-        this.scene.sleep()  // Preserve BoardScene state
+        this.scene.sleep() // Preserve BoardScene state
         this.scene.run(sceneRegistry.ARMS_SHOW_SCENE, sceneData)
       })
     } else {
@@ -520,13 +553,11 @@ export class BoardScene extends PotatoScene {
 
         // Find the corresponding show
         const showId = data.id.replace('arms-show-', '')
-        const show = Object.values(armsShowsDefinitions).find(s => s.id === showId)
+        const show = Object.values(armsShowsDefinitions).find((s) => s.id === showId)
 
         if (show) {
-          const capital = CountryCapitals[show.country]
-          if (capital) {
-            this.earthMap.addEventMarkerAtCapital(capital.x, capital.y, show.name)
-          }
+          // Jump to continent view and highlight the country
+          this.earthMap.showArmsShowLocation(show.country, show.name)
 
           // Show attendance button for the selected show
           this.showScheduleAttendanceButton(show)

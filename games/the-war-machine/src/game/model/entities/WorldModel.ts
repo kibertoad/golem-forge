@@ -5,11 +5,11 @@ import {
   type StateHolder,
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
-import type { EntityModel } from './EntityModel.ts'
-import type { BusinessAgentModel } from './BusinessAgentModel.ts'
-import type { ArmsStockModel } from './ArmsStockModel.ts'
 import { AgentStatus } from '../enums/AgentEnums.ts'
-import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import type { ArmsStockModel } from './ArmsStockModel.ts'
+import type { BusinessAgentModel } from './BusinessAgentModel.ts'
+import type { EntityModel } from './EntityModel.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'combat' | 'travel'
@@ -66,7 +66,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   }
 
   getAvailableAgents(): BusinessAgentModel[] {
-    return this.businessAgents.filter(agent => agent.status === AgentStatus.AVAILABLE)
+    return this.businessAgents.filter((agent) => agent.status === AgentStatus.AVAILABLE)
   }
 
   // Stock management
@@ -75,7 +75,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   }
 
   removeStock(stockId: string): ArmsStockModel | null {
-    const index = this.playerStock.findIndex(s => s.id === stockId)
+    const index = this.playerStock.findIndex((s) => s.id === stockId)
     if (index !== -1) {
       return this.playerStock.splice(index, 1)[0]
     }

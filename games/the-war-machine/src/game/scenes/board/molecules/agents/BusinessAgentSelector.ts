@@ -1,5 +1,5 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 import type { BusinessAgentModel } from '../../../../model/entities/BusinessAgentModel.ts'
 import { imageRegistry } from '../../../../registries/imageRegistry.ts'
 
@@ -175,8 +175,10 @@ export class BusinessAgentSelector extends GameObjects.Container {
         slot.add(statusText)
 
         // Check if agent can be selected
-        const canSelect = agent.status === 'available' &&
-          (!this.context.canSelectValidator || this.context.canSelectValidator(agent, this.availableCash))
+        const canSelect =
+          agent.status === 'available' &&
+          (!this.context.canSelectValidator ||
+            this.context.canSelectValidator(agent, this.availableCash))
 
         // Make slot interactive if agent can be selected
         if (canSelect) {
@@ -395,8 +397,10 @@ export class BusinessAgentSelector extends GameObjects.Container {
 
     const cost = this.context.costCalculator ? this.context.costCalculator(this.selectedAgent) : 0
     const canAfford = this.availableCash >= cost
-    const canConfirm = canAfford && (!this.context.canSelectValidator ||
-      this.context.canSelectValidator(this.selectedAgent, this.availableCash))
+    const canConfirm =
+      canAfford &&
+      (!this.context.canSelectValidator ||
+        this.context.canSelectValidator(this.selectedAgent, this.availableCash))
 
     buttonBg.clear()
     buttonBg.fillStyle(canConfirm ? 0x00aa00 : 0x444444, 0.8)
@@ -410,7 +414,10 @@ export class BusinessAgentSelector extends GameObjects.Container {
     buttonBg.removeAllListeners()
 
     if (canConfirm) {
-      buttonBg.setInteractive(new Phaser.Geom.Rectangle(-100, -20, 200, 40), Phaser.Geom.Rectangle.Contains)
+      buttonBg.setInteractive(
+        new Phaser.Geom.Rectangle(-100, -20, 200, 40),
+        Phaser.Geom.Rectangle.Contains,
+      )
 
       buttonBg.on('pointerover', () => {
         buttonBg.clear()

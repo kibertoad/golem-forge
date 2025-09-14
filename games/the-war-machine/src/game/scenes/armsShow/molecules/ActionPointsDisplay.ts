@@ -1,5 +1,5 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 
 export class ActionPointsDisplay extends GameObjects.Container {
   private background: GameObjects.Graphics

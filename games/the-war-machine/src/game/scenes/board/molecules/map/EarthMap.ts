@@ -1,14 +1,9 @@
-import { GameObjects, Geom } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
-
-export enum EarthRegion {
-  NORTH_AMERICA = 'north_america',
-  SOUTH_AMERICA = 'south_america',
-  EUROPE = 'europe',
-  AFRICA = 'africa',
-  ASIA = 'asia',
-  OCEANIA = 'oceania',
-}
+import { GameObjects, Geom } from 'phaser'
+import { getCountryContinent } from '../../../../model/enums/ContinentData.ts'
+import type { Country } from '../../../../model/enums/Countries.ts'
+import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
+import { ContinentZoomView } from './ContinentZoomView.ts'
 
 interface RegionData {
   region: EarthRegion
@@ -27,25 +22,28 @@ export class EarthMap extends GameObjects.Container {
   private earthBackground: GameObjects.Graphics
   private regionData: Map<EarthRegion, RegionData> = new Map()
   private eventMarkers: Array<GameObjects.Graphics | GameObjects.Text> = []
+  private zoomView: ContinentZoomView | null = null
+  private potatoScene: PotatoScene
 
   constructor(scene: PotatoScene, x: number, y: number) {
     super(scene, x, y)
+    this.potatoScene = scene
 
-    // Create ocean background
+    // Create ocean background - larger frame (increased by 10px on each side)
     this.earthBackground = scene.add.graphics()
     this.earthBackground.fillStyle(0x001122, 0.8)
-    this.earthBackground.fillRect(-600, -350, 1200, 700)
+    this.earthBackground.fillRect(-760, -400, 1520, 800)
     this.add(this.earthBackground)
 
     // Add grid pattern for ocean
     this.earthBackground.lineStyle(1, 0x003355, 0.3)
-    for (let gx = -600; gx <= 600; gx += 50) {
-      this.earthBackground.moveTo(gx, -350)
-      this.earthBackground.lineTo(gx, 350)
+    for (let gx = -760; gx <= 760; gx += 76) {
+      this.earthBackground.moveTo(gx, -400)
+      this.earthBackground.lineTo(gx, 400)
     }
-    for (let gy = -350; gy <= 350; gy += 50) {
-      this.earthBackground.moveTo(-600, gy)
-      this.earthBackground.lineTo(600, gy)
+    for (let gy = -400; gy <= 400; gy += 80) {
+      this.earthBackground.moveTo(-760, gy)
+      this.earthBackground.lineTo(760, gy)
     }
 
     // Create continents
@@ -60,7 +58,7 @@ export class EarthMap extends GameObjects.Container {
     // Border frame
     const border = scene.add.graphics()
     border.lineStyle(3, 0x00ffff, 0.8)
-    border.strokeRect(-600, -350, 1200, 700)
+    border.strokeRect(-760, -400, 1520, 800)
     this.add(border)
   }
 
@@ -71,13 +69,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'NORTH AMERICA',
         points: [
           // Simple rectangle shape in upper left
-          -550, -300,  // Top left
-          -350, -300,  // Top right
-          -350, -100,  // Bottom right
-          -550, -100,  // Bottom left
+          -650,
+          -350, // Top left
+          -400,
+          -350, // Top right
+          -400,
+          -120, // Bottom right
+          -650,
+          -120, // Bottom left
         ],
-        centerX: -450,
-        centerY: -200,
+        centerX: -525,
+        centerY: -235,
         color: 0x00ff44,
         hoverColor: 0x44ff88,
       },
@@ -86,13 +88,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'SOUTH AMERICA',
         points: [
           // Simple vertical rectangle below North America
-          -500, -50,   // Top left
-          -400, -50,   // Top right
-          -400, 200,   // Bottom right
-          -500, 200,   // Bottom left
+          -600,
+          -60, // Top left
+          -450,
+          -60, // Top right
+          -450,
+          250, // Bottom right
+          -600,
+          250, // Bottom left
         ],
-        centerX: -450,
-        centerY: 75,
+        centerX: -525,
+        centerY: 95,
         color: 0xff4400,
         hoverColor: 0xff8844,
       },
@@ -101,13 +107,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'EUROPE',
         points: [
           // Simple rectangle in upper center
-          -200, -300,  // Top left
-          0, -300,     // Top right
-          0, -150,     // Bottom right
-          -200, -150,  // Bottom left
+          -250,
+          -350, // Top left
+          0,
+          -350, // Top right
+          0,
+          -180, // Bottom right
+          -250,
+          -180, // Bottom left
         ],
-        centerX: -100,
-        centerY: -225,
+        centerX: -125,
+        centerY: -265,
         color: 0x00aaff,
         hoverColor: 0x44ccff,
       },
@@ -116,13 +126,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'AFRICA',
         points: [
           // Simple diamond/rectangle below Europe
-          -150, -100,  // Top left
-          -50, -100,   // Top right
-          -50, 200,    // Bottom right
-          -150, 200,   // Bottom left
+          -200,
+          -120, // Top left
+          -50,
+          -120, // Top right
+          -50,
+          250, // Bottom right
+          -200,
+          250, // Bottom left
         ],
-        centerX: -100,
-        centerY: 50,
+        centerX: -125,
+        centerY: 65,
         color: 0xffaa00,
         hoverColor: 0xffcc44,
       },
@@ -131,13 +145,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'ASIA',
         points: [
           // Large rectangle on the right
-          100, -300,   // Top left
-          500, -300,   // Top right
-          500, 50,     // Bottom right
-          100, 50,     // Bottom left
+          120,
+          -350, // Top left
+          650,
+          -350, // Top right
+          650,
+          80, // Bottom right
+          120,
+          80, // Bottom left
         ],
-        centerX: 300,
-        centerY: -125,
+        centerX: 385,
+        centerY: -135,
         color: 0xff00ff,
         hoverColor: 0xff44ff,
       },
@@ -146,13 +164,17 @@ export class EarthMap extends GameObjects.Container {
         label: 'OCEANIA',
         points: [
           // Small rectangle in bottom right
-          250, 150,    // Top left
-          450, 150,    // Top right
-          450, 300,    // Bottom right
-          250, 300,    // Bottom left
+          320,
+          180, // Top left
+          580,
+          180, // Top right
+          580,
+          360, // Bottom right
+          320,
+          360, // Bottom left
         ],
-        centerX: 350,
-        centerY: 225,
+        centerX: 450,
+        centerY: 270,
         color: 0x00ffaa,
         hoverColor: 0x44ffcc,
       },
@@ -248,6 +270,7 @@ export class EarthMap extends GameObjects.Container {
 
     graphics.on('pointerdown', () => {
       this.selectRegion(data.region)
+      this.showContinentZoom(data.region)
       this.emit('region-selected', data.region)
     })
 
@@ -368,7 +391,7 @@ export class EarthMap extends GameObjects.Container {
       text.setOrigin(0.5)
       text.setShadow(2, 2, '#000000', 2, true, true)
       this.add(text)
-      this.eventMarkers.push(text)  // Track text for removal
+      this.eventMarkers.push(text) // Track text for removal
     }
 
     this.add(marker)
@@ -387,5 +410,53 @@ export class EarthMap extends GameObjects.Container {
   addEventMarkerAtCapital(capitalX: number, capitalY: number, label?: string) {
     // Capital positions are already relative to map center
     return this.addEventMarker(capitalX, capitalY, label)
+  }
+
+  private showContinentZoom(region: EarthRegion) {
+    // Hide the main earth view
+    this.setVisible(false)
+
+    // Close existing zoom view if any
+    if (this.zoomView) {
+      this.zoomView.destroy()
+      this.zoomView = null
+    }
+
+    // Create new zoom view at the same position as the Earth map
+    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region)
+
+    // Listen for country selection
+    this.zoomView.on('country-selected', (country: Country) => {
+      this.emit('country-selected', country)
+      console.log('Country selected:', country)
+    })
+
+    // Listen for close event to return to Earth view
+    this.zoomView.on('close', () => {
+      this.zoomView = null
+      this.setVisible(true)
+    })
+  }
+
+  closeZoomView() {
+    if (this.zoomView) {
+      this.zoomView.destroy()
+      this.zoomView = null
+      this.setVisible(true)
+    }
+  }
+
+  // Show arms show on map - jumps to continent view if country is found
+  showArmsShowLocation(country: Country, armsShowName: string) {
+    const continent = getCountryContinent(country)
+    if (continent) {
+      // Jump to the continent view
+      this.showContinentZoom(continent)
+
+      // Highlight the country in the zoom view
+      if (this.zoomView) {
+        this.zoomView.highlightCountry(country, armsShowName)
+      }
+    }
   }
 }

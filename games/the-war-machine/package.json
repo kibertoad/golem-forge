@@ -14,9 +14,10 @@
     "homepage": "https://github.com/kibertoad/golem-forge#readme",
     "scripts": {
         "build": "tsc",
+        "test": "vitest",
         "dev": "turbo build && vite --config vite/config.dev.mjs",
         "build:prod": "turbo build && vite build --config vite/config.prod.mjs",
-        "lint": "biome check . && tsc --noEmit",
+        "lint": "biome check . && tsc --noEmit && node --run test",
         "lint:fix": "biome check --write"
     },
     "dependencies": {
@@ -34,6 +35,7 @@
         "@types/uuid": "^10.0.0",
         "terser": "^5.44.0",
         "typescript": "~5.9.2",
-        "vite": "^7.1.5"
+        "vite": "^7.1.5",
+        "vitest": "^3.2.4"
     }
 }

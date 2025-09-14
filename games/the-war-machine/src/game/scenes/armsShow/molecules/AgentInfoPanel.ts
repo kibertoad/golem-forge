@@ -1,5 +1,5 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 import type { BusinessAgentModel } from '../../../model/entities/BusinessAgentModel.ts'
 
 export class AgentInfoPanel extends GameObjects.Container {

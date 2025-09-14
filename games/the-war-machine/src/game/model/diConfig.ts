@@ -9,9 +9,9 @@ import {
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
 import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
+import { ArmsShowScene } from '../scenes/armsShow/ArmsShowScene.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
-import { ArmsShowScene } from '../scenes/armsShow/ArmsShowScene.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
 

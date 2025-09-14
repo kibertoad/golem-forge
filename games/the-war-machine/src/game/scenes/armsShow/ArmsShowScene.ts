@@ -1,20 +1,19 @@
 import { PotatoScene } from '@potato-golem/ui'
-import type { WorldModel } from '../../model/entities/WorldModel.ts'
-import type { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
+import * as Phaser from 'phaser'
 import type { ArmsShowDefinition } from '../../model/definitions/armsShowsDefinitions.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
-import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import { DepthRegistry } from '../../registries/depthRegistry.ts'
+import type { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
+import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { AgentStatus } from '../../model/enums/AgentEnums.ts'
 import { ArmsManufacturer, manufacturerDetails } from '../../model/enums/ArmsManufacturer.ts'
-
+import { DepthRegistry } from '../../registries/depthRegistry.ts'
+import { sceneRegistry } from '../../registries/sceneRegistry.ts'
+import { ActionPointsDisplay } from './molecules/ActionPointsDisplay.ts'
+import { AgentInfoPanel } from './molecules/AgentInfoPanel.ts'
+import { type ArmsShowAction, ArmsShowActionMenu } from './molecules/ArmsShowActionMenu.ts'
+import { ShowDetailsPanel } from './molecules/ShowDetailsPanel.ts'
 // Molecules
 import { VendorContactSelection } from './molecules/VendorContactSelection.ts'
-import { AgentInfoPanel } from './molecules/AgentInfoPanel.ts'
-import { ActionPointsDisplay } from './molecules/ActionPointsDisplay.ts'
-import { ShowDetailsPanel } from './molecules/ShowDetailsPanel.ts'
-import { ArmsShowActionMenu, type ArmsShowAction } from './molecules/ArmsShowActionMenu.ts'
-import * as Phaser from 'phaser'
 
 export interface ArmsShowSceneData {
   agent: BusinessAgentModel
@@ -35,7 +34,10 @@ export class ArmsShowScene extends PotatoScene {
   private showDetailsPanel: ShowDetailsPanel | null = null
   private actionMenu: ArmsShowActionMenu | null = null
 
-  constructor({ worldModel, globalSceneEventEmitter }: Pick<Dependencies, 'worldModel' | 'globalSceneEventEmitter'>) {
+  constructor({
+    worldModel,
+    globalSceneEventEmitter,
+  }: Pick<Dependencies, 'worldModel' | 'globalSceneEventEmitter'>) {
     super(globalSceneEventEmitter, sceneRegistry.ARMS_SHOW_SCENE)
     this.worldModel = worldModel
   }
@@ -70,7 +72,7 @@ export class ArmsShowScene extends PotatoScene {
       this.cameras.main.width - 250,
       120,
       this.actionPoints,
-      this.maxActionPoints
+      this.maxActionPoints,
     )
 
     const actions: ArmsShowAction[] = [
@@ -88,7 +90,7 @@ export class ArmsShowScene extends PotatoScene {
       this.cameras.main.width / 2,
       350,
       actions,
-      (actionId, cost) => this.handleAction(actionId, cost)
+      (actionId, cost) => this.handleAction(actionId, cost),
     )
 
     this.showDetailsPanel = new ShowDetailsPanel(
@@ -96,7 +98,7 @@ export class ArmsShowScene extends PotatoScene {
       50,
       this.cameras.main.height - 200,
       this.cameras.main.width - 100,
-      this.armsShow
+      this.armsShow,
     )
   }
 
@@ -116,7 +118,7 @@ export class ArmsShowScene extends PotatoScene {
         fontFamily: 'Courier',
         color: '#ffff00',
         fontStyle: 'bold',
-      }
+      },
     )
     titleText.setOrigin(0.5)
   }
@@ -186,7 +188,7 @@ export class ArmsShowScene extends PotatoScene {
     // Get eligible manufacturers
     const eligibleManufacturers = this.getEligibleManufacturers()
     const newManufacturers = eligibleManufacturers.filter(
-      m => !this.worldModel.hasVendorContact(m)
+      (m) => !this.worldModel.hasVendorContact(m),
     )
     const selectedVendors = this.selectRandomVendors(newManufacturers, 3)
 
@@ -204,12 +206,14 @@ export class ArmsShowScene extends PotatoScene {
           const added = this.worldModel.addVendorContact(manufacturer)
           if (added) {
             const info = manufacturerDetails[manufacturer]
-            this.showActionResult(`You established contact with ${info.displayName}!\nPrestige: ${'★'.repeat(info.prestigeLevel)}`)
+            this.showActionResult(
+              `You established contact with ${info.displayName}!\nPrestige: ${'★'.repeat(info.prestigeLevel)}`,
+            )
           }
         } else {
           this.showActionResult('You failed to establish any new vendor contacts.')
         }
-      }
+      },
     )
   }
 
@@ -224,7 +228,7 @@ export class ArmsShowScene extends PotatoScene {
     const higherLevelChance = 0.05 + (networkingSkill / 10) * 0.15 // 5% to 20%
     const rollHigher = Math.random() < higherLevelChance
 
-    Object.values(ArmsManufacturer).forEach(manufacturer => {
+    Object.values(ArmsManufacturer).forEach((manufacturer) => {
       const info = manufacturerDetails[manufacturer]
 
       // Include manufacturers at show prestige level or one below
@@ -262,26 +266,32 @@ export class ArmsShowScene extends PotatoScene {
     resultBg.fillRoundedRect(
       this.cameras.main.width / 2 - 400,
       this.cameras.main.height / 2 - 50,
-      800, 100, 10
+      800,
+      100,
+      10,
     )
     resultBg.lineStyle(2, 0x00ff00, 1)
     resultBg.strokeRoundedRect(
       this.cameras.main.width / 2 - 400,
       this.cameras.main.height / 2 - 50,
-      800, 100, 10
+      800,
+      100,
+      10,
     )
     resultBg.setDepth(DepthRegistry.TOAST)
 
     const resultText = this.add.text(
       this.cameras.main.width / 2,
       this.cameras.main.height / 2,
-      message, {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
-      align: 'center',
-      wordWrap: { width: 750 },
-    })
+      message,
+      {
+        fontSize: '24px',
+        fontFamily: 'Courier',
+        color: '#00ff00',
+        align: 'center',
+        wordWrap: { width: 750 },
+      },
+    )
     resultText.setOrigin(0.5)
     resultText.setDepth(DepthRegistry.TOAST)
 
@@ -358,7 +368,7 @@ export class ArmsShowScene extends PotatoScene {
 
     btnBg.setInteractive(
       new Phaser.Geom.Rectangle(-100, -20, 200, 40),
-      Phaser.Geom.Rectangle.Contains
+      Phaser.Geom.Rectangle.Contains,
     )
 
     btnBg.on('pointerover', () => {

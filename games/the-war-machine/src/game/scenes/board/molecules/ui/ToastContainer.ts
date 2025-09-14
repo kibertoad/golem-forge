@@ -14,7 +14,7 @@ export class ToastContainer extends GameObjects.Container {
   }
 
   private calculateToastY(toastCount: number) {
-        return 200 + (toastCount * 90)
+    return 200 + toastCount * 90
   }
 
   addToast(data: ToastData) {

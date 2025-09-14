@@ -1,12 +1,12 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import type { GameObjects } from 'phaser'
 import type { ArmsShowDefinition } from '../../../../model/definitions/armsShowsDefinitions.ts'
 import type { BusinessAgentModel } from '../../../../model/entities/BusinessAgentModel.ts'
 
 export function createArmsShowContextPanel(
   scene: PotatoScene,
   armsShow: ArmsShowDefinition,
-  availableCash: number
+  availableCash: number,
 ): GameObjects.Container {
   const panel = scene.add.container(0, 0)
 
@@ -59,13 +59,17 @@ export function createArmsShowContextPanel(
   return panel
 }
 
-export function createArmsShowCostCalculator(armsShow: ArmsShowDefinition): (agent: BusinessAgentModel) => number {
+export function createArmsShowCostCalculator(
+  armsShow: ArmsShowDefinition,
+): (agent: BusinessAgentModel) => number {
   return (agent: BusinessAgentModel) => {
     return agent.calculateAttendanceFee(armsShow.entranceFee)
   }
 }
 
-export function createArmsShowSelectionValidator(armsShow: ArmsShowDefinition): (agent: BusinessAgentModel, cash: number) => boolean {
+export function createArmsShowSelectionValidator(
+  armsShow: ArmsShowDefinition,
+): (agent: BusinessAgentModel, cash: number) => boolean {
   return (agent: BusinessAgentModel, availableCash: number) => {
     const cost = agent.calculateAttendanceFee(armsShow.entranceFee)
     return agent.status === 'available' && availableCash >= cost

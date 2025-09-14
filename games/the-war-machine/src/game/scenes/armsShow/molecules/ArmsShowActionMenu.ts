@@ -1,5 +1,5 @@
-import { GameObjects } from 'phaser'
 import type { PotatoScene } from '@potato-golem/ui'
+import { GameObjects } from 'phaser'
 
 export interface ArmsShowAction {
   id: string
@@ -17,7 +17,7 @@ export class ArmsShowActionMenu extends GameObjects.Container {
     x: number,
     y: number,
     actions: ArmsShowAction[],
-    onAction: (actionId: string, cost: number) => void
+    onAction: (actionId: string, cost: number) => void,
   ) {
     super(scene, x, y)
     this.actions = actions
@@ -46,7 +46,7 @@ export class ArmsShowActionMenu extends GameObjects.Container {
     y: number,
     action: ArmsShowAction,
     width: number,
-    height: number
+    height: number,
   ): GameObjects.Container {
     const button = scene.add.container(x, y)
 
@@ -99,7 +99,7 @@ export class ArmsShowActionMenu extends GameObjects.Container {
     height: number,
     enabled: boolean,
     isLeave: boolean,
-    hover: boolean = false
+    hover: boolean = false,
   ) {
     bg.clear()
 
@@ -123,11 +123,11 @@ export class ArmsShowActionMenu extends GameObjects.Container {
     width: number,
     height: number,
     action: ArmsShowAction,
-    isLeave: boolean
+    isLeave: boolean,
   ) {
     bg.setInteractive(
       new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
-      Phaser.Geom.Rectangle.Contains
+      Phaser.Geom.Rectangle.Contains,
     )
 
     bg.on('pointerover', () => {
@@ -153,7 +153,7 @@ export class ArmsShowActionMenu extends GameObjects.Container {
   }
 
   updateButtonStates(actionPoints: number, forceDisableActions: boolean = false) {
-    this.actionButtons.forEach(button => {
+    this.actionButtons.forEach((button) => {
       const action = button.getData('action') as ArmsShowAction
       const bg = button.getData('bg') as GameObjects.Graphics
       const labelText = button.getData('labelText') as GameObjects.Text
