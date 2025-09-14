@@ -196,6 +196,10 @@ export class StarmapUIScene extends Phaser.Scene {
 
   // --- Overlay for star hover ---
   showOverlay(x: number, y: number, text: string) {
+    // Check if overlay components exist
+    if (!this.overlayBox || !this.overlayText || !this.overlayBg) {
+      return
+    }
     if (this.planetOverlayBox.visible || this.encounterOverlayBox.visible) return
     this.overlayText.setText(text)
     this.overlayBg.setSize(this.overlayText.width + 20, this.overlayText.height + 16)
@@ -216,7 +220,9 @@ export class StarmapUIScene extends Phaser.Scene {
     this.overlayBox.setVisible(true)
   }
   hideOverlay() {
-    this.overlayBox.setVisible(false)
+    if (this.overlayBox) {
+      this.overlayBox.setVisible(false)
+    }
     this.hideEncounterTooltip()
   }
 

@@ -257,7 +257,10 @@ export class StarmapScene extends PotatoScene {
     // Add region labels
     this.addRegionLabels()
 
-    // Center camera on player starting position (center of Hub Systems)
+    // Find the closest inhabited star to center in Hub Systems and place player there
+    this.setPlayerStartPosition()
+
+    // Center camera on player starting position
     this.cameras.main.centerOn(this.playerX, this.playerY)
 
     // Initial fog reveal
@@ -473,6 +476,43 @@ export class StarmapScene extends PotatoScene {
     this.regionLabels.push(outerLabel)
   }
 
+  setPlayerStartPosition() {
+    // Find the closest inhabited star to the center within Hub Systems
+    let closestInhabitedStar = null
+    let closestDistance = Infinity
+
+    for (const star of this.stars) {
+      // Only consider inhabited stars in Hub Systems
+      if (star.region === 'Hub Systems' && star.colonized) {
+        const distance = Phaser.Math.Distance.Between(
+          star.x,
+          star.y,
+          this.hubSystemsCenter.x,
+          this.hubSystemsCenter.y,
+        )
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestInhabitedStar = star
+        }
+      }
+    }
+
+    // If we found an inhabited star, place the player there
+    if (closestInhabitedStar) {
+      this.playerX = closestInhabitedStar.x
+      this.playerY = closestInhabitedStar.y
+      console.log(`Player starting at inhabited system: ${closestInhabitedStar.name}`)
+    } else {
+      // Fallback: if somehow no inhabited stars (very unlikely), use center
+      this.playerX = this.hubSystemsCenter.x
+      this.playerY = this.hubSystemsCenter.y
+      console.log('Warning: No inhabited stars found in Hub Systems, using center')
+    }
+
+    // Update player ship position
+    this.playerShip.setPosition(this.playerX, this.playerY)
+  }
+
   addStar(x: number, y: number, region: string) {
     const color = getRandomStarColor()
     const name = getStarName()
@@ -480,7 +520,7 @@ export class StarmapScene extends PotatoScene {
 
     // Colonization probability based on region
     let colonizationChance = 0
-    if (region === 'Hub Systems') colonizationChance = 0.7
+    if (region === 'Hub Systems') colonizationChance = 0.85  // Increased from 0.7
     else if (region === 'Frontier Systems') colonizationChance = 0.4
     else colonizationChance = 0.15
 

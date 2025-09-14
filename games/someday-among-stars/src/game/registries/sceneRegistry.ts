@@ -10,4 +10,5 @@ export const sceneRegistry = {
   STARMAP_UI_SCENE: 'starmapUI',
   SPACE_COMBAT: 'spaceCombat',
   SYSTEM_VISIT_SCENE: 'systemVisit',
+  STARPORT_TRADE_SCENE: 'starportTrade',
 } as const

@@ -43,6 +43,86 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.LASER))
     this.playerShip.weapons.push(new CommonComponentModel('weapon', WEAPON_COMPONENTS.MISSILE))
 
+    // Add concealed compartments to player ship
+    this.playerShip.addConcealedCompartment({
+      id: 'smuggler-hold-1',
+      name: 'Hidden Compartment Alpha',
+      maxSpace: 20,
+      currentSpace: 20,
+      concealmentLevel: 5,
+      scannerProofing: {
+        radiation: 60,
+        thermal: 40,
+        magnetic: 30,
+        gravimetric: 20,
+        bioscan: 50,
+        quantum: 10,
+      },
+      contents: [],
+    })
+
+    this.playerShip.addConcealedCompartment({
+      id: 'smuggler-hold-2',
+      name: 'Shielded Cargo Bay Beta',
+      maxSpace: 15,
+      currentSpace: 15,
+      concealmentLevel: 7,
+      scannerProofing: {
+        radiation: 80,
+        thermal: 70,
+        magnetic: 40,
+        gravimetric: 30,
+        bioscan: 20,
+        quantum: 25,
+      },
+      contents: [],
+    })
+
+    this.playerShip.addConcealedCompartment({
+      id: 'smuggler-hold-3',
+      name: 'False Hull Section Gamma',
+      maxSpace: 10,
+      currentSpace: 10,
+      concealmentLevel: 9,
+      scannerProofing: {
+        radiation: 50,
+        thermal: 60,
+        magnetic: 85,
+        gravimetric: 75,
+        bioscan: 30,
+        quantum: 40,
+      },
+      contents: [],
+    })
+
+    // Add some initial cargo to player ship
+    this.playerShip.addPublicCargo({
+      id: 'initial-food',
+      name: 'Food Rations',
+      quantity: 10,
+      spacePerUnit: 1,
+      illegal: false,
+      value: 10,
+    })
+
+    this.playerShip.addPublicCargo({
+      id: 'initial-electronics',
+      name: 'Electronics',
+      quantity: 5,
+      spacePerUnit: 1,
+      illegal: false,
+      value: 100,
+    })
+
+    this.playerShip.addConcealedCargo('smuggler-hold-1', {
+      id: 'initial-weapons',
+      name: 'Military Weapons',
+      quantity: 2,
+      spacePerUnit: 3,
+      illegal: true,
+      value: 500,
+    })
+
     // Initialize enemy ship with different stats and weapons
     this.enemyShip = new ShipModel()
     this.enemyShip.maxEnergy = 4

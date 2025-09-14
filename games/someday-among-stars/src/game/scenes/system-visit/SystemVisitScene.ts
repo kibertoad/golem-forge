@@ -245,8 +245,10 @@ export class SystemVisitScene extends PotatoScene {
 
   private visitSpaceport() {
     console.log('Visiting spaceport...')
-    // TODO: Implement spaceport interaction
-    this.showTemporaryMessage('Spaceport services coming soon!')
+    // Launch the trading scene
+    this.scene.start(sceneRegistry.STARPORT_TRADE_SCENE, {
+      systemData: this.systemData,
+    })
   }
 
   private visitShipyard() {

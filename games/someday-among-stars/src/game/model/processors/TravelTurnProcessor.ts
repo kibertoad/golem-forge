@@ -1,6 +1,5 @@
 import type { TurnProcessor } from '@potato-golem/core'
 import Phaser from 'phaser'
-import { SPACE_ENCOUNTERS } from '../../content/encounters/spaceEncounters.ts'
 import type { Dependencies } from '../../diConfig.ts'
 import type { EncounterModel } from '../entities/EncounterModel.ts'
 import type { WorldModel } from '../entities/WorldModel.ts'
