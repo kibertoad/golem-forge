@@ -16,12 +16,14 @@ import type { Dependencies } from '../../model/diConfig.ts'
 import { ArmsStockModel } from '../../model/entities/ArmsStockModel.ts'
 import { BusinessAgentModel } from '../../model/entities/BusinessAgentModel.ts'
 import { EntityModel } from '../../model/entities/EntityModel.ts'
+import { ResearchFacilityModel } from '../../model/entities/ResearchFacilityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { Gender, PositiveTrait } from '../../model/enums/AgentEnums.ts'
 import { ArmsCondition } from '../../model/enums/ArmsStockEnums.ts'
 import { Country, CountryNames } from '../../model/enums/Countries.ts'
 import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
 import type { EarthRegion } from '../../model/enums/EarthRegions.ts'
+import { ResearchFacilityType } from '../../model/enums/ResearchDirectorEnums.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
@@ -84,6 +86,7 @@ export class BoardScene extends PotatoScene {
       this.addEntity()
       this.initializeAgents()
       this.initializeStartingStock()
+      this.initializeResearchFacilities()
     }
 
     eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
@@ -332,6 +335,24 @@ export class BoardScene extends PotatoScene {
     startingStock.forEach((stock) => this.worldModel.addStock(stock))
   }
 
+  private initializeResearchFacilities() {
+    // Pick random facility type for the first facility
+    const facilityTypes = Object.values(ResearchFacilityType)
+    const randomType = facilityTypes[Math.floor(Math.random() * facilityTypes.length)]
+
+    // Create initial research facility in Sudan with random type
+    const sudanFacility = new ResearchFacilityModel({
+      name: 'Sudan Defense Research Institute',
+      location: Country.SUDAN,
+      facilityType: randomType,
+      monthlyUpkeep: 75000,
+    })
+
+    this.worldModel.addResearchFacility(sudanFacility)
+
+    // Start with 0 directors - players must hire through agencies
+  }
+
   addEntity() {
     const entityModel = new EntityModel({
       definition: entityDefinitions.sausage,
@@ -449,6 +470,16 @@ export class BoardScene extends PotatoScene {
           this.stockInventoryView.show()
         }
         break
+      case NavigationState.RESEARCH:
+        // Transition to full Research Scene
+        this.scene.sleep()
+        this.scene.run(sceneRegistry.RESEARCH_SCENE, {})
+        break
+      case NavigationState.PERSONNEL:
+        // Transition to Personnel Scene
+        this.scene.sleep()
+        this.scene.run(sceneRegistry.PERSONNEL_SCENE, {})
+        break
       // Add other navigation cases here as needed
     }
   }
@@ -492,6 +523,14 @@ export class BoardScene extends PotatoScene {
     // Update world model turn
     this.worldModel.advanceTurn()
     this.worldModel.addMoney(Math.floor(Math.random() * 100000)) // Random income
+
+    // Advance all research projects
+    this.worldModel.advanceAllResearch()
+
+    // Deduct research facility upkeep costs
+    this.worldModel.researchFacilities.forEach((facility) => {
+      this.worldModel.deductMoney(facility.monthlyUpkeep / 4) // Weekly upkeep
+    })
 
     // Check for arms shows this week
     this.checkArmsShows(

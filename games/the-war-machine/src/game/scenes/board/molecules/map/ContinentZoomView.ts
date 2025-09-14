@@ -23,6 +23,7 @@ export class ContinentZoomView extends GameObjects.Container {
   private selectedCountry: Country | null = null
   private armsShowMarker: GameObjects.Container | null = null
   private warSystem: WarSystem
+  private currentInfoOverlay: CountryInfoOverlay | null = null
 
   constructor(
     scene: PotatoScene,
@@ -61,6 +62,11 @@ export class ContinentZoomView extends GameObjects.Container {
     )
     this.background.on('pointerdown', (pointer: Input.Pointer) => {
       if (pointer.rightButtonDown()) {
+        // Clean up info overlay when closing
+        if (this.currentInfoOverlay) {
+          this.currentInfoOverlay.destroy()
+          this.currentInfoOverlay = null
+        }
         this.emit('close')
         this.destroy()
       }
@@ -197,6 +203,12 @@ export class ContinentZoomView extends GameObjects.Container {
           8,
         )
         label.setScale(1.1)
+
+        // Show country info overlay on hover
+        if (this.currentInfoOverlay) {
+          this.currentInfoOverlay.destroy()
+        }
+        this.currentInfoOverlay = new CountryInfoOverlay(scene, countryInfo.country, this.warSystem)
       })
 
       graphics.on('pointerout', () => {
@@ -218,6 +230,12 @@ export class ContinentZoomView extends GameObjects.Container {
           8,
         )
         label.setScale(1)
+
+        // Hide country info overlay on pointer out
+        if (this.currentInfoOverlay) {
+          this.currentInfoOverlay.destroy()
+          this.currentInfoOverlay = null
+        }
       })
 
       graphics.on('pointerdown', () => {
@@ -498,8 +516,7 @@ export class ContinentZoomView extends GameObjects.Container {
     // Listen for city selection
     cityView.on('city-selected', (data: { country: Country; city: string }) => {
       console.log(`City selected: ${data.city} in ${CountryNames[data.country]}`)
-      // Show country info overlay after city selection
-      new CountryInfoOverlay(this.scene as PotatoScene, data.country, this.warSystem)
+      // Don't create overlay on city selection since we show it on hover now
     })
   }
 }

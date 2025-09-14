@@ -1,5 +1,6 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
+import { formatMoney } from '../../../../utils/FormatUtils.ts'
 
 export interface StatusData {
   date: Date
@@ -54,7 +55,7 @@ export class StatusDisplay extends GameObjects.Container {
     })
     this.add(moneyIcon)
 
-    this.moneyText = scene.add.text(-95, 5, this.formatMoney(initialData.money), {
+    this.moneyText = scene.add.text(-95, 5, formatMoney(initialData.money), {
       fontSize: '20px',
       color: '#00ff00',
       fontStyle: 'bold',
@@ -94,16 +95,6 @@ export class StatusDisplay extends GameObjects.Container {
     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
   }
 
-  private formatMoney(amount: number): string {
-    if (amount >= 1000000000) {
-      return `$${(amount / 1000000000).toFixed(1)}B`
-    } else if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`
-    } else if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(1)}K`
-    }
-    return `$${amount.toLocaleString()}`
-  }
 
   updateStatus(data: Partial<StatusData>) {
     if (data.date !== undefined) {
@@ -119,7 +110,7 @@ export class StatusDisplay extends GameObjects.Container {
     if (data.money !== undefined) {
       const oldMoney = this.statusData.money
       this.statusData.money = data.money
-      this.moneyText.setText(this.formatMoney(data.money))
+      this.moneyText.setText(formatMoney(data.money))
 
       if (data.money > oldMoney) {
         this.moneyText.setColor('#00ff00')

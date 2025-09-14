@@ -183,8 +183,8 @@ export class CountryInfoOverlay extends GameObjects.Container {
     )
     this.infoTexts.push(techText)
 
-    // Add instruction text at bottom
-    this.instructionText = scene.add.text(0, 195, '(Right-click to dismiss)', {
+    // Remove instruction text since overlay auto-hides on hover out
+    this.instructionText = scene.add.text(0, 195, '', {
       fontSize: '14px',
       fontFamily: 'Courier',
       color: '#888888',
@@ -206,15 +206,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
       ease: 'Power2',
     })
 
-    // NO auto-hide - only dismiss on right-click
-
-    // Right-click to dismiss
-    this.setInteractive(new Geom.Rectangle(-500, -60, 1000, 280), Geom.Rectangle.Contains)
-    this.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.rightButtonDown()) {
-        this.fadeOut()
-      }
-    })
+    // No interaction needed since overlay is controlled by hover
   }
 
   private fadeOut() {
@@ -224,9 +216,15 @@ export class CountryInfoOverlay extends GameObjects.Container {
       duration: 300,
       ease: 'Power2',
       onComplete: () => {
-        this.destroy()
+        super.destroy()
       },
     })
+  }
+
+  destroy() {
+    // Kill any running tweens
+    this.scene.tweens.killTweensOf(this)
+    super.destroy()
   }
 
   private createStars(value: number, inverse: boolean = false): string {

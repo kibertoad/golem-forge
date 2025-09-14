@@ -7,4 +7,6 @@ export const sceneRegistry = {
   BOARD_SCENE: 'board',
   CHOICES_SCENE: 'choices',
   ARMS_SHOW_SCENE: 'armsShow',
+  RESEARCH_SCENE: 'research',
+  PERSONNEL_SCENE: 'personnel',
 } as const

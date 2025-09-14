@@ -216,7 +216,7 @@ export class VendorContactSelection extends GameObjects.Container {
     const maxDescY = height / 2 - 30 // Maximum Y position to stay within card
     const actualDescY = Math.min(descY, maxDescY)
 
-    const descText = scene.add.text(0, actualDescY, info.description.substring(0, 80) + '...', {
+    const descText = scene.add.text(0, actualDescY, `${info.description.substring(0, 80)}...`, {
       fontSize: '14px',
       fontFamily: 'Courier',
       color: '#cccccc',

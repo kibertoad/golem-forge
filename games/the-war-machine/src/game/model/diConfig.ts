@@ -12,6 +12,8 @@ import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { ArmsShowScene } from '../scenes/armsShow/ArmsShowScene.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
+import { PersonnelScene } from '../scenes/personnel/PersonnelScene.ts'
+import { ResearchScene } from '../scenes/research/ResearchScene.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
 
@@ -23,6 +25,8 @@ export interface Dependencies {
   boardScene: BoardScene
   mainMenuScene: MainMenuScene
   armsShowScene: ArmsShowScene
+  researchScene: ResearchScene
+  personnelScene: PersonnelScene
   endTurnProcessor: EndTurnProcessor
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
   choicesDirector: ChoicesDirector
@@ -42,6 +46,8 @@ export function instantiateContainer() {
     boardScene: asClass(BoardScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     armsShowScene: asClass(ArmsShowScene, SINGLETON_CONFIG),
+    researchScene: asClass(ResearchScene, SINGLETON_CONFIG),
+    personnelScene: asClass(PersonnelScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoicesDirector, SINGLETON_CONFIG),
   }

@@ -10,6 +10,8 @@ import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
 import type { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
 import type { EntityModel } from './EntityModel.ts'
+import type { ResearchDirectorModel } from './ResearchDirectorModel.ts'
+import type { ResearchFacilityModel } from './ResearchFacilityModel.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'combat' | 'travel'
@@ -29,6 +31,8 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly businessAgents: BusinessAgentModel[] = []
   public readonly playerStock: ArmsStockModel[] = []
   public readonly vendorContacts: Set<ArmsManufacturer> = new Set()
+  public readonly researchFacilities: ResearchFacilityModel[] = []
+  public readonly researchDirectors: ResearchDirectorModel[] = []
   public gameStatus: GameStatus
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
@@ -123,6 +127,54 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   getVendorContacts(): ArmsManufacturer[] {
     return Array.from(this.vendorContacts)
+  }
+
+  // Research facility management
+  addResearchFacility(facility: ResearchFacilityModel) {
+    this.researchFacilities.push(facility)
+  }
+
+  removeResearchFacility(facilityId: string): ResearchFacilityModel | null {
+    const index = this.researchFacilities.findIndex((f) => f.id === facilityId)
+    if (index !== -1) {
+      return this.researchFacilities.splice(index, 1)[0]
+    }
+    return null
+  }
+
+  getResearchFacility(facilityId: string): ResearchFacilityModel | undefined {
+    return this.researchFacilities.find((f) => f.id === facilityId)
+  }
+
+  advanceAllResearch() {
+    this.researchFacilities.forEach((facility) => {
+      if (facility.isRetooling) {
+        facility.advanceRetooling()
+      } else {
+        facility.advanceResearch()
+      }
+    })
+  }
+
+  // Research Director management
+  addResearchDirector(director: ResearchDirectorModel) {
+    this.researchDirectors.push(director)
+  }
+
+  removeResearchDirector(directorId: string): ResearchDirectorModel | null {
+    const index = this.researchDirectors.findIndex((d) => d.id === directorId)
+    if (index !== -1) {
+      return this.researchDirectors.splice(index, 1)[0]
+    }
+    return null
+  }
+
+  getAvailableDirectors(): ResearchDirectorModel[] {
+    return this.researchDirectors.filter((d) => d.isAvailable)
+  }
+
+  getDirector(directorId: string): ResearchDirectorModel | undefined {
+    return this.researchDirectors.find((d) => d.id === directorId)
   }
 }
 
