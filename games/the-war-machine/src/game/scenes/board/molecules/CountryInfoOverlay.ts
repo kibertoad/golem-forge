@@ -1,13 +1,10 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom } from 'phaser'
+import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
-import {
-  PoliticalStance,
-  RegimeType,
-} from '../../../model/enums/CountryAttributes.ts'
+import { PoliticalStance, RegimeType } from '../../../model/enums/CountryAttributes.ts'
 import { CountryCapitals } from '../../../model/enums/CountryCapitals.ts'
 import type { WarSystem } from '../../../model/WarSystem.ts'
-import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 
 export class CountryInfoOverlay extends GameObjects.Container {
   private background: GameObjects.Graphics

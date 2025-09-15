@@ -9,7 +9,7 @@ export class DirectorHiringUtils {
   static showFeeSelectionDialog(
     scene: PotatoScene,
     worldModel: WorldModel,
-    onHireComplete?: (directorName: string | null) => void
+    onHireComplete?: (directorName: string | null) => void,
   ) {
     const standardFee = 50000
     const premiumFee = 150000
@@ -100,11 +100,16 @@ export class DirectorHiringUtils {
     premiumFeeText.setOrigin(0.5)
     premiumContainer.add(premiumFeeText)
 
-    const premiumDesc = scene.add.text(0, 0, 'All stats visible\nAll traits visible\n3 candidates', {
-      fontSize: '14px',
-      color: '#aaaaaa',
-      align: 'center',
-    })
+    const premiumDesc = scene.add.text(
+      0,
+      0,
+      'All stats visible\nAll traits visible\n3 candidates',
+      {
+        fontSize: '14px',
+        color: '#aaaaaa',
+        align: 'center',
+      },
+    )
     premiumDesc.setOrigin(0.5)
     premiumContainer.add(premiumDesc)
 

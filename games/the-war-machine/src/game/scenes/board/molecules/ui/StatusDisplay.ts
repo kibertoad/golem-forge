@@ -95,7 +95,6 @@ export class StatusDisplay extends GameObjects.Container {
     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
   }
 
-
   updateStatus(data: Partial<StatusData>) {
     if (data.date !== undefined) {
       this.statusData.date = data.date

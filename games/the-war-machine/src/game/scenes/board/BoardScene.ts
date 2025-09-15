@@ -25,6 +25,7 @@ import { CountryCapitals } from '../../model/enums/CountryCapitals.ts'
 import type { EarthRegion } from '../../model/enums/EarthRegions.ts'
 import { ResearchFacilityType } from '../../model/enums/ResearchDirectorEnums.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
+import type { WarSystem } from '../../model/WarSystem.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
@@ -57,6 +58,7 @@ export class BoardScene extends PotatoScene {
 
   private backgroundImage!: GameObjects.Sprite
   private readonly endTurnProcessor: EndTurnProcessor
+  private readonly warSystem: WarSystem
 
   private toastContainer!: ToastContainer
   private navigationBar!: NavigationBar
@@ -73,11 +75,12 @@ export class BoardScene extends PotatoScene {
   } | null = null
   private stockInventoryView: StockInventoryView | null = null
 
-  constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
+  constructor({ worldModel, endTurnProcessor, warSystem, globalSceneEventEmitter }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
 
     this.worldModel = worldModel
     this.endTurnProcessor = endTurnProcessor
+    this.warSystem = warSystem
   }
 
   init() {
@@ -422,7 +425,14 @@ export class BoardScene extends PotatoScene {
       this.handleStockSale(item)
     })
 
-    this.earthMap = new EarthMap(this, width / 2, height / 2 + 100, this.worldModel, this.toastContainer)
+    this.earthMap = new EarthMap(
+      this,
+      width / 2,
+      height / 2 + 100,
+      this.worldModel,
+      this.warSystem,
+      this.toastContainer,
+    )
     this.earthMap.setDepth(100)
     this.earthMap.on('region-selected', (region: EarthRegion) => {
       console.log('Region selected:', region)
@@ -432,6 +442,8 @@ export class BoardScene extends PotatoScene {
       console.log('Country selected:', country)
       this.handleCountrySelection(country)
     })
+
+    // Game initialization is now handled by GameInitializer before scenes are created
 
     const initialStatus: StatusData = {
       date: this.worldModel.gameStatus.date,
@@ -518,6 +530,7 @@ export class BoardScene extends PotatoScene {
   private processTurn() {
     this.nextTurnButton.setProcessing(true)
 
+    // Process all turn operations (includes war processing via EndTurnProcessor)
     this.endTurnProcessor.processTurn()
 
     // Update world model turn

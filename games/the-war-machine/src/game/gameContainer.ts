@@ -13,6 +13,10 @@ const resolution = GameResolutions.default
 
 const container = instantiateContainer()
 
+// Initialize the game state before Phaser starts
+const gameInitializer = container.cradle.gameInitializer
+gameInitializer.initializeGame()
+
 const config: PhaserTypes.Core.GameConfig = {
   type: AUTO,
   scale: {

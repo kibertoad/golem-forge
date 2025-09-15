@@ -20,12 +20,8 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.CANADA, direction: BorderDirection.NORTH },
     { country: Country.MEXICO, direction: BorderDirection.SOUTH },
   ],
-  [Country.CANADA]: [
-    { country: Country.USA, direction: BorderDirection.SOUTH },
-  ],
-  [Country.MEXICO]: [
-    { country: Country.USA, direction: BorderDirection.NORTH },
-  ],
+  [Country.CANADA]: [{ country: Country.USA, direction: BorderDirection.SOUTH }],
+  [Country.MEXICO]: [{ country: Country.USA, direction: BorderDirection.NORTH }],
 
   // South America
   [Country.BRAZIL]: [
@@ -64,9 +60,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
   ],
 
   // Europe
-  [Country.UK]: [
-    { country: Country.FRANCE, direction: BorderDirection.SOUTH },
-  ],
+  [Country.UK]: [{ country: Country.FRANCE, direction: BorderDirection.SOUTH }],
   [Country.FRANCE]: [
     { country: Country.UK, direction: BorderDirection.NORTH },
     { country: Country.SPAIN, direction: BorderDirection.SOUTH },
@@ -79,9 +73,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.FRANCE, direction: BorderDirection.NORTH },
     { country: Country.PORTUGAL, direction: BorderDirection.WEST },
   ],
-  [Country.PORTUGAL]: [
-    { country: Country.SPAIN, direction: BorderDirection.EAST },
-  ],
+  [Country.PORTUGAL]: [{ country: Country.SPAIN, direction: BorderDirection.EAST }],
   [Country.GERMANY]: [
     { country: Country.FRANCE, direction: BorderDirection.WEST },
     { country: Country.POLAND, direction: BorderDirection.EAST },
@@ -197,11 +189,6 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.LITHUANIA, direction: BorderDirection.SOUTH },
     { country: Country.RUSSIA, direction: BorderDirection.EAST },
   ],
-  [Country.LITHUANIA]: [
-    { country: Country.LATVIA, direction: BorderDirection.NORTH },
-    { country: Country.POLAND, direction: BorderDirection.SOUTH },
-    { country: Country.RUSSIA, direction: BorderDirection.EAST },
-  ],
 
   // Asia
   [Country.RUSSIA]: [
@@ -235,11 +222,6 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.PAKISTAN, direction: BorderDirection.WEST },
     { country: Country.CHINA, direction: BorderDirection.NORTH },
   ],
-  [Country.PAKISTAN]: [
-    { country: Country.INDIA, direction: BorderDirection.EAST },
-    { country: Country.IRAN, direction: BorderDirection.WEST },
-    { country: Country.CHINA, direction: BorderDirection.NORTH },
-  ],
   [Country.VIETNAM]: [
     { country: Country.CHINA, direction: BorderDirection.NORTH },
     { country: Country.THAILAND, direction: BorderDirection.WEST },
@@ -264,9 +246,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.PAPUA_NEW_GUINEA, direction: BorderDirection.EAST },
     { country: Country.AUSTRALIA, direction: BorderDirection.SOUTH },
   ],
-  [Country.PHILIPPINES]: [
-    { country: Country.INDONESIA, direction: BorderDirection.SOUTH },
-  ],
+  [Country.PHILIPPINES]: [{ country: Country.INDONESIA, direction: BorderDirection.SOUTH }],
 
   // Middle East
   [Country.TURKEY]: [
@@ -275,18 +255,6 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.SYRIA, direction: BorderDirection.SOUTH },
     { country: Country.IRAQ, direction: BorderDirection.SOUTH },
     { country: Country.IRAN, direction: BorderDirection.EAST },
-  ],
-  [Country.IRAN]: [
-    { country: Country.TURKEY, direction: BorderDirection.WEST },
-    { country: Country.IRAQ, direction: BorderDirection.WEST },
-    { country: Country.PAKISTAN, direction: BorderDirection.EAST },
-  ],
-  [Country.IRAQ]: [
-    { country: Country.TURKEY, direction: BorderDirection.NORTH },
-    { country: Country.IRAN, direction: BorderDirection.EAST },
-    { country: Country.SYRIA, direction: BorderDirection.WEST },
-    { country: Country.JORDAN, direction: BorderDirection.WEST },
-    { country: Country.SAUDI_ARABIA, direction: BorderDirection.SOUTH },
   ],
   [Country.SYRIA]: [
     { country: Country.TURKEY, direction: BorderDirection.NORTH },
@@ -316,9 +284,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.IRAQ, direction: BorderDirection.NORTH },
     { country: Country.UAE, direction: BorderDirection.EAST },
   ],
-  [Country.UAE]: [
-    { country: Country.SAUDI_ARABIA, direction: BorderDirection.WEST },
-  ],
+  [Country.UAE]: [{ country: Country.SAUDI_ARABIA, direction: BorderDirection.WEST }],
 
   // Africa
   [Country.EGYPT]: [
@@ -341,15 +307,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.TUNISIA, direction: BorderDirection.EAST },
     { country: Country.LIBYA, direction: BorderDirection.EAST },
   ],
-  [Country.MOROCCO]: [
-    { country: Country.ALGERIA, direction: BorderDirection.EAST },
-  ],
-  [Country.SUDAN]: [
-    { country: Country.EGYPT, direction: BorderDirection.NORTH },
-    { country: Country.LIBYA, direction: BorderDirection.NORTH },
-    { country: Country.ETHIOPIA, direction: BorderDirection.EAST },
-    { country: Country.KENYA, direction: BorderDirection.SOUTH },
-  ],
+  [Country.MOROCCO]: [{ country: Country.ALGERIA, direction: BorderDirection.EAST }],
   [Country.ETHIOPIA]: [
     { country: Country.SUDAN, direction: BorderDirection.WEST },
     { country: Country.KENYA, direction: BorderDirection.SOUTH },
@@ -378,22 +336,14 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.ZAMBIA, direction: BorderDirection.NORTH },
     { country: Country.SOUTH_AFRICA, direction: BorderDirection.SOUTH },
   ],
-  [Country.ANGOLA]: [
-    { country: Country.ZAMBIA, direction: BorderDirection.EAST },
-  ],
-  [Country.SOUTH_AFRICA]: [
-    { country: Country.ZIMBABWE, direction: BorderDirection.NORTH },
-  ],
-  [Country.NIGERIA]: [
-    { country: Country.GHANA, direction: BorderDirection.WEST },
-  ],
+  [Country.ANGOLA]: [{ country: Country.ZAMBIA, direction: BorderDirection.EAST }],
+  [Country.SOUTH_AFRICA]: [{ country: Country.ZIMBABWE, direction: BorderDirection.NORTH }],
+  [Country.NIGERIA]: [{ country: Country.GHANA, direction: BorderDirection.WEST }],
   [Country.GHANA]: [
     { country: Country.NIGERIA, direction: BorderDirection.EAST },
     { country: Country.SENEGAL, direction: BorderDirection.WEST },
   ],
-  [Country.SENEGAL]: [
-    { country: Country.GHANA, direction: BorderDirection.EAST },
-  ],
+  [Country.SENEGAL]: [{ country: Country.GHANA, direction: BorderDirection.EAST }],
 
   // Oceania
   [Country.AUSTRALIA]: [
@@ -401,9 +351,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.PAPUA_NEW_GUINEA, direction: BorderDirection.NORTH },
     { country: Country.NEW_ZEALAND, direction: BorderDirection.EAST },
   ],
-  [Country.NEW_ZEALAND]: [
-    { country: Country.AUSTRALIA, direction: BorderDirection.WEST },
-  ],
+  [Country.NEW_ZEALAND]: [{ country: Country.AUSTRALIA, direction: BorderDirection.WEST }],
   [Country.PAPUA_NEW_GUINEA]: [
     { country: Country.INDONESIA, direction: BorderDirection.WEST },
     { country: Country.AUSTRALIA, direction: BorderDirection.SOUTH },
@@ -421,9 +369,7 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.SOLOMON_ISLANDS, direction: BorderDirection.NORTH },
     { country: Country.FIJI, direction: BorderDirection.EAST },
   ],
-  [Country.SAMOA]: [
-    { country: Country.TONGA, direction: BorderDirection.SOUTH },
-  ],
+  [Country.SAMOA]: [{ country: Country.TONGA, direction: BorderDirection.SOUTH }],
   [Country.TONGA]: [
     { country: Country.FIJI, direction: BorderDirection.WEST },
     { country: Country.SAMOA, direction: BorderDirection.NORTH },
@@ -433,12 +379,8 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.PALAU, direction: BorderDirection.WEST },
     { country: Country.MARSHALL_ISLANDS, direction: BorderDirection.EAST },
   ],
-  [Country.PALAU]: [
-    { country: Country.MICRONESIA, direction: BorderDirection.EAST },
-  ],
-  [Country.MARSHALL_ISLANDS]: [
-    { country: Country.MICRONESIA, direction: BorderDirection.WEST },
-  ],
+  [Country.PALAU]: [{ country: Country.MICRONESIA, direction: BorderDirection.EAST }],
+  [Country.MARSHALL_ISLANDS]: [{ country: Country.MICRONESIA, direction: BorderDirection.WEST }],
 
   // Middle East additions
   [Country.IRAN]: [
@@ -452,7 +394,6 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
     { country: Country.TURKEY, direction: BorderDirection.NORTH },
     { country: Country.SYRIA, direction: BorderDirection.WEST },
     { country: Country.SAUDI_ARABIA, direction: BorderDirection.SOUTH },
-    { country: Country.KUWAIT, direction: BorderDirection.SOUTH },
   ],
   [Country.SUDAN]: [
     { country: Country.EGYPT, direction: BorderDirection.NORTH },
@@ -467,7 +408,6 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
   ],
   [Country.LITHUANIA]: [
     { country: Country.LATVIA, direction: BorderDirection.NORTH },
-    { country: Country.BELARUS, direction: BorderDirection.EAST },
     { country: Country.POLAND, direction: BorderDirection.SOUTH },
     { country: Country.RUSSIA, direction: BorderDirection.EAST },
   ],
@@ -476,9 +416,13 @@ export const CountryNeighborDirections: Record<Country, DirectionalNeighbor[]> =
 // Helper function to get opposite direction
 export function getOppositeDirection(direction: BorderDirection): BorderDirection {
   switch (direction) {
-    case BorderDirection.NORTH: return BorderDirection.SOUTH
-    case BorderDirection.SOUTH: return BorderDirection.NORTH
-    case BorderDirection.EAST: return BorderDirection.WEST
-    case BorderDirection.WEST: return BorderDirection.EAST
+    case BorderDirection.NORTH:
+      return BorderDirection.SOUTH
+    case BorderDirection.SOUTH:
+      return BorderDirection.NORTH
+    case BorderDirection.EAST:
+      return BorderDirection.WEST
+    case BorderDirection.WEST:
+      return BorderDirection.EAST
   }
 }

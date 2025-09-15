@@ -1,6 +1,6 @@
 import { ResearchFacilityType as FacilityType } from '../enums/ResearchDirectorEnums.ts'
-import { ResearchField } from '../enums/ResearchEnums.ts'
 import type { ResearchProject } from '../enums/ResearchEnums.ts'
+import { ResearchField } from '../enums/ResearchEnums.ts'
 
 export enum ProjectCategory {
   APPLIED_INNOVATION = 'Applied Innovation', // Practical applications of existing technology to create new weapons/systems
@@ -1391,5 +1391,4 @@ export const RESEARCH_PROJECTS: ResearchProject[] = [
     estimatedMonths: 18,
     prerequisites: ['vaccine_development'],
   },
-
 ]

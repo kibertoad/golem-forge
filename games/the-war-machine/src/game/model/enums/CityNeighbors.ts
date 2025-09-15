@@ -769,6 +769,29 @@ export const CountryCityNeighbors: Partial<Record<Country, CityNeighbors>> = {
     Druskininkai: ['Alytus'],
   },
 
+  [Country.LATVIA]: {
+    Riga: ['Jurmala', 'Ogre', 'Salaspils', 'Sigulda', 'Jelgava'],
+    Daugavpils: ['Rezekne', 'Jekabpils', 'Krustpils'],
+    Liepaja: ['Ventspils', 'Saldus', 'Kuldiga'],
+    Jelgava: ['Riga', 'Tukums', 'Dobele', 'Olaine'],
+    Jurmala: ['Riga', 'Tukums', 'Sigulda'],
+    Ventspils: ['Liepaja', 'Talsi', 'Kuldiga'],
+    Rezekne: ['Daugavpils', 'Valmiera', 'Cesis'],
+    Valmiera: ['Rezekne', 'Cesis', 'Sigulda'],
+    Jekabpils: ['Daugavpils', 'Krustpils', 'Ogre'],
+    Ogre: ['Riga', 'Jekabpils', 'Salaspils'],
+    Tukums: ['Jelgava', 'Jurmala', 'Kuldiga', 'Talsi'],
+    Salaspils: ['Riga', 'Ogre', 'Olaine'],
+    Cesis: ['Rezekne', 'Valmiera', 'Sigulda'],
+    Olaine: ['Jelgava', 'Salaspils', 'Dobele'],
+    Kuldiga: ['Liepaja', 'Ventspils', 'Tukums', 'Saldus'],
+    Saldus: ['Liepaja', 'Kuldiga', 'Dobele'],
+    Talsi: ['Ventspils', 'Tukums'],
+    Dobele: ['Jelgava', 'Olaine', 'Saldus'],
+    Krustpils: ['Daugavpils', 'Jekabpils'],
+    Sigulda: ['Riga', 'Jurmala', 'Valmiera', 'Cesis'],
+  },
+
   // Add more countries as needed...
 }
 

@@ -8,14 +8,14 @@ import { CountryNames } from '../../model/enums/Countries.ts'
 import type { ResearchProject } from '../../model/enums/ResearchEnums.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { DirectorHiringUtils } from '../../utils/DirectorHiringUtils.ts'
+import { formatMoney } from '../../utils/FormatUtils.ts'
 import {
   GenericPersonSelector,
   type PersonData,
   type PersonSelectionContext,
 } from '../board/molecules/ui/GenericPersonSelector.ts'
-import { ResearchProjectDialog } from './ResearchProjectDialog.ts'
 import { LaboratoryUpgradeDialog } from './LaboratoryUpgradeDialog.ts'
-import { formatMoney } from '../../utils/FormatUtils.ts'
+import { ResearchProjectDialog } from './ResearchProjectDialog.ts'
 
 export interface ResearchSceneData {
   selectedFacilityId?: string
@@ -551,15 +551,10 @@ export class ResearchScene extends PotatoScene {
     }
 
     // Costs
-    const costsText = this.add.text(
-      0,
-      110,
-      `Monthly Cost: ${formatMoney(project.monthlyCost)}`,
-      {
-        fontSize: '14px',
-        color: '#ffaa00',
-      },
-    )
+    const costsText = this.add.text(0, 110, `Monthly Cost: ${formatMoney(project.monthlyCost)}`, {
+      fontSize: '14px',
+      color: '#ffaa00',
+    })
     costsText.setOrigin(0.5)
     projectContainer.add(costsText)
 
@@ -646,14 +641,7 @@ export class ResearchScene extends PotatoScene {
     const monthsCompleted = totalMonths - facility.upgradeMonthsRemaining
     const progress = (monthsCompleted / totalMonths) * 100
 
-    const progressBar = this.add.rectangle(
-      -200,
-      170,
-      (400 * progress) / 100,
-      12,
-      0x00aaff,
-      1,
-    )
+    const progressBar = this.add.rectangle(-200, 170, (400 * progress) / 100, 12, 0x00aaff, 1)
     progressBar.setOrigin(0, 0.5)
     upgradeContainer.add(progressBar)
 
@@ -745,10 +733,15 @@ export class ResearchScene extends PotatoScene {
     text.setOrigin(0.5)
     button.add(text)
 
-    const levelText = this.add.text(0, 12, `Level ${facility.techLevel} → ${facility.techLevel + 1}+`, {
-      fontSize: '14px',
-      color: '#88ccff',
-    })
+    const levelText = this.add.text(
+      0,
+      12,
+      `Level ${facility.techLevel} → ${facility.techLevel + 1}+`,
+      {
+        fontSize: '14px',
+        color: '#88ccff',
+      },
+    )
     levelText.setOrigin(0.5)
     button.add(levelText)
 
@@ -832,20 +825,16 @@ export class ResearchScene extends PotatoScene {
       showAddNewButton: true,
       addNewButtonText: '+ Hire New Director',
       onAddNew: () => {
-        DirectorHiringUtils.showFeeSelectionDialog(
-          this,
-          this.worldModel,
-          (directorName) => {
-            if (directorName) {
-              // Refresh the facilities panel after hiring
-              this.refreshFacilitiesPanel()
-              this.createStatusBar()
-              // Re-open the director selector with the newly hired director
-              this.openDirectorSelector(facility)
-            }
+        DirectorHiringUtils.showFeeSelectionDialog(this, this.worldModel, (directorName) => {
+          if (directorName) {
+            // Refresh the facilities panel after hiring
+            this.refreshFacilitiesPanel()
+            this.createStatusBar()
+            // Re-open the director selector with the newly hired director
+            this.openDirectorSelector(facility)
           }
-        )
-      }
+        })
+      },
     }
 
     const selector = new GenericPersonSelector(
@@ -968,7 +957,7 @@ export class ResearchScene extends PotatoScene {
       this.cameras.main.height / 2,
       facility,
       facility.director,
-      facility.completedProjects.map(p => typeof p === 'string' ? p : p.id),
+      facility.completedProjects.map((p) => (typeof p === 'string' ? p : p.id)),
       this.worldModel.gameStatus.money,
       (project: ResearchProject) => {
         // Start the research project
@@ -976,7 +965,7 @@ export class ResearchScene extends PotatoScene {
           project,
           project.complexity,
           project.unpredictability,
-          project.estimatedMonths
+          project.estimatedMonths,
         )
 
         // Deduct the launch cost
@@ -985,7 +974,7 @@ export class ResearchScene extends PotatoScene {
         // Refresh the UI
         this.updateDetailsPanel(facility)
         this.refreshFacilitiesPanel()
-      }
+      },
     )
   }
 
@@ -1010,11 +999,15 @@ export class ResearchScene extends PotatoScene {
           { level: 10, upgradeCost: 60000000, upgradeMonths: 12, monthlyMaintenance: 500000 },
         ]
 
-        const upgradeInfo = techLevels.find(info => info.level === targetLevel)
+        const upgradeInfo = techLevels.find((info) => info.level === targetLevel)
         if (!upgradeInfo) return
 
         // Start the upgrade
-        facility.startUpgrade(targetLevel, upgradeInfo.upgradeMonths, upgradeInfo.monthlyMaintenance)
+        facility.startUpgrade(
+          targetLevel,
+          upgradeInfo.upgradeMonths,
+          upgradeInfo.monthlyMaintenance,
+        )
 
         // Deduct the upgrade cost
         this.worldModel.deductMoney(upgradeInfo.upgradeCost)
@@ -1023,7 +1016,7 @@ export class ResearchScene extends PotatoScene {
         this.updateDetailsPanel(facility)
         this.refreshFacilitiesPanel()
         this.createStatusBar()
-      }
+      },
     )
   }
 }

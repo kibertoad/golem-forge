@@ -21,6 +21,8 @@ constructor({ worldModel, endTurnProcessor }: Dependencies) {
   // ...
 }
 ```
+- **Important**: Always use DI for shared services like `WarSystem` to avoid multiple instances
+- Test configuration available in `testDiConfig.ts` for unit tests without Phaser dependencies
 
 #### 2. Scene Architecture
 - Scenes extend `PotatoScene` from `@potato-golem/ui`
@@ -41,6 +43,9 @@ constructor({ worldModel, endTurnProcessor }: Dependencies) {
   - `sceneRegistry`: Scene identifiers
   - `eventEmitterRegistry`: Event channels
   - `entityTypeRegistry`: Entity type constants
+
+### Important: Singleton Services
+When using dependency injection, ensure shared services like `WarSystem` are registered as singletons using `SINGLETON_CONFIG`. Multiple instances will cause state synchronization issues (e.g., war declarations not propagating to UI).
 
 ## Development Commands
 ```bash
@@ -115,6 +120,9 @@ class EntityView extends GameObjects.Container {
 - Run linting before commits: `npm run lint`
 - TypeScript checking: `tsc --noEmit` or `npm run build`
 - Test files located alongside source files with `.test.ts` extension
+- **Test DI Configuration**: Use `testDiConfig.ts` for unit tests without Phaser dependencies
+  - Provides mock implementations of scene-dependent services
+  - Allows testing game logic in isolation from rendering
 
 ## Asset Management
 - Images go in `/public/assets/`
@@ -170,19 +178,29 @@ class EntityView extends GameObjects.Container {
 ## Important Game Data Files
 
 ### City and Country Data
-- **CityData.ts**: Contains city positions for all countries on the game board
+- **Cities.ts** (`src/game/model/enums/Cities.ts`): Contains city positions for all countries on the game board
   - Each country has 10-25 cities with x,y coordinates
   - Cities marked as capitals have `isCapital: true`
-  - Grid coordinates range from 0-19 for both x and y
+  - Grid coordinates range from 0-9 for both x and y
+  - Used by CityZoomView to calculate actual positions on 1480x680 grid
 
 - **CityNeighbors.ts**: Defines connections between cities within each country
   - Each city lists its neighboring cities for movement/connection purposes
   - Connections must be bidirectional (if A connects to B, B must connect to A)
   - Average 2-3 connections per city
-  - **Important**: When fixing duplicates, keep the LATER definitions (usually after line 650+)
+  - **Important**: When fixing duplicates, keep the LATER definitions
 
 - **Country.ts**: Enum of all playable countries
 - **ContinentData.ts**: Maps countries to continents and defines continent positions
+
+- **CountryNeighborDirections.ts**: Maps each country's neighbors to cardinal directions
+  - Used for attack visualization positioning
+  - Determines which side of the country frame to place attacker blocks
+
+- **CountryBorderCities.ts**: Defines which cities are on borders with neighboring countries
+  - Each border city includes: cityId, cityName, and direction
+  - Used for attack line targeting in visualizations
+  - Only border cities should be included, not inland cities like capitals
 
 ### Game Mechanics
 
@@ -192,42 +210,190 @@ The war system is designed with the following components:
 
 ##### Core Components
 
-1. **WarDirector** (`src/game/model/processors/WarDirector.ts`)
+1. **GameInitializer** (`src/game/model/GameInitializer.ts`)
+   - **Critical for game startup** - must be called explicitly when game begins
+   - Centralizes all initialization logic that should run once at game start
+   - Call `initializeGame()` method explicitly (not in constructor)
+   - Sets up war system, initializes starting wars, prepares AI (future)
+   - Prevents duplicate initialization with internal flag
+   - **Important**: Without calling GameInitializer, no wars will start
+
+2. **WarDirector** (`src/game/model/processors/WarDirector.ts`)
    - Implements `TurnProcessor` interface
    - Manages war progression each turn
-   - Coordinates war actions for all countries
+   - Coordinates unit spawning when wars erupt
+   - Processes unit turns and combat
    - Registered in DI container for centralized management
+   - **setupWarSystem()** must be called by GameInitializer (not in constructor)
 
-2. **CountryModel** (`src/game/model/entities/CountryModel.ts`)
+3. **CountryModel** (`src/game/model/entities/CountryModel.ts`)
    - Runtime representation of country state
    - Tracks dynamic attributes: military budget, corruption, regime, etc.
    - Manages war status and opponents
-   - Calculates military power based on budget, production, and tech
+   - Maintains lists of Regular and Assault units
+   - Calculates military power based on strength, budget, production, and tech
 
-3. **WarSystem** (`src/game/model/WarSystem.ts`)
-   - Handles war declarations and combat between countries
+4. **WarSystem** (`src/game/model/WarSystem.ts`)
+   - **MUST be registered as singleton in DI container**
+   - Handles war declarations between countries
    - Expansionist countries automatically declare wars
    - Countries can only attack weaker neighbors (lower military budget)
    - Manages active wars and countries at war
+   - Provides `onWarDeclared` callback for UI notifications
+   - Tracks aggressor vs defender in War interface
+   - Currently only supports one-way attacks (aggressor → defender)
 
-4. **WorldModel** (`src/game/model/entities/WorldModel.ts`)
+5. **WorldModel** (`src/game/model/entities/WorldModel.ts`)
    - Main game state management
    - Maintains runtime country models (initialized from StartingCountryAttributes)
    - Tracks all countries, cities, wars, and game progression
    - Handles turn processing and victory conditions
 
+##### Military Units
+
+###### Unit Types
+
+1. **RegularUnit** (`src/game/model/entities/units/RegularUnit.ts`)
+   - Garrison units that defend cities
+   - Slowly recover strength when not in combat
+   - Lower supply consumption (1 per turn)
+   - Get significant defense bonuses when defending home cities
+   - Improve organization and training over time
+
+2. **AssaultUnit** (`src/game/model/entities/units/AssaultUnit.ts`)
+   - Offensive units deployed to war fronts
+   - Get the best military equipment available
+   - Higher supply consumption (3 per turn)
+   - Track morale and momentum for combat effectiveness
+   - Get attack bonuses and can build momentum from victories
+
+###### Unit Attributes
+
+All units have three core attributes:
+- **Supplies** (0-100): Food, ammo, medicine - affects combat effectiveness
+- **Organization** (0-100): Command quality and discipline
+- **Training** (0-100): Training level that improves over time
+
+Assault units additionally have:
+- **Morale** (0-100): Affects combat performance
+- **Momentum** (0-100): Bonus from consecutive victories
+
+###### Unit Spawning
+
+Units are spawned when a country enters war:
+- **Spawn Counts**: Based on military strength (2 regular units and 1 assault unit per strength point)
+- **Initial Strength**:
+  - Regular: 50-100 based on industrial production
+  - Assault: 70-100 based on industrial production
+- **Equipment Quality**: Based on industrial tech level (assault units get +1 priority)
+- **Attribute Adjustments**:
+  - Supplies affected by corruption (less corrupt = better supplies)
+  - Organization based on standards
+  - Training based on military budget
+  - Morale (assault only) based on standards
+- **Important**: War status must be set BEFORE spawning units to ensure proper targeting
+- **Assault Unit Organization**: Uses `Map<Country, AssaultUnit[]>` for robust targeting instead of string IDs
+
+##### Military Branches
+
+Countries now have capabilities across five branches:
+- **Army**: Ground forces
+- **Navy**: Naval forces
+- **Airforce**: Air forces
+- **Special Forces**: Elite units
+- **Drones**: Unmanned systems
+
+Each branch is rated 1-5 in:
+- **Military Strength**: Base military capability
+- **Industrial Production**: Ability to produce equipment
+- **Industrial Tech**: Technology level of equipment
+
 ##### Data Organization
 
-- **StartingCountryAttributes** (`CountryAttributes.ts`): Initial static data for countries
+- **StartingCountryAttributes** (`CountryAttributes.ts`): Initial static data for countries including military strength
+- **BranchCapabilities**: Ratings for each military branch
 - **CountryModel**: Runtime state that can change during gameplay
 - All scenes now use WorldModel's country data instead of static definitions
+
+##### Geographic Data
+
+###### Country Neighbor Directions (`CountryNeighborDirections.ts`)
+Maps each country's neighbors to cardinal directions (North, South, East, West) for:
+- Attack visualization positioning
+- Strategic planning
+- Border relationships
+
+###### Border Cities (`CountryBorderCities.ts`)
+Defines which cities are on borders with neighboring countries:
+- Used for attack targeting
+- Defense planning
+- Visual representation of conflicts
+
+###### Attack Visualization
+- **AttackVisualization** component displays incoming attacks only
+- Shows red attacker blocks positioned just outside country grid borders
+- Draws dashed red lines from attacker blocks to specific border cities
+- Arrow heads point to each targeted border city
+- **Only shows when viewing defending country** - no visualization when viewing attacker
+- Uses actual city grid positions for accurate targeting
+- Block positioning based on cardinal direction (800px horizontal, 380px vertical offset)
+
+##### Game Initialization Flow
+
+**Critical**: The game requires explicit initialization to start wars and set up systems:
+
+1. **On Game Start** (typically in BoardScene or main game scene):
+   ```typescript
+   // Get GameInitializer from DI container
+   const gameInitializer = container.resolve('gameInitializer')
+   gameInitializer.initializeGame() // MUST be called explicitly
+   ```
+
+2. **What GameInitializer Does**:
+   - Calls `warDirector.setupWarSystem()` to register war callbacks
+   - Triggers `warSystem.initializeWars()` to start initial conflicts
+   - Sets up AI directors (future)
+   - Initializes economic conditions (future)
+   - Prevents duplicate initialization with internal flag
+
+3. **Without GameInitializer**:
+   - No wars will be declared
+   - No units will spawn
+   - War visualization won't appear
+   - Game will run but be in peaceful state
 
 ##### Turn Processing
 
 The turn processing follows this order:
 1. `EndTurnProcessor`: Handles research, directors, and facilities
-2. `WarDirector`: Processes war-related actions for all countries
+2. `WarDirector`:
+   - Processes all units' turns (supplies, recovery, training)
+   - Handles combat between units (TODO)
+   - Processes city sieges (TODO)
+   - Checks for war endings (TODO)
 3. WorldModel advances turn counters and dates
+
+##### Balance Calculations
+
+**Military Power Formula**:
+```
+Power = Budget * 2 + AvgStrength * 1.5 + AvgProduction + AvgTech * 0.5
+```
+
+**Combat Effectiveness Formula**:
+```
+Effectiveness = Strength% * 0.3 + Equipment * 0.25 + Supplies% * 0.15 + Organization% * 0.15 + Training% * 0.15
+```
+
+**Defense Bonus (Regular Units)**:
+```
+Bonus = 1.5 * (1 + Training% * 0.3) * (1 + Organization% * 0.2)
+```
+
+**Attack Bonus (Assault Units)**:
+```
+Bonus = 1.3 * (1 + Morale% * 0.4) * (1 + Momentum% * 0.3) * (1 + Training% * 0.2)
+```
 
 ## Research & Development System
 
@@ -474,6 +640,28 @@ If you encounter "An object literal cannot have multiple properties with the sam
 2. Keep the SECOND occurrence (usually the one that appears later in the file)
 3. Remove the FIRST occurrence
 4. The tests expect the later definitions, not the earlier ones
+
+### War System State Issues
+If war declarations aren't showing in UI:
+1. **Check GameInitializer is called** - Must explicitly call `gameInitializer.initializeGame()`
+2. Check that WarSystem is registered as singleton in diConfig.ts
+3. Verify all components get WarSystem from DI container, not creating new instances
+4. Ensure WarDirector's onWarDeclared callback is properly connected
+5. Check that WorldModel's country models have their war states updated
+6. Ensure war status is set BEFORE spawning units (order matters for targeting)
+
+### Attack Visualization Issues
+- Attack visualization only appears when viewing defending countries
+- Attacker blocks should appear just outside country grid (800px horizontal, 380px vertical)
+- Red lines should connect to actual border city positions using grid coordinates
+- Arrow heads should point to each specific targeted city, not float randomly
+- Use `getIncomingAttacks()` to only show attacks where country is defender
+- City grid is 1480x680 with cities positioned on 10x10 grid (148px x 68px blocks)
+
+### Navigation Issues
+- Right-click should consistently work as "back" navigation across all map elements
+- Check for `pointer.rightButtonDown()` before processing left-click actions
+- Global right-click handler in scenes should handle navigation
 
 ### Testing Best Practices
 - Always run `npm test` after making changes to game data files

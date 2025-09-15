@@ -382,13 +382,8 @@ export class PersonnelScene extends PotatoScene {
   }
 
   private hireNewDirector() {
-    DirectorHiringUtils.showFeeSelectionDialog(
-      this,
-      this.worldModel,
-      () => {
-        this.refreshDirectorsPanel()
-      }
-    )
+    DirectorHiringUtils.showFeeSelectionDialog(this, this.worldModel, () => {
+      this.refreshDirectorsPanel()
+    })
   }
-
 }

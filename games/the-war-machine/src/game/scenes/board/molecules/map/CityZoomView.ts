@@ -1,9 +1,12 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
 import { GameObjects, Geom } from 'phaser'
+import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { CountryCities } from '../../../../model/enums/Cities.ts'
 import { CountryCityNeighbors } from '../../../../model/enums/CityNeighbors.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
+import type { WarSystem } from '../../../../model/WarSystem.ts'
+import { AttackVisualization } from './AttackVisualization.ts'
 
 export class CityZoomView extends GameObjects.Container {
   private country: Country
@@ -11,10 +14,22 @@ export class CityZoomView extends GameObjects.Container {
   private background: GameObjects.Graphics
   private titleText: GameObjects.Text
   private selectedCity: string | null = null
+  private worldModel?: WorldModel
+  private warSystem?: WarSystem
+  private attackVisualization?: AttackVisualization
 
-  constructor(scene: PotatoScene, x: number, y: number, country: Country) {
+  constructor(
+    scene: PotatoScene,
+    x: number,
+    y: number,
+    country: Country,
+    worldModel?: WorldModel,
+    warSystem?: WarSystem,
+  ) {
     super(scene, x, y)
     this.country = country
+    this.worldModel = worldModel
+    this.warSystem = warSystem
 
     // Create background
     this.background = scene.add.graphics()
@@ -58,6 +73,21 @@ export class CityZoomView extends GameObjects.Container {
 
     // Create cities
     this.createCities(scene)
+
+    // Create attack visualization if we have worldModel
+    if (this.worldModel) {
+      console.log(`[CityZoomView] Creating AttackVisualization for ${country}`)
+      this.attackVisualization = new AttackVisualization(scene, 0, 0, this.worldModel)
+      this.add(this.attackVisualization)
+
+      // Set up city positions for attack visualization
+      this.setupCityPositionsForAttacks()
+
+      // Update attack visualization
+      this.updateAttackVisualization()
+    } else {
+      console.log(`[CityZoomView] No worldModel provided, skipping AttackVisualization`)
+    }
 
     // Instructions
     const instructionText = scene.add.text(
@@ -150,16 +180,16 @@ export class CityZoomView extends GameObjects.Container {
 
       drawCity(baseColor)
 
-      // City name label
-      const fontSize = city.isCapital ? '14px' : '12px'
-      const nameLabel = scene.add.text(0, city.isCapital ? 40 : 35, city.name, {
+      // City name label - increased font sizes for better readability
+      const fontSize = city.isCapital ? '18px' : '16px'
+      const nameLabel = scene.add.text(0, city.isCapital ? 45 : 40, city.name, {
         fontSize,
         fontFamily: 'Courier',
         color: city.isCapital ? '#ffff00' : '#ffffff',
         fontStyle: city.isCapital ? 'bold' : 'normal',
       })
       nameLabel.setOrigin(0.5)
-      nameLabel.setShadow(1, 1, '#000000', 2, true, true)
+      nameLabel.setShadow(2, 2, '#000000', 3, true, true)
 
       // Make interactive
       const hitArea = new Geom.Rectangle(-40, -40, 80, 80)
@@ -191,7 +221,14 @@ export class CityZoomView extends GameObjects.Container {
         }
       })
 
-      cityBlock.on('pointerdown', () => {
+      cityBlock.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (pointer.rightButtonDown()) {
+          // Right-click acts as back navigation - close the city view
+          this.emit('close')
+          this.destroy()
+          return
+        }
+        // Left-click selects the city
         this.selectCity(city.name)
         this.emit('city-selected', { country: this.country, city: city.name })
       })
@@ -300,8 +337,40 @@ export class CityZoomView extends GameObjects.Container {
     return this.selectedCity
   }
 
+  private setupCityPositionsForAttacks() {
+    if (!this.attackVisualization) return
+
+    // Set the country position at the center for this view
+    // Cities are already positioned, we just need to tell the attack visualization
+    // where this country is centered
+    this.attackVisualization.setCountryPosition(this.country, 0, 0)
+    console.log(`[CityZoomView] Set country position for ${this.country} at (0, 0)`)
+  }
+
+  private updateAttackVisualization() {
+    if (!this.attackVisualization || !this.worldModel) return
+
+    // Check if this country is being attacked
+    const countryModel = this.worldModel.getCountry(this.country)
+    console.log(`[CityZoomView] Checking war status for ${this.country}:`, {
+      hasModel: !!countryModel,
+      isAtWar: countryModel?.isAtWar,
+      warsWith: countryModel?.warsWith,
+    })
+
+    if (!countryModel || !countryModel.isAtWar) return
+
+    console.log(`[CityZoomView] ${this.country} is at war with:`, countryModel.warsWith)
+
+    // Update the visualization
+    this.attackVisualization.updateAttacks()
+  }
+
   destroy() {
     this.scene.input.keyboard?.off('keydown-ESC')
+    if (this.attackVisualization) {
+      this.attackVisualization.destroy()
+    }
     super.destroy()
   }
 }

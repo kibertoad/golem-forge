@@ -1,16 +1,22 @@
 import type { TurnProcessor } from '@potato-golem/core'
 import type { Dependencies } from '../diConfig.ts'
 import type { WorldModel } from '../entities/WorldModel.ts'
+import type { WarDirector } from './WarDirector.ts'
 
 export class EndTurnProcessor implements TurnProcessor {
   private readonly worldModel: WorldModel
+  private readonly warDirector: WarDirector
 
-  constructor({ worldModel }: Dependencies) {
+  constructor({ worldModel, warDirector }: Dependencies) {
     this.worldModel = worldModel
+    this.warDirector = warDirector
   }
 
   processTurn(): void {
     console.log('Next turn')
+
+    // Process war operations first
+    this.warDirector.processTurn()
 
     // Check for trait reveals on directors hired with standard fee
     const currentTurn = this.worldModel.gameStatus.turn

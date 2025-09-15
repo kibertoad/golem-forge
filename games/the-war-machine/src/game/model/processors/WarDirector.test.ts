@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { WorldModel } from '../entities/WorldModel.ts'
 import { instantiateTestContainer } from '../testDiConfig.ts'
 import type { WarDirector } from './WarDirector.ts'
-import type { WorldModel } from '../entities/WorldModel.ts'
 
 describe('WarDirector', () => {
   let warDirector: WarDirector

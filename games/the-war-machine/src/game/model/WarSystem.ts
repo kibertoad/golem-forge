@@ -1,5 +1,5 @@
 import type { Country } from './enums/Countries.ts'
-import { StartingCountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
+import { PoliticalStance, StartingCountryAttributes } from './enums/CountryAttributes.ts'
 import { CountryNeighbors } from './enums/CountryNeighbors.ts'
 
 export interface War {
@@ -15,20 +15,34 @@ export class WarSystem {
   public onWarDeclared?: (aggressor: Country, defender: Country) => void
 
   public initializeWars() {
+    console.log('[WarSystem] initializeWars() called')
+
     // Find all expansionist countries
     const expansionists = Object.entries(StartingCountryAttributes)
       .filter(([_, attributes]) => attributes.politicalStance === PoliticalStance.EXPANSIONIST)
       .map(([country]) => country as Country)
 
+    console.log(`[WarSystem] Found ${expansionists.length} expansionist countries:`, expansionists)
+
     // For each expansionist, find a weaker neighbor to attack
     for (const aggressor of expansionists) {
-      if (this.countriesAtWar.has(aggressor)) continue
+      if (this.countriesAtWar.has(aggressor)) {
+        console.log(`[WarSystem] ${aggressor} already at war, skipping`)
+        continue
+      }
 
       const target = this.findWeakerNeighbor(aggressor)
       if (target && !this.countriesAtWar.has(target)) {
+        console.log(`[WarSystem] ${aggressor} will attack ${target}`)
         this.declareWar(aggressor, target, 0)
+      } else {
+        console.log(
+          `[WarSystem] ${aggressor} could not find a valid target (target: ${target}, already at war: ${target ? this.countriesAtWar.has(target) : false})`,
+        )
       }
     }
+
+    console.log(`[WarSystem] Wars initialized. Total active wars: ${this.wars.length}`)
   }
 
   private findWeakerNeighbor(aggressor: Country): Country | null {
@@ -83,7 +97,10 @@ export class WarSystem {
 
     // Emit war declaration event
     if (this.onWarDeclared) {
+      console.log(`[WarSystem] Calling onWarDeclared callback for ${aggressor} vs ${defender}`)
       this.onWarDeclared(aggressor, defender)
+    } else {
+      console.log(`[WarSystem] WARNING: No onWarDeclared callback set!`)
     }
   }
 

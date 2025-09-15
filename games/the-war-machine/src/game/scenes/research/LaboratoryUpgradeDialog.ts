@@ -23,16 +23,86 @@ export class LaboratoryUpgradeDialog extends GameObjects.Container {
   private onConfirm: (targetLevel: number) => void
 
   private readonly techLevels: TechLevelInfo[] = [
-    { level: 1, name: 'Basic Laboratory', description: 'Basic research capabilities, simple experiments', upgradeCost: 0, upgradeMonths: 0, monthlyMaintenanceDuringUpgrade: 0 },
-    { level: 2, name: 'Standard Laboratory', description: 'Improved equipment, can handle moderate complexity', upgradeCost: 200000, upgradeMonths: 3, monthlyMaintenanceDuringUpgrade: 20000 },
-    { level: 3, name: 'Advanced Laboratory', description: 'Professional-grade facilities, complex research', upgradeCost: 500000, upgradeMonths: 4, monthlyMaintenanceDuringUpgrade: 30000 },
-    { level: 4, name: 'State-of-the-Art Facility', description: 'Cutting-edge equipment, breakthrough potential', upgradeCost: 1000000, upgradeMonths: 5, monthlyMaintenanceDuringUpgrade: 50000 },
-    { level: 5, name: 'World-Class Research Center', description: 'Top-tier facilities, attracts best researchers', upgradeCost: 2000000, upgradeMonths: 6, monthlyMaintenanceDuringUpgrade: 75000 },
-    { level: 6, name: 'Elite Innovation Hub', description: 'Revolutionary capabilities, pushes boundaries', upgradeCost: 4000000, upgradeMonths: 7, monthlyMaintenanceDuringUpgrade: 100000 },
-    { level: 7, name: 'Experimental Frontier Lab', description: 'Exotic technologies, theoretical breakthroughs', upgradeCost: 8000000, upgradeMonths: 8, monthlyMaintenanceDuringUpgrade: 150000 },
-    { level: 8, name: 'Quantum Research Complex', description: 'Quantum-level experiments, reality manipulation', upgradeCost: 15000000, upgradeMonths: 9, monthlyMaintenanceDuringUpgrade: 200000 },
-    { level: 9, name: 'Transcendent Science Nexus', description: 'Beyond current understanding, paradigm shifts', upgradeCost: 30000000, upgradeMonths: 10, monthlyMaintenanceDuringUpgrade: 300000 },
-    { level: 10, name: 'Omniscience Laboratory', description: 'Ultimate research facility, limitless potential', upgradeCost: 60000000, upgradeMonths: 12, monthlyMaintenanceDuringUpgrade: 500000 },
+    {
+      level: 1,
+      name: 'Basic Laboratory',
+      description: 'Basic research capabilities, simple experiments',
+      upgradeCost: 0,
+      upgradeMonths: 0,
+      monthlyMaintenanceDuringUpgrade: 0,
+    },
+    {
+      level: 2,
+      name: 'Standard Laboratory',
+      description: 'Improved equipment, can handle moderate complexity',
+      upgradeCost: 200000,
+      upgradeMonths: 3,
+      monthlyMaintenanceDuringUpgrade: 20000,
+    },
+    {
+      level: 3,
+      name: 'Advanced Laboratory',
+      description: 'Professional-grade facilities, complex research',
+      upgradeCost: 500000,
+      upgradeMonths: 4,
+      monthlyMaintenanceDuringUpgrade: 30000,
+    },
+    {
+      level: 4,
+      name: 'State-of-the-Art Facility',
+      description: 'Cutting-edge equipment, breakthrough potential',
+      upgradeCost: 1000000,
+      upgradeMonths: 5,
+      monthlyMaintenanceDuringUpgrade: 50000,
+    },
+    {
+      level: 5,
+      name: 'World-Class Research Center',
+      description: 'Top-tier facilities, attracts best researchers',
+      upgradeCost: 2000000,
+      upgradeMonths: 6,
+      monthlyMaintenanceDuringUpgrade: 75000,
+    },
+    {
+      level: 6,
+      name: 'Elite Innovation Hub',
+      description: 'Revolutionary capabilities, pushes boundaries',
+      upgradeCost: 4000000,
+      upgradeMonths: 7,
+      monthlyMaintenanceDuringUpgrade: 100000,
+    },
+    {
+      level: 7,
+      name: 'Experimental Frontier Lab',
+      description: 'Exotic technologies, theoretical breakthroughs',
+      upgradeCost: 8000000,
+      upgradeMonths: 8,
+      monthlyMaintenanceDuringUpgrade: 150000,
+    },
+    {
+      level: 8,
+      name: 'Quantum Research Complex',
+      description: 'Quantum-level experiments, reality manipulation',
+      upgradeCost: 15000000,
+      upgradeMonths: 9,
+      monthlyMaintenanceDuringUpgrade: 200000,
+    },
+    {
+      level: 9,
+      name: 'Transcendent Science Nexus',
+      description: 'Beyond current understanding, paradigm shifts',
+      upgradeCost: 30000000,
+      upgradeMonths: 10,
+      monthlyMaintenanceDuringUpgrade: 300000,
+    },
+    {
+      level: 10,
+      name: 'Omniscience Laboratory',
+      description: 'Ultimate research facility, limitless potential',
+      upgradeCost: 60000000,
+      upgradeMonths: 12,
+      monthlyMaintenanceDuringUpgrade: 500000,
+    },
   ]
 
   constructor(
@@ -157,10 +227,15 @@ export class LaboratoryUpgradeDialog extends GameObjects.Container {
     card.add(descText)
 
     // Upgrade cost - renamed to Upfront cost, using compressed format
-    const costText = this.scene.add.text(250, -22, `Upfront: ${formatMoney(levelInfo.upgradeCost)}`, {
-      fontSize: '20px',
-      color: canAfford ? '#88ff88' : '#ff8888',
-    })
+    const costText = this.scene.add.text(
+      250,
+      -22,
+      `Upfront: ${formatMoney(levelInfo.upgradeCost)}`,
+      {
+        fontSize: '20px',
+        color: canAfford ? '#88ff88' : '#ff8888',
+      },
+    )
     card.add(costText)
 
     // Upgrade time - adjusted position to match upfront cost
@@ -171,14 +246,20 @@ export class LaboratoryUpgradeDialog extends GameObjects.Container {
     card.add(timeText)
 
     // Monthly maintenance during upgrade
-    const maintenanceText = this.scene.add.text(480, -22, `Monthly: ${formatMoney(levelInfo.monthlyMaintenanceDuringUpgrade)}`, {
-      fontSize: '18px',
-      color: '#ff8888',
-    })
+    const maintenanceText = this.scene.add.text(
+      480,
+      -22,
+      `Monthly: ${formatMoney(levelInfo.monthlyMaintenanceDuringUpgrade)}`,
+      {
+        fontSize: '18px',
+        color: '#ff8888',
+      },
+    )
     card.add(maintenanceText)
 
     // Total cost indicator
-    const totalCost = levelInfo.upgradeCost + (levelInfo.monthlyMaintenanceDuringUpgrade * levelInfo.upgradeMonths)
+    const totalCost =
+      levelInfo.upgradeCost + levelInfo.monthlyMaintenanceDuringUpgrade * levelInfo.upgradeMonths
     const totalText = this.scene.add.text(480, 8, `Total: ${formatMoney(totalCost)}`, {
       fontSize: '16px',
       color: '#888888',

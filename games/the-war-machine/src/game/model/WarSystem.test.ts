@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Country } from './enums/Countries.ts'
-import { StartingCountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
+import { PoliticalStance, StartingCountryAttributes } from './enums/CountryAttributes.ts'
 import { WarSystem } from './WarSystem.ts'
 
 describe('WarSystem', () => {

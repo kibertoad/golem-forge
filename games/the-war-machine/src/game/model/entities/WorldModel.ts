@@ -7,7 +7,7 @@ import {
 import { EventEmitter } from 'emitix'
 import { AgentStatus } from '../enums/AgentEnums.ts'
 import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
-import { Country } from '../enums/Countries.ts'
+import type { Country } from '../enums/Countries.ts'
 import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
 import type { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'

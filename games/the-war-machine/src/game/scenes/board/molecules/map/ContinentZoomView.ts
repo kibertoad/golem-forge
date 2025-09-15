@@ -1,11 +1,11 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom, type Input } from 'phaser'
+import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { ContinentCountries, type CountryInfo } from '../../../../model/enums/ContinentData.ts'
 import { Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { CountryCapitals } from '../../../../model/enums/CountryCapitals.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 import { WarSystem } from '../../../../model/WarSystem.ts'
-import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
 import { CityZoomView } from './CityZoomView.ts'
 
@@ -212,7 +212,12 @@ export class ContinentZoomView extends GameObjects.Container {
         if (this.currentInfoOverlay) {
           this.currentInfoOverlay.destroy()
         }
-        this.currentInfoOverlay = new CountryInfoOverlay(scene, countryInfo.country, this.worldModel, this.warSystem)
+        this.currentInfoOverlay = new CountryInfoOverlay(
+          scene,
+          countryInfo.country,
+          this.worldModel,
+          this.warSystem,
+        )
       })
 
       graphics.on('pointerout', () => {
@@ -242,7 +247,14 @@ export class ContinentZoomView extends GameObjects.Container {
         }
       })
 
-      graphics.on('pointerdown', () => {
+      graphics.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (pointer.rightButtonDown()) {
+          // Right-click acts as back navigation - close the continent view
+          this.emit('close')
+          this.destroy()
+          return
+        }
+        // Left-click opens the city view
         this.selectCountry(countryInfo.country)
         // Show city zoom view
         this.showCityView(countryInfo.country)
@@ -509,8 +521,15 @@ export class ContinentZoomView extends GameObjects.Container {
     // Hide continent view
     this.setVisible(false)
 
-    // Create city zoom view
-    const cityView = new CityZoomView(this.scene as PotatoScene, this.x, this.y, country)
+    // Create city zoom view with worldModel and warSystem
+    const cityView = new CityZoomView(
+      this.scene as PotatoScene,
+      this.x,
+      this.y,
+      country,
+      this.worldModel,
+      this.warSystem,
+    )
 
     // Listen for close event to return to continent view
     cityView.on('close', () => {

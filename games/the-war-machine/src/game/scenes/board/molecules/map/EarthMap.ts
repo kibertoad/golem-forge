@@ -1,10 +1,10 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom } from 'phaser'
+import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { getCountryContinent } from '../../../../model/enums/ContinentData.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
-import { WarSystem } from '../../../../model/WarSystem.ts'
-import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
+import type { WarSystem } from '../../../../model/WarSystem.ts'
 import { imageRegistry } from '../../../../registries/imageRegistry.ts'
 import type { ToastContainer, ToastData } from '../ui/ToastContainer.ts'
 import { ContinentZoomView } from './ContinentZoomView.ts'
@@ -32,14 +32,19 @@ export class EarthMap extends GameObjects.Container {
   private worldModel: WorldModel
   private toastContainer?: ToastContainer
 
-  constructor(scene: PotatoScene, x: number, y: number, worldModel: WorldModel, toastContainer?: ToastContainer) {
+  constructor(
+    scene: PotatoScene,
+    x: number,
+    y: number,
+    worldModel: WorldModel,
+    warSystem: WarSystem,
+    toastContainer?: ToastContainer,
+  ) {
     super(scene, x, y)
     this.potatoScene = scene
     this.worldModel = worldModel
+    this.warSystem = warSystem
     this.toastContainer = toastContainer
-
-    // Initialize war system
-    this.warSystem = new WarSystem()
 
     // Hook up war declaration notifications using existing toast system
     this.warSystem.onWarDeclared = (aggressor: Country, defender: Country) => {
@@ -102,11 +107,7 @@ export class EarthMap extends GameObjects.Container {
     border.strokeRect(-760, -400, 1520, 800)
     this.add(border)
 
-    // Initialize wars after UI is ready (with a small delay)
-    scene.time.delayedCall(1000, () => {
-      this.warSystem.initializeWars()
-      console.log('Active wars:', this.warSystem.getActiveWars())
-    })
+    // Wars are initialized by WarDirector when BoardScene is created
   }
 
   private createContinents(scene: PotatoScene) {
@@ -315,7 +316,13 @@ export class EarthMap extends GameObjects.Container {
       }
     })
 
-    graphics.on('pointerdown', () => {
+    graphics.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown()) {
+        // Right-click acts as back navigation - do nothing here
+        // The global right-click handler will handle it
+        return
+      }
+      // Left-click opens the continent
       this.selectRegion(data.region)
       this.showContinentZoom(data.region)
       this.emit('region-selected', data.region)
@@ -470,7 +477,14 @@ export class EarthMap extends GameObjects.Container {
     }
 
     // Create new zoom view at the same position as the Earth map
-    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region, this.worldModel, this.warSystem)
+    this.zoomView = new ContinentZoomView(
+      this.potatoScene,
+      this.x,
+      this.y,
+      region,
+      this.worldModel,
+      this.warSystem,
+    )
 
     // Listen for close event to return to Earth view
     this.zoomView.on('close', () => {

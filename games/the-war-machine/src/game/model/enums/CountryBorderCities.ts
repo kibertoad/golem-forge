@@ -59,7 +59,11 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     { cityId: 'germany-berlin', cityName: 'Berlin', direction: BorderDirection.NORTH },
     // Eastern border
     { cityId: 'germany-dresden', cityName: 'Dresden', direction: BorderDirection.EAST },
-    { cityId: 'germany-frankfurt-oder', cityName: 'Frankfurt (Oder)', direction: BorderDirection.EAST },
+    {
+      cityId: 'germany-frankfurt-oder',
+      cityName: 'Frankfurt (Oder)',
+      direction: BorderDirection.EAST,
+    },
     // Southern border
     { cityId: 'germany-munich', cityName: 'Munich', direction: BorderDirection.SOUTH },
     { cityId: 'germany-stuttgart', cityName: 'Stuttgart', direction: BorderDirection.SOUTH },
@@ -156,14 +160,6 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     // Eastern border
     { cityId: 'turkey-erzurum', cityName: 'Erzurum', direction: BorderDirection.EAST },
   ],
-  [Country.IRAN]: [
-    // Western border
-    { cityId: 'iran-tabriz', cityName: 'Tabriz', direction: BorderDirection.WEST },
-    { cityId: 'iran-kermanshah', cityName: 'Kermanshah', direction: BorderDirection.WEST },
-    // Eastern border
-    { cityId: 'iran-mashhad', cityName: 'Mashhad', direction: BorderDirection.EAST },
-    { cityId: 'iran-zahedan', cityName: 'Zahedan', direction: BorderDirection.EAST },
-  ],
   [Country.SAUDI_ARABIA]: [
     // Northern border
     { cityId: 'saudi-tabuk', cityName: 'Tabuk', direction: BorderDirection.NORTH },
@@ -191,7 +187,11 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
   ],
   [Country.SOUTH_AFRICA]: [
     // Northern border
-    { cityId: 'southafrica-johannesburg', cityName: 'Johannesburg', direction: BorderDirection.NORTH },
+    {
+      cityId: 'southafrica-johannesburg',
+      cityName: 'Johannesburg',
+      direction: BorderDirection.NORTH,
+    },
     { cityId: 'southafrica-pretoria', cityName: 'Pretoria', direction: BorderDirection.NORTH },
   ],
   [Country.NIGERIA]: [
@@ -235,9 +235,7 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     { cityId: 'portugal-porto', cityName: 'Porto', direction: BorderDirection.EAST },
     { cityId: 'portugal-lisbon', cityName: 'Lisbon', direction: BorderDirection.EAST },
   ],
-  [Country.NORWAY]: [
-    { cityId: 'norway-oslo', cityName: 'Oslo', direction: BorderDirection.EAST },
-  ],
+  [Country.NORWAY]: [{ cityId: 'norway-oslo', cityName: 'Oslo', direction: BorderDirection.EAST }],
   [Country.SWEDEN]: [
     { cityId: 'sweden-stockholm', cityName: 'Stockholm', direction: BorderDirection.WEST },
     { cityId: 'sweden-malmo', cityName: 'Malmö', direction: BorderDirection.SOUTH },
@@ -247,70 +245,184 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     { cityId: 'finland-lappeenranta', cityName: 'Lappeenranta', direction: BorderDirection.EAST },
   ],
   [Country.UKRAINE]: [
-    { cityId: 'ukraine-kiev', cityName: 'Kyiv', direction: BorderDirection.WEST },
+    // Eastern border with Russia
     { cityId: 'ukraine-kharkiv', cityName: 'Kharkiv', direction: BorderDirection.EAST },
+    { cityId: 'ukraine-sumy', cityName: 'Sumy', direction: BorderDirection.EAST },
+    { cityId: 'ukraine-luhansk', cityName: 'Luhansk', direction: BorderDirection.EAST },
+    { cityId: 'ukraine-donetsk', cityName: 'Donetsk', direction: BorderDirection.EAST },
+    // Western border with Poland
+    { cityId: 'ukraine-lviv', cityName: 'Lviv', direction: BorderDirection.WEST },
+    { cityId: 'ukraine-lutsk', cityName: 'Lutsk', direction: BorderDirection.WEST },
+    // Southern border (Black Sea coast)
     { cityId: 'ukraine-odessa', cityName: 'Odessa', direction: BorderDirection.SOUTH },
+    { cityId: 'ukraine-mariupol', cityName: 'Mariupol', direction: BorderDirection.SOUTH },
+    // Northern border
+    { cityId: 'ukraine-chernihiv', cityName: 'Chernihiv', direction: BorderDirection.NORTH },
   ],
 
   // Fill in remaining countries with at least one border city
-  [Country.DENMARK]: [{ cityId: 'denmark-copenhagen', cityName: 'Copenhagen', direction: BorderDirection.SOUTH }],
-  [Country.NETHERLANDS]: [{ cityId: 'netherlands-amsterdam', cityName: 'Amsterdam', direction: BorderDirection.EAST }],
-  [Country.BELGIUM]: [{ cityId: 'belgium-brussels', cityName: 'Brussels', direction: BorderDirection.NORTH }],
-  [Country.SWITZERLAND]: [{ cityId: 'switzerland-zurich', cityName: 'Zürich', direction: BorderDirection.NORTH }],
-  [Country.AUSTRIA]: [{ cityId: 'austria-vienna', cityName: 'Vienna', direction: BorderDirection.NORTH }],
-  [Country.CZECH_REPUBLIC]: [{ cityId: 'czech-prague', cityName: 'Prague', direction: BorderDirection.NORTH }],
-  [Country.HUNGARY]: [{ cityId: 'hungary-budapest', cityName: 'Budapest', direction: BorderDirection.WEST }],
-  [Country.ROMANIA]: [{ cityId: 'romania-bucharest', cityName: 'Bucharest', direction: BorderDirection.WEST }],
-  [Country.BULGARIA]: [{ cityId: 'bulgaria-sofia', cityName: 'Sofia', direction: BorderDirection.NORTH }],
-  [Country.GREECE]: [{ cityId: 'greece-athens', cityName: 'Athens', direction: BorderDirection.NORTH }],
-  [Country.SERBIA]: [{ cityId: 'serbia-belgrade', cityName: 'Belgrade', direction: BorderDirection.NORTH }],
-  [Country.CROATIA]: [{ cityId: 'croatia-zagreb', cityName: 'Zagreb', direction: BorderDirection.NORTH }],
-  [Country.ESTONIA]: [{ cityId: 'estonia-tallinn', cityName: 'Tallinn', direction: BorderDirection.EAST }],
-  [Country.LATVIA]: [{ cityId: 'latvia-riga', cityName: 'Riga', direction: BorderDirection.EAST }],
-  [Country.LITHUANIA]: [{ cityId: 'lithuania-vilnius', cityName: 'Vilnius', direction: BorderDirection.EAST }],
-  [Country.PAKISTAN]: [{ cityId: 'pakistan-karachi', cityName: 'Karachi', direction: BorderDirection.EAST }],
-  [Country.INDONESIA]: [{ cityId: 'indonesia-jakarta', cityName: 'Jakarta', direction: BorderDirection.NORTH }],
-  [Country.SOUTH_KOREA]: [{ cityId: 'southkorea-seoul', cityName: 'Seoul', direction: BorderDirection.WEST }],
-  [Country.VIETNAM]: [{ cityId: 'vietnam-hanoi', cityName: 'Hanoi', direction: BorderDirection.NORTH }],
-  [Country.THAILAND]: [{ cityId: 'thailand-bangkok', cityName: 'Bangkok', direction: BorderDirection.EAST }],
-  [Country.MALAYSIA]: [{ cityId: 'malaysia-kualalumpur', cityName: 'Kuala Lumpur', direction: BorderDirection.NORTH }],
-  [Country.SINGAPORE]: [{ cityId: 'singapore-singapore', cityName: 'Singapore', direction: BorderDirection.NORTH }],
-  [Country.PHILIPPINES]: [{ cityId: 'philippines-manila', cityName: 'Manila', direction: BorderDirection.SOUTH }],
-  [Country.IRAQ]: [{ cityId: 'iraq-baghdad', cityName: 'Baghdad', direction: BorderDirection.NORTH }],
-  [Country.SYRIA]: [{ cityId: 'syria-damascus', cityName: 'Damascus', direction: BorderDirection.NORTH }],
-  [Country.JORDAN]: [{ cityId: 'jordan-amman', cityName: 'Amman', direction: BorderDirection.NORTH }],
-  [Country.LEBANON]: [{ cityId: 'lebanon-beirut', cityName: 'Beirut', direction: BorderDirection.EAST }],
+  [Country.DENMARK]: [
+    { cityId: 'denmark-copenhagen', cityName: 'Copenhagen', direction: BorderDirection.SOUTH },
+  ],
+  [Country.NETHERLANDS]: [
+    { cityId: 'netherlands-amsterdam', cityName: 'Amsterdam', direction: BorderDirection.EAST },
+  ],
+  [Country.BELGIUM]: [
+    { cityId: 'belgium-brussels', cityName: 'Brussels', direction: BorderDirection.NORTH },
+  ],
+  [Country.SWITZERLAND]: [
+    { cityId: 'switzerland-zurich', cityName: 'Zürich', direction: BorderDirection.NORTH },
+  ],
+  [Country.AUSTRIA]: [
+    { cityId: 'austria-vienna', cityName: 'Vienna', direction: BorderDirection.NORTH },
+  ],
+  [Country.CZECH_REPUBLIC]: [
+    { cityId: 'czech-prague', cityName: 'Prague', direction: BorderDirection.NORTH },
+  ],
+  [Country.HUNGARY]: [
+    { cityId: 'hungary-budapest', cityName: 'Budapest', direction: BorderDirection.WEST },
+  ],
+  [Country.ROMANIA]: [
+    { cityId: 'romania-bucharest', cityName: 'Bucharest', direction: BorderDirection.WEST },
+  ],
+  [Country.BULGARIA]: [
+    { cityId: 'bulgaria-sofia', cityName: 'Sofia', direction: BorderDirection.NORTH },
+  ],
+  [Country.GREECE]: [
+    { cityId: 'greece-athens', cityName: 'Athens', direction: BorderDirection.NORTH },
+  ],
+  [Country.SERBIA]: [
+    { cityId: 'serbia-belgrade', cityName: 'Belgrade', direction: BorderDirection.NORTH },
+  ],
+  [Country.CROATIA]: [
+    { cityId: 'croatia-zagreb', cityName: 'Zagreb', direction: BorderDirection.NORTH },
+  ],
+  [Country.ESTONIA]: [
+    { cityId: 'estonia-tallinn', cityName: 'Tallinn', direction: BorderDirection.EAST },
+  ],
+  [Country.LATVIA]: [
+    // Northern border (with Estonia)
+    { cityId: 'latvia-valmiera', cityName: 'Valmiera', direction: BorderDirection.NORTH },
+    { cityId: 'latvia-cesis', cityName: 'Cesis', direction: BorderDirection.NORTH },
+    // Southern border (with Lithuania)
+    { cityId: 'latvia-daugavpils', cityName: 'Daugavpils', direction: BorderDirection.SOUTH },
+    { cityId: 'latvia-jekabpils', cityName: 'Jekabpils', direction: BorderDirection.SOUTH },
+    // Eastern border (with Russia)
+    { cityId: 'latvia-rezekne', cityName: 'Rezekne', direction: BorderDirection.EAST },
+    { cityId: 'latvia-daugavpils', cityName: 'Daugavpils', direction: BorderDirection.EAST },
+    // Western border (Baltic Sea)
+    { cityId: 'latvia-liepaja', cityName: 'Liepaja', direction: BorderDirection.WEST },
+    { cityId: 'latvia-ventspils', cityName: 'Ventspils', direction: BorderDirection.WEST },
+    { cityId: 'latvia-riga', cityName: 'Riga', direction: BorderDirection.WEST },
+  ],
+  [Country.INDONESIA]: [
+    { cityId: 'indonesia-jakarta', cityName: 'Jakarta', direction: BorderDirection.NORTH },
+  ],
+  [Country.SOUTH_KOREA]: [
+    { cityId: 'southkorea-seoul', cityName: 'Seoul', direction: BorderDirection.WEST },
+  ],
+  [Country.VIETNAM]: [
+    { cityId: 'vietnam-hanoi', cityName: 'Hanoi', direction: BorderDirection.NORTH },
+  ],
+  [Country.THAILAND]: [
+    { cityId: 'thailand-bangkok', cityName: 'Bangkok', direction: BorderDirection.EAST },
+  ],
+  [Country.MALAYSIA]: [
+    { cityId: 'malaysia-kualalumpur', cityName: 'Kuala Lumpur', direction: BorderDirection.NORTH },
+  ],
+  [Country.SINGAPORE]: [
+    { cityId: 'singapore-singapore', cityName: 'Singapore', direction: BorderDirection.NORTH },
+  ],
+  [Country.PHILIPPINES]: [
+    { cityId: 'philippines-manila', cityName: 'Manila', direction: BorderDirection.SOUTH },
+  ],
+  [Country.SYRIA]: [
+    { cityId: 'syria-damascus', cityName: 'Damascus', direction: BorderDirection.NORTH },
+  ],
+  [Country.JORDAN]: [
+    { cityId: 'jordan-amman', cityName: 'Amman', direction: BorderDirection.NORTH },
+  ],
+  [Country.LEBANON]: [
+    { cityId: 'lebanon-beirut', cityName: 'Beirut', direction: BorderDirection.EAST },
+  ],
   [Country.UAE]: [{ cityId: 'uae-dubai', cityName: 'Dubai', direction: BorderDirection.WEST }],
-  [Country.LIBYA]: [{ cityId: 'libya-tripoli', cityName: 'Tripoli', direction: BorderDirection.EAST }],
-  [Country.TUNISIA]: [{ cityId: 'tunisia-tunis', cityName: 'Tunis', direction: BorderDirection.WEST }],
-  [Country.ALGERIA]: [{ cityId: 'algeria-algiers', cityName: 'Algiers', direction: BorderDirection.EAST }],
-  [Country.MOROCCO]: [{ cityId: 'morocco-casablanca', cityName: 'Casablanca', direction: BorderDirection.EAST }],
-  [Country.SUDAN]: [{ cityId: 'sudan-khartoum', cityName: 'Khartoum', direction: BorderDirection.NORTH }],
-  [Country.ETHIOPIA]: [{ cityId: 'ethiopia-addisababa', cityName: 'Addis Ababa', direction: BorderDirection.WEST }],
-  [Country.KENYA]: [{ cityId: 'kenya-nairobi', cityName: 'Nairobi', direction: BorderDirection.NORTH }],
-  [Country.TANZANIA]: [{ cityId: 'tanzania-daressalaam', cityName: 'Dar es Salaam', direction: BorderDirection.NORTH }],
-  [Country.UGANDA]: [{ cityId: 'uganda-kampala', cityName: 'Kampala', direction: BorderDirection.EAST }],
-  [Country.ZAMBIA]: [{ cityId: 'zambia-lusaka', cityName: 'Lusaka', direction: BorderDirection.NORTH }],
-  [Country.ZIMBABWE]: [{ cityId: 'zimbabwe-harare', cityName: 'Harare', direction: BorderDirection.NORTH }],
-  [Country.ANGOLA]: [{ cityId: 'angola-luanda', cityName: 'Luanda', direction: BorderDirection.EAST }],
+  [Country.LIBYA]: [
+    { cityId: 'libya-tripoli', cityName: 'Tripoli', direction: BorderDirection.EAST },
+  ],
+  [Country.TUNISIA]: [
+    { cityId: 'tunisia-tunis', cityName: 'Tunis', direction: BorderDirection.WEST },
+  ],
+  [Country.ALGERIA]: [
+    { cityId: 'algeria-algiers', cityName: 'Algiers', direction: BorderDirection.EAST },
+  ],
+  [Country.MOROCCO]: [
+    { cityId: 'morocco-casablanca', cityName: 'Casablanca', direction: BorderDirection.EAST },
+  ],
+  [Country.ETHIOPIA]: [
+    { cityId: 'ethiopia-addisababa', cityName: 'Addis Ababa', direction: BorderDirection.WEST },
+  ],
+  [Country.KENYA]: [
+    { cityId: 'kenya-nairobi', cityName: 'Nairobi', direction: BorderDirection.NORTH },
+  ],
+  [Country.TANZANIA]: [
+    { cityId: 'tanzania-daressalaam', cityName: 'Dar es Salaam', direction: BorderDirection.NORTH },
+  ],
+  [Country.UGANDA]: [
+    { cityId: 'uganda-kampala', cityName: 'Kampala', direction: BorderDirection.EAST },
+  ],
+  [Country.ZAMBIA]: [
+    { cityId: 'zambia-lusaka', cityName: 'Lusaka', direction: BorderDirection.NORTH },
+  ],
+  [Country.ZIMBABWE]: [
+    { cityId: 'zimbabwe-harare', cityName: 'Harare', direction: BorderDirection.NORTH },
+  ],
+  [Country.ANGOLA]: [
+    { cityId: 'angola-luanda', cityName: 'Luanda', direction: BorderDirection.EAST },
+  ],
   [Country.GHANA]: [{ cityId: 'ghana-accra', cityName: 'Accra', direction: BorderDirection.EAST }],
-  [Country.SENEGAL]: [{ cityId: 'senegal-dakar', cityName: 'Dakar', direction: BorderDirection.EAST }],
-  [Country.COLOMBIA]: [{ cityId: 'colombia-bogota', cityName: 'Bogotá', direction: BorderDirection.NORTH }],
-  [Country.VENEZUELA]: [{ cityId: 'venezuela-caracas', cityName: 'Caracas', direction: BorderDirection.WEST }],
-  [Country.CHILE]: [{ cityId: 'chile-santiago', cityName: 'Santiago', direction: BorderDirection.EAST }],
+  [Country.SENEGAL]: [
+    { cityId: 'senegal-dakar', cityName: 'Dakar', direction: BorderDirection.EAST },
+  ],
+  [Country.COLOMBIA]: [
+    { cityId: 'colombia-bogota', cityName: 'Bogotá', direction: BorderDirection.NORTH },
+  ],
+  [Country.VENEZUELA]: [
+    { cityId: 'venezuela-caracas', cityName: 'Caracas', direction: BorderDirection.WEST },
+  ],
+  [Country.CHILE]: [
+    { cityId: 'chile-santiago', cityName: 'Santiago', direction: BorderDirection.EAST },
+  ],
   [Country.PERU]: [{ cityId: 'peru-lima', cityName: 'Lima', direction: BorderDirection.NORTH }],
-  [Country.ECUADOR]: [{ cityId: 'ecuador-quito', cityName: 'Quito', direction: BorderDirection.NORTH }],
-  [Country.NEW_ZEALAND]: [{ cityId: 'newzealand-auckland', cityName: 'Auckland', direction: BorderDirection.WEST }],
-  [Country.PAPUA_NEW_GUINEA]: [{ cityId: 'png-portmoresby', cityName: 'Port Moresby', direction: BorderDirection.WEST }],
+  [Country.ECUADOR]: [
+    { cityId: 'ecuador-quito', cityName: 'Quito', direction: BorderDirection.NORTH },
+  ],
+  [Country.NEW_ZEALAND]: [
+    { cityId: 'newzealand-auckland', cityName: 'Auckland', direction: BorderDirection.WEST },
+  ],
+  [Country.PAPUA_NEW_GUINEA]: [
+    { cityId: 'png-portmoresby', cityName: 'Port Moresby', direction: BorderDirection.WEST },
+  ],
   [Country.FIJI]: [{ cityId: 'fiji-suva', cityName: 'Suva', direction: BorderDirection.WEST }],
-  [Country.SOLOMON_ISLANDS]: [{ cityId: 'solomon-honiara', cityName: 'Honiara', direction: BorderDirection.WEST }],
-  [Country.VANUATU]: [{ cityId: 'vanuatu-portvila', cityName: 'Port Vila', direction: BorderDirection.NORTH }],
+  [Country.SOLOMON_ISLANDS]: [
+    { cityId: 'solomon-honiara', cityName: 'Honiara', direction: BorderDirection.WEST },
+  ],
+  [Country.VANUATU]: [
+    { cityId: 'vanuatu-portvila', cityName: 'Port Vila', direction: BorderDirection.NORTH },
+  ],
   [Country.SAMOA]: [{ cityId: 'samoa-apia', cityName: 'Apia', direction: BorderDirection.SOUTH }],
-  [Country.TONGA]: [{ cityId: 'tonga-nukualofa', cityName: 'Nukuʻalofa', direction: BorderDirection.WEST }],
-  [Country.KIRIBATI]: [{ cityId: 'kiribati-tarawa', cityName: 'Tarawa', direction: BorderDirection.WEST }],
-  [Country.MICRONESIA]: [{ cityId: 'micronesia-palikir', cityName: 'Palikir', direction: BorderDirection.WEST }],
+  [Country.TONGA]: [
+    { cityId: 'tonga-nukualofa', cityName: 'Nukuʻalofa', direction: BorderDirection.WEST },
+  ],
+  [Country.KIRIBATI]: [
+    { cityId: 'kiribati-tarawa', cityName: 'Tarawa', direction: BorderDirection.WEST },
+  ],
+  [Country.MICRONESIA]: [
+    { cityId: 'micronesia-palikir', cityName: 'Palikir', direction: BorderDirection.WEST },
+  ],
   [Country.PALAU]: [{ cityId: 'palau-koror', cityName: 'Koror', direction: BorderDirection.EAST }],
-  [Country.MARSHALL_ISLANDS]: [{ cityId: 'marshall-majuro', cityName: 'Majuro', direction: BorderDirection.WEST }],
+  [Country.MARSHALL_ISLANDS]: [
+    { cityId: 'marshall-majuro', cityName: 'Majuro', direction: BorderDirection.WEST },
+  ],
 
   // Middle East and new regions
   [Country.IRAN]: [
@@ -388,7 +500,11 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     // Southern border (with Poland)
     { cityId: 'lithuania-marijampole', cityName: 'Marijampole', direction: BorderDirection.SOUTH },
     { cityId: 'lithuania-alytus', cityName: 'Alytus', direction: BorderDirection.SOUTH },
-    { cityId: 'lithuania-druskininkai', cityName: 'Druskininkai', direction: BorderDirection.SOUTH },
+    {
+      cityId: 'lithuania-druskininkai',
+      cityName: 'Druskininkai',
+      direction: BorderDirection.SOUTH,
+    },
     // Western border (Baltic Sea)
     { cityId: 'lithuania-klaipeda', cityName: 'Klaipeda', direction: BorderDirection.WEST },
     { cityId: 'lithuania-palanga', cityName: 'Palanga', direction: BorderDirection.WEST },
@@ -397,6 +513,9 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
 }
 
 // Helper function to get border cities for a specific direction
-export function getBorderCitiesForDirection(country: Country, direction: BorderDirection): BorderCity[] {
-  return CountryBorderCities[country]?.filter(city => city.direction === direction) || []
+export function getBorderCitiesForDirection(
+  country: Country,
+  direction: BorderDirection,
+): BorderCity[] {
+  return CountryBorderCities[country]?.filter((city) => city.direction === direction) || []
 }

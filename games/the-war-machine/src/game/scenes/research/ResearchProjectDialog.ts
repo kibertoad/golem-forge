@@ -1,9 +1,9 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
+import { RESEARCH_PROJECTS } from '../../model/data/ResearchProjects.ts'
 import type { ResearchDirectorModel } from '../../model/entities/ResearchDirectorModel.ts'
 import type { ResearchFacilityModel } from '../../model/entities/ResearchFacilityModel.ts'
 import type { ResearchProject } from '../../model/enums/ResearchEnums.ts'
-import { RESEARCH_PROJECTS } from '../../model/data/ResearchProjects.ts'
 
 export class ResearchProjectDialog extends GameObjects.Container {
   private background: GameObjects.Rectangle
@@ -105,7 +105,8 @@ export class ResearchProjectDialog extends GameObjects.Container {
   private getAvailableProjects(): ResearchProject[] {
     return RESEARCH_PROJECTS.filter((project) => {
       // Must match facility type (or be a universal upgrade)
-      if (project.facilityType !== this.facility.facilityType && project.facilityType !== 'ANY') return false
+      if (project.facilityType !== this.facility.facilityType && project.facilityType !== 'ANY')
+        return false
 
       // Check tech level requirement
       if (project.techLevel > this.facility.techLevel) return false
@@ -119,7 +120,10 @@ export class ResearchProjectDialog extends GameObjects.Container {
       }
 
       // Check if director has moral flexibility for questionable research
-      if (project.maxMoralityAllowed && !this.director.willAcceptProject(project.maxMoralityAllowed)) {
+      if (
+        project.maxMoralityAllowed &&
+        !this.director.willAcceptProject(project.maxMoralityAllowed)
+      ) {
         return false
       }
 
@@ -189,18 +193,28 @@ export class ResearchProjectDialog extends GameObjects.Container {
     card.add(unpredictText)
 
     // Launch cost
-    const launchCostText = this.scene.add.text(200, -30, `Launch: $${project.cost.toLocaleString()}`, {
-      fontSize: '18px',
-      color: canAfford ? '#88ff88' : '#ff8888',
-    })
+    const launchCostText = this.scene.add.text(
+      200,
+      -30,
+      `Launch: $${project.cost.toLocaleString()}`,
+      {
+        fontSize: '18px',
+        color: canAfford ? '#88ff88' : '#ff8888',
+      },
+    )
     card.add(launchCostText)
 
     // Monthly cost
     const monthlyCost = Math.floor(project.cost / 10)
-    const monthlyCostText = this.scene.add.text(200, -5, `Monthly: $${monthlyCost.toLocaleString()}`, {
-      fontSize: '18px',
-      color: '#ffaa00',
-    })
+    const monthlyCostText = this.scene.add.text(
+      200,
+      -5,
+      `Monthly: $${monthlyCost.toLocaleString()}`,
+      {
+        fontSize: '18px',
+        color: '#ffaa00',
+      },
+    )
     card.add(monthlyCostText)
 
     // Estimated time
