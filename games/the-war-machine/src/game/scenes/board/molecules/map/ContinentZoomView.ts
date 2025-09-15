@@ -5,6 +5,7 @@ import { Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { CountryCapitals } from '../../../../model/enums/CountryCapitals.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 import { WarSystem } from '../../../../model/WarSystem.ts'
+import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
 import { CityZoomView } from './CityZoomView.ts'
 
@@ -23,6 +24,7 @@ export class ContinentZoomView extends GameObjects.Container {
   private selectedCountry: Country | null = null
   private armsShowMarker: GameObjects.Container | null = null
   private warSystem: WarSystem
+  private worldModel: WorldModel
   private currentInfoOverlay: CountryInfoOverlay | null = null
 
   constructor(
@@ -30,10 +32,12 @@ export class ContinentZoomView extends GameObjects.Container {
     x: number,
     y: number,
     continent: EarthRegion,
+    worldModel: WorldModel,
     warSystem?: WarSystem,
   ) {
     super(scene, x, y)
     this.continent = continent
+    this.worldModel = worldModel
     this.warSystem = warSystem || new WarSystem()
 
     // Create background panel - larger size matching Earth map (increased by 10px on each side)
@@ -208,7 +212,7 @@ export class ContinentZoomView extends GameObjects.Container {
         if (this.currentInfoOverlay) {
           this.currentInfoOverlay.destroy()
         }
-        this.currentInfoOverlay = new CountryInfoOverlay(scene, countryInfo.country, this.warSystem)
+        this.currentInfoOverlay = new CountryInfoOverlay(scene, countryInfo.country, this.worldModel, this.warSystem)
       })
 
       graphics.on('pointerout', () => {

@@ -1,5 +1,5 @@
 import type { Country } from './enums/Countries.ts'
-import { CountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
+import { StartingCountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
 import { CountryNeighbors } from './enums/CountryNeighbors.ts'
 
 export interface War {
@@ -16,7 +16,7 @@ export class WarSystem {
 
   public initializeWars() {
     // Find all expansionist countries
-    const expansionists = Object.entries(CountryAttributes)
+    const expansionists = Object.entries(StartingCountryAttributes)
       .filter(([_, attributes]) => attributes.politicalStance === PoliticalStance.EXPANSIONIST)
       .map(([country]) => country as Country)
 
@@ -51,7 +51,7 @@ export class WarSystem {
   }
 
   private calculateMilitaryPower(country: Country): number {
-    const attrs = CountryAttributes[country]
+    const attrs = StartingCountryAttributes[country]
     if (!attrs) return 0
 
     // Calculate power based on budget, industrial production, and tech

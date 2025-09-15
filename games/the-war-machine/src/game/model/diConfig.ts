@@ -16,6 +16,7 @@ import { PersonnelScene } from '../scenes/personnel/PersonnelScene.ts'
 import { ResearchScene } from '../scenes/research/ResearchScene.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
+import { WarDirector } from './processors/WarDirector.ts'
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -28,6 +29,7 @@ export interface Dependencies {
   researchScene: ResearchScene
   personnelScene: PersonnelScene
   endTurnProcessor: EndTurnProcessor
+  warDirector: WarDirector
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
   choicesDirector: ChoicesDirector
 }
@@ -49,6 +51,7 @@ export function instantiateContainer() {
     researchScene: asClass(ResearchScene, SINGLETON_CONFIG),
     personnelScene: asClass(PersonnelScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
+    warDirector: asClass(WarDirector, SINGLETON_CONFIG),
     choicesDirector: asClass(ChoicesDirector, SINGLETON_CONFIG),
   }
 

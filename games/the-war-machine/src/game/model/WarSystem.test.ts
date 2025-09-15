@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Country } from './enums/Countries.ts'
-import { CountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
+import { StartingCountryAttributes, PoliticalStance } from './enums/CountryAttributes.ts'
 import { WarSystem } from './WarSystem.ts'
 
 describe('WarSystem', () => {
@@ -10,7 +10,7 @@ describe('WarSystem', () => {
     const activeWars = warSystem.getActiveWars()
 
     // Find all expansionist countries
-    const expansionistCountries = Object.entries(CountryAttributes)
+    const expansionistCountries = Object.entries(StartingCountryAttributes)
       .filter(([_, attrs]) => attrs.politicalStance === PoliticalStance.EXPANSIONIST)
       .map(([country]) => country as Country)
 
@@ -23,8 +23,8 @@ describe('WarSystem', () => {
 
     // Log all wars
     activeWars.forEach((war) => {
-      const aggressorAttrs = CountryAttributes[war.aggressor]
-      const defenderAttrs = CountryAttributes[war.defender]
+      const aggressorAttrs = StartingCountryAttributes[war.aggressor]
+      const defenderAttrs = StartingCountryAttributes[war.defender]
       console.log(
         `\n${war.aggressor} (budget: ${aggressorAttrs.budget}) → ${war.defender} (budget: ${defenderAttrs.budget})`,
       )
@@ -46,8 +46,8 @@ describe('WarSystem', () => {
     const activeWars = warSystem.getActiveWars()
 
     activeWars.forEach((war) => {
-      const aggressorAttrs = CountryAttributes[war.aggressor]
-      const defenderAttrs = CountryAttributes[war.defender]
+      const aggressorAttrs = StartingCountryAttributes[war.aggressor]
+      const defenderAttrs = StartingCountryAttributes[war.defender]
 
       // Calculate power as done in WarSystem
       const aggressorPower =

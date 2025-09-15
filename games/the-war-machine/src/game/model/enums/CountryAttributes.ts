@@ -43,7 +43,7 @@ export interface CountryAttributeData {
 // CPI 30-39 (corrupt) → corruption: 4
 // CPI 0-29 (highly corrupt) → corruption: 5
 
-export const CountryAttributes: Record<Country, CountryAttributeData> = {
+export const StartingCountryAttributes: Record<Country, CountryAttributeData> = {
   // Major Powers
   [Country.USA]: {
     budget: 5,

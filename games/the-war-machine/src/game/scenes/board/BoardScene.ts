@@ -422,7 +422,7 @@ export class BoardScene extends PotatoScene {
       this.handleStockSale(item)
     })
 
-    this.earthMap = new EarthMap(this, width / 2, height / 2 + 100, this.toastContainer)
+    this.earthMap = new EarthMap(this, width / 2, height / 2 + 100, this.worldModel, this.toastContainer)
     this.earthMap.setDepth(100)
     this.earthMap.on('region-selected', (region: EarthRegion) => {
       console.log('Region selected:', region)

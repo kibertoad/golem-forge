@@ -7,8 +7,11 @@ import {
 import { EventEmitter } from 'emitix'
 import { AgentStatus } from '../enums/AgentEnums.ts'
 import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import { Country } from '../enums/Countries.ts'
+import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
 import type { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
+import { CountryModel } from './CountryModel.ts'
 import type { EntityModel } from './EntityModel.ts'
 import type { ResearchDirectorModel } from './ResearchDirectorModel.ts'
 import type { ResearchFacilityModel } from './ResearchFacilityModel.ts'
@@ -33,6 +36,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly vendorContacts: Set<ArmsManufacturer> = new Set()
   public readonly researchFacilities: ResearchFacilityModel[] = []
   public readonly researchDirectors: ResearchDirectorModel[] = []
+  public readonly countries: Map<string, CountryModel> = new Map()
   public gameStatus: GameStatus
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
@@ -50,6 +54,18 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
       week: 1,
       turn: 1,
       money: 1000000,
+    }
+
+    // Initialize countries from starting data
+    this.initializeCountries()
+  }
+
+  private initializeCountries() {
+    // Create CountryModel instances from the starting attributes
+    for (const [countryKey, attributes] of Object.entries(StartingCountryAttributes)) {
+      const country = countryKey as Country
+      const countryModel = new CountryModel(country, attributes)
+      this.addCountry(countryModel)
     }
   }
 
@@ -175,6 +191,19 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   getDirector(directorId: string): ResearchDirectorModel | undefined {
     return this.researchDirectors.find((d) => d.id === directorId)
+  }
+
+  // Country management
+  addCountry(country: CountryModel) {
+    this.countries.set(country.country, country)
+  }
+
+  getCountry(countryName: string): CountryModel | undefined {
+    return this.countries.get(countryName)
+  }
+
+  getAllCountries(): CountryModel[] {
+    return Array.from(this.countries.values())
   }
 }
 

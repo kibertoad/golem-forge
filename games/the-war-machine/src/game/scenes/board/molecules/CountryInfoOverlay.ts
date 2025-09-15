@@ -2,12 +2,12 @@ import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects, Geom } from 'phaser'
 import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
 import {
-  CountryAttributes,
   PoliticalStance,
   RegimeType,
 } from '../../../model/enums/CountryAttributes.ts'
 import { CountryCapitals } from '../../../model/enums/CountryCapitals.ts'
 import type { WarSystem } from '../../../model/WarSystem.ts'
+import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 
 export class CountryInfoOverlay extends GameObjects.Container {
   private background: GameObjects.Graphics
@@ -15,11 +15,15 @@ export class CountryInfoOverlay extends GameObjects.Container {
   private infoTexts: GameObjects.Text[] = []
   private instructionText: GameObjects.Text
 
-  constructor(scene: PotatoScene, country: Country, warSystem?: WarSystem) {
+  constructor(scene: PotatoScene, country: Country, worldModel: WorldModel, warSystem?: WarSystem) {
     super(scene, scene.cameras.main.width / 2, 120)
 
     const countryName = CountryNames[country] || country
-    const attributes = CountryAttributes[country]
+    const countryModel = worldModel.getCountry(country)
+    if (!countryModel) {
+      console.error(`Country model not found for ${country}`)
+      return
+    }
     const capital = CountryCapitals[country]
 
     // Create larger semi-transparent background
@@ -59,7 +63,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const regimeText = scene.add.text(
       leftColumnX,
       yPos + 35,
-      `Regime: ${this.getRegimeName(attributes.regime)}`,
+      `Regime: ${this.getRegimeName(countryModel.regime as RegimeType)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
@@ -71,11 +75,11 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const stanceText = scene.add.text(
       leftColumnX,
       yPos + 70,
-      `Stance: ${this.getStanceName(attributes.politicalStance)}`,
+      `Stance: ${this.getStanceName(countryModel.politicalStance as PoliticalStance)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
-        color: this.getStanceColor(attributes.politicalStance),
+        color: this.getStanceColor(countryModel.politicalStance as PoliticalStance),
       },
     )
     this.infoTexts.push(stanceText)
@@ -84,7 +88,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const budgetText = scene.add.text(
       leftColumnX,
       yPos + 105,
-      `Budget: ${this.createStars(attributes.budget)}`,
+      `Budget: ${this.createStars(countryModel.militaryBudget)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
@@ -97,7 +101,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const corruptionText = scene.add.text(
       rightColumnX,
       yPos,
-      `Corruption: ${this.createStars(attributes.corruption, true)}`,
+      `Corruption: ${this.createStars(countryModel.corruption, true)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
@@ -109,7 +113,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const visibilityText = scene.add.text(
       rightColumnX,
       yPos + 35,
-      `Visibility: ${this.createStars(attributes.visibility)}`,
+      `Visibility: ${this.createStars(countryModel.visibility)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
@@ -121,7 +125,7 @@ export class CountryInfoOverlay extends GameObjects.Container {
     const standardsText = scene.add.text(
       rightColumnX,
       yPos + 70,
-      `Standards: ${this.createStars(attributes.standards)}`,
+      `Standards: ${this.createStars(countryModel.standards)}`,
       {
         fontSize: '20px',
         fontFamily: 'Courier',
@@ -152,9 +156,9 @@ export class CountryInfoOverlay extends GameObjects.Container {
     }
 
     // Military capabilities with bigger font and stars
-    const armyProdStars = this.createStars(attributes.industrialProduction.army)
-    const navyProdStars = this.createStars(attributes.industrialProduction.navy)
-    const airProdStars = this.createStars(attributes.industrialProduction.airforce)
+    const armyProdStars = this.createStars(countryModel.industrialProduction.army)
+    const navyProdStars = this.createStars(countryModel.industrialProduction.navy)
+    const airProdStars = this.createStars(countryModel.industrialProduction.airforce)
     const milText = scene.add.text(
       leftColumnX,
       yPos + 140,
@@ -168,9 +172,9 @@ export class CountryInfoOverlay extends GameObjects.Container {
     this.infoTexts.push(milText)
 
     // Tech capabilities with stars
-    const armyTechStars = this.createStars(attributes.industrialTech.army)
-    const navyTechStars = this.createStars(attributes.industrialTech.navy)
-    const airTechStars = this.createStars(attributes.industrialTech.airforce)
+    const armyTechStars = this.createStars(countryModel.industrialTech.army)
+    const navyTechStars = this.createStars(countryModel.industrialTech.navy)
+    const airTechStars = this.createStars(countryModel.industrialTech.airforce)
     const techText = scene.add.text(
       leftColumnX,
       yPos + 165,

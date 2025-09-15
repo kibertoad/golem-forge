@@ -4,6 +4,7 @@ import { getCountryContinent } from '../../../../model/enums/ContinentData.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 import { WarSystem } from '../../../../model/WarSystem.ts'
+import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import { imageRegistry } from '../../../../registries/imageRegistry.ts'
 import type { ToastContainer, ToastData } from '../ui/ToastContainer.ts'
 import { ContinentZoomView } from './ContinentZoomView.ts'
@@ -28,11 +29,13 @@ export class EarthMap extends GameObjects.Container {
   private zoomView: ContinentZoomView | null = null
   private potatoScene: PotatoScene
   private warSystem: WarSystem
+  private worldModel: WorldModel
   private toastContainer?: ToastContainer
 
-  constructor(scene: PotatoScene, x: number, y: number, toastContainer?: ToastContainer) {
+  constructor(scene: PotatoScene, x: number, y: number, worldModel: WorldModel, toastContainer?: ToastContainer) {
     super(scene, x, y)
     this.potatoScene = scene
+    this.worldModel = worldModel
     this.toastContainer = toastContainer
 
     // Initialize war system
@@ -467,7 +470,7 @@ export class EarthMap extends GameObjects.Container {
     }
 
     // Create new zoom view at the same position as the Earth map
-    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region, this.warSystem)
+    this.zoomView = new ContinentZoomView(this.potatoScene, this.x, this.y, region, this.worldModel, this.warSystem)
 
     // Listen for close event to return to Earth view
     this.zoomView.on('close', () => {

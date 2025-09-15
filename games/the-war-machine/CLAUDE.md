@@ -185,13 +185,49 @@ class EntityView extends GameObjects.Container {
 - **ContinentData.ts**: Maps countries to continents and defines continent positions
 
 ### Game Mechanics
-- **WarSystem.ts**: Handles war declarations and combat between countries
-  - Expansionist countries automatically declare wars
-  - Countries can only attack weaker neighbors (lower military budget)
 
-- **WorldModel.ts**: Main game state management
-  - Tracks all countries, cities, wars, and game progression
-  - Handles turn processing and victory conditions
+#### War System Architecture
+
+The war system is designed with the following components:
+
+##### Core Components
+
+1. **WarDirector** (`src/game/model/processors/WarDirector.ts`)
+   - Implements `TurnProcessor` interface
+   - Manages war progression each turn
+   - Coordinates war actions for all countries
+   - Registered in DI container for centralized management
+
+2. **CountryModel** (`src/game/model/entities/CountryModel.ts`)
+   - Runtime representation of country state
+   - Tracks dynamic attributes: military budget, corruption, regime, etc.
+   - Manages war status and opponents
+   - Calculates military power based on budget, production, and tech
+
+3. **WarSystem** (`src/game/model/WarSystem.ts`)
+   - Handles war declarations and combat between countries
+   - Expansionist countries automatically declare wars
+   - Countries can only attack weaker neighbors (lower military budget)
+   - Manages active wars and countries at war
+
+4. **WorldModel** (`src/game/model/entities/WorldModel.ts`)
+   - Main game state management
+   - Maintains runtime country models (initialized from StartingCountryAttributes)
+   - Tracks all countries, cities, wars, and game progression
+   - Handles turn processing and victory conditions
+
+##### Data Organization
+
+- **StartingCountryAttributes** (`CountryAttributes.ts`): Initial static data for countries
+- **CountryModel**: Runtime state that can change during gameplay
+- All scenes now use WorldModel's country data instead of static definitions
+
+##### Turn Processing
+
+The turn processing follows this order:
+1. `EndTurnProcessor`: Handles research, directors, and facilities
+2. `WarDirector`: Processes war-related actions for all countries
+3. WorldModel advances turn counters and dates
 
 ## Research & Development System
 
