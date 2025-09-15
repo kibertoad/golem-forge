@@ -13,6 +13,11 @@ import {
   getOppositeDirection,
 } from '../../../../model/enums/CountryNeighborDirections.ts'
 import { CountryCities } from '../../../../model/enums/Cities.ts'
+import {
+  ATTACKER_BLOCK_HORIZONTAL_OFFSET,
+  ATTACKER_BLOCK_VERTICAL_OFFSET,
+  calculateCityPosition,
+} from '../../../../model/constants/MapPositionConstants.ts'
 
 export interface AttackInfo {
   attacker: Country
@@ -77,21 +82,26 @@ export class AttackVisualization extends GameObjects.Container {
   private getIncomingAttacks(targetCountry: Country): AttackInfo[] {
     const attacks: AttackInfo[] = []
 
-    // Check all countries that are at war with the target country
-    this.worldModel.getAllCountries().forEach((country) => {
-      if (country.isAtWar && country.warsWith.includes(targetCountry)) {
-        // Check if this country is actually attacking (has assault units targeting us)
-        const assaultUnitsTargetingThis = country.getAssaultUnitsTargeting(targetCountry)
+    // Get the target country model to check who is attacking it
+    const targetCountryModel = this.worldModel.getCountry(targetCountry)
+    if (!targetCountryModel) return attacks
+
+    // Check all countries that are attacking the target country
+    targetCountryModel.isDefending.forEach((attackerCountry) => {
+      const attacker = this.worldModel.getCountry(attackerCountry)
+      if (attacker) {
+        // Check if this country has assault units targeting us
+        const assaultUnitsTargetingThis = attacker.getAssaultUnitsTargeting(targetCountry)
 
         if (assaultUnitsTargetingThis.length > 0) {
           // This country is actively attacking the target country
           // Find the direction from attacker to defender
-          const neighborInfo = CountryNeighborDirections[country.country]?.find(
+          const neighborInfo = CountryNeighborDirections[attacker.country]?.find(
             (n) => n.country === targetCountry,
           )
 
           console.log(
-            `[AttackVisualization] Found incoming attack ${country.country} -> ${targetCountry}:`,
+            `[AttackVisualization] Found incoming attack ${attacker.country} -> ${targetCountry}:`,
             {
               hasNeighborInfo: !!neighborInfo,
               direction: neighborInfo?.direction,
@@ -101,7 +111,7 @@ export class AttackVisualization extends GameObjects.Container {
 
           if (neighborInfo) {
             attacks.push({
-              attacker: country.country,
+              attacker: attacker.country,
               defender: targetCountry,
               direction: neighborInfo.direction,
               assaultUnits: assaultUnitsTargetingThis.length,
@@ -166,28 +176,23 @@ export class AttackVisualization extends GameObjects.Container {
     direction: BorderDirection,
   ): { x: number; y: number } {
     // Position attacker blocks just outside the country grid
-    // Country grid is approximately -740 to 740 horizontally and -300 to 380 vertically
-    // We want blocks to be visible but clearly outside the country boundaries
-
-    // Place blocks about 50-80 pixels outside the country grid edge
-    const horizontalOffset = 800 // Just outside the city grid horizontally (740 + 60)
-    const verticalOffset = 380 // Just outside the city grid vertically (300 + 80)
+    // Using constants from MapPositionConstants for consistency
 
     // The direction indicates where the attacker is relative to the defender
     // So if direction is EAST, the attacker is to the east of the defender
     switch (direction) {
       case BorderDirection.NORTH:
         // Attacker is north of defender, so place block above
-        return { x: defenderPos.x, y: -verticalOffset }
+        return { x: defenderPos.x, y: -ATTACKER_BLOCK_VERTICAL_OFFSET }
       case BorderDirection.SOUTH:
         // Attacker is south of defender, so place block below
-        return { x: defenderPos.x, y: verticalOffset }
+        return { x: defenderPos.x, y: ATTACKER_BLOCK_VERTICAL_OFFSET }
       case BorderDirection.EAST:
         // Attacker is east of defender, so place block to the right
-        return { x: horizontalOffset, y: defenderPos.y }
+        return { x: ATTACKER_BLOCK_HORIZONTAL_OFFSET, y: defenderPos.y }
       case BorderDirection.WEST:
         // Attacker is west of defender, so place block to the left
-        return { x: -horizontalOffset, y: defenderPos.y }
+        return { x: -ATTACKER_BLOCK_HORIZONTAL_OFFSET, y: defenderPos.y }
     }
   }
 
@@ -365,18 +370,8 @@ export class AttackVisualization extends GameObjects.Container {
       return { x: 0, y: 0 }
     }
 
-    // Calculate city position based on grid (same calculation as CityZoomView)
-    const gridWidth = 1480
-    const gridHeight = 680
-    const blockSizeX = gridWidth / 10
-    const blockSizeY = gridHeight / 10
-    const startX = -gridWidth / 2
-    const startY = -gridHeight / 2 + 40 // Offset for title
-
-    const cityX = startX + city.x * blockSizeX + blockSizeX / 2
-    const cityY = startY + city.y * blockSizeY + blockSizeY / 2
-
-    return { x: cityX, y: cityY }
+    // Use the shared calculation function for consistency
+    return calculateCityPosition(city.x, city.y)
   }
 
   private getCityOffset(direction: BorderDirection): { x: number; y: number } {

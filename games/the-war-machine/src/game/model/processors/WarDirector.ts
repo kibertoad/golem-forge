@@ -76,16 +76,16 @@ export class WarDirector implements TurnProcessor {
     // This ensures warsWith arrays are populated when units are created
     if (aggressorModel) {
       console.log(`[WarDirector] Declaring war for aggressor ${aggressor} against ${defender}`)
-      aggressorModel.declareWarOn(defender)
+      aggressorModel.declareWarOn(defender, true) // true = as aggressor
       console.log(
-        `[WarDirector] Aggressor ${aggressor} war status: isAtWar=${aggressorModel.isAtWar}, warsWith=${aggressorModel.warsWith}`,
+        `[WarDirector] Aggressor ${aggressor} war status: isAtWar=${aggressorModel.isAtWar}, warsWith=${Array.from(aggressorModel.warsWith)}, isAttacking=${Array.from(aggressorModel.isAttacking)}`,
       )
     }
     if (defenderModel) {
       console.log(`[WarDirector] Declaring war for defender ${defender} against ${aggressor}`)
-      defenderModel.declareWarOn(aggressor)
+      defenderModel.declareWarOn(aggressor, false) // false = as defender
       console.log(
-        `[WarDirector] Defender ${defender} war status: isAtWar=${defenderModel.isAtWar}, warsWith=${defenderModel.warsWith}`,
+        `[WarDirector] Defender ${defender} war status: isAtWar=${defenderModel.isAtWar}, warsWith=${Array.from(defenderModel.warsWith)}, isDefending=${Array.from(defenderModel.isDefending)}`,
       )
     }
 
@@ -224,7 +224,7 @@ export class WarDirector implements TurnProcessor {
 
         // Create assault unit
         // For now, we'll assign to the first war enemy if any
-        const enemyCountry = country.warsWith[0]
+        const enemyCountry = country.warsWith.size > 0 ? Array.from(country.warsWith)[0] : null
         if (!enemyCountry) {
           console.warn(`[WarDirector] Country ${country.country} has no war targets for assault units`)
           continue

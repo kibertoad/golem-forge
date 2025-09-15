@@ -496,6 +496,8 @@ export const CountryCities: Partial<Record<Country, CityData[]>> = {
     { name: 'Simferopol', x: 5, y: 9 },
     { name: 'Chernihiv', x: 5, y: 0 },
     { name: 'Poltava', x: 6, y: 4 },
+    { name: 'Lutsk', x: 1, y: 2 }, // Northwestern city
+    { name: 'Sumy', x: 7, y: 1 }, // Northeastern city
   ],
 
   [Country.NETHERLANDS]: [
@@ -748,7 +750,7 @@ export const CountryCities: Partial<Record<Country, CityData[]>> = {
   ],
 
   [Country.LITHUANIA]: [
-    { name: 'Vilnius', x: 7, y: 6, isCapital: true },
+    { name: 'Vilnius', x: 5, y: 6, isCapital: true },
     { name: 'Kaunas', x: 4, y: 5 },
     { name: 'Klaipeda', x: 0, y: 3 },
     { name: 'Siauliai', x: 3, y: 2 },
@@ -757,7 +759,7 @@ export const CountryCities: Partial<Record<Country, CityData[]>> = {
     { name: 'Marijampole', x: 3, y: 7 },
     { name: 'Mazeikiai', x: 1, y: 1 },
     { name: 'Jonava', x: 5, y: 5 },
-    { name: 'Utena', x: 7, y: 3 },
+    { name: 'Utena', x: 5, y: 2 },
     { name: 'Kedainiai', x: 4, y: 4 },
     { name: 'Telsiai', x: 1, y: 2 },
     { name: 'Visaginas', x: 9, y: 4 },

@@ -8,6 +8,7 @@ import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 import { WarSystem } from '../../../../model/WarSystem.ts'
 import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
 import { CityZoomView } from './CityZoomView.ts'
+import { ContinentWarVisualization } from './ContinentWarVisualization.ts'
 
 interface CountryBlock {
   country: Country
@@ -26,6 +27,7 @@ export class ContinentZoomView extends GameObjects.Container {
   private warSystem: WarSystem
   private worldModel: WorldModel
   private currentInfoOverlay: CountryInfoOverlay | null = null
+  private warVisualization: ContinentWarVisualization
 
   constructor(
     scene: PotatoScene,
@@ -99,8 +101,16 @@ export class ContinentZoomView extends GameObjects.Container {
     instructionText.setOrigin(0.5)
     this.add(instructionText)
 
-    // Create country blocks
+    // Create war visualization first (but don't update yet)
+    this.warVisualization = new ContinentWarVisualization(scene, 0, 0, this.worldModel, this.continent)
+    this.add(this.warVisualization)
+
+    // Create country blocks (this will set positions in war visualization)
     this.createCountryBlocks(scene)
+
+    // Now update war visualization after positions are set
+    const countries = ContinentCountries[this.continent] || []
+    this.warVisualization.updateWarVisualization(countries)
 
     scene.add.existing(this)
     this.setDepth(2000)
@@ -274,6 +284,11 @@ export class ContinentZoomView extends GameObjects.Container {
         label,
         info: countryInfo,
       })
+
+      // Store position for war visualization
+      if (this.warVisualization) {
+        this.warVisualization.setCountryPosition(countryInfo.country, blockX, blockY)
+      }
     })
   }
 
@@ -541,5 +556,20 @@ export class ContinentZoomView extends GameObjects.Container {
       console.log(`City selected: ${data.city} in ${CountryNames[data.country]}`)
       // Don't create overlay on city selection since we show it on hover now
     })
+  }
+
+  destroy() {
+    // Clean up war visualization
+    if (this.warVisualization) {
+      this.warVisualization.destroy()
+    }
+
+    // Clean up info overlay
+    if (this.currentInfoOverlay) {
+      this.currentInfoOverlay.destroy()
+      this.currentInfoOverlay = null
+    }
+
+    super.destroy()
   }
 }

@@ -21,7 +21,9 @@ export class CountryModel {
 
   // War-related state
   public isAtWar: boolean = false
-  public warsWith: Country[] = []
+  public warsWith: Set<Country> = new Set()
+  public isAttacking: Set<Country> = new Set() // Countries we are attacking
+  public isDefending: Set<Country> = new Set() // Countries that are attacking us
 
   // Military units
   public regularUnits: RegularUnit[] = []
@@ -46,18 +48,27 @@ export class CountryModel {
     this.standards = initialAttributes.standards
   }
 
-  declareWarOn(country: Country) {
-    if (!this.warsWith.includes(country)) {
-      this.warsWith.push(country)
+  declareWarOn(country: Country, asAggressor: boolean = true) {
+    if (!this.warsWith.has(country)) {
+      this.warsWith.add(country)
       this.isAtWar = true
+
+      // Track whether we're attacking or defending
+      if (asAggressor) {
+        this.isAttacking.add(country)
+      } else {
+        this.isDefending.add(country)
+      }
     }
   }
 
   endWarWith(country: Country) {
-    const index = this.warsWith.indexOf(country)
-    if (index !== -1) {
-      this.warsWith.splice(index, 1)
-      this.isAtWar = this.warsWith.length > 0
+    if (this.warsWith.delete(country)) {
+      this.isAtWar = this.warsWith.size > 0
+
+      // Remove from attacking/defending sets
+      this.isAttacking.delete(country)
+      this.isDefending.delete(country)
     }
   }
 

@@ -350,20 +350,29 @@ export class CityZoomView extends GameObjects.Container {
   private updateAttackVisualization() {
     if (!this.attackVisualization || !this.worldModel) return
 
-    // Check if this country is being attacked
+    // Check if this country is being defended (not attacking)
     const countryModel = this.worldModel.getCountry(this.country)
     console.log(`[CityZoomView] Checking war status for ${this.country}:`, {
       hasModel: !!countryModel,
       isAtWar: countryModel?.isAtWar,
-      warsWith: countryModel?.warsWith,
+      warsWith: countryModel?.warsWith ? Array.from(countryModel.warsWith) : [],
+      isDefending: countryModel?.isDefending ? Array.from(countryModel.isDefending) : [],
     })
 
     if (!countryModel || !countryModel.isAtWar) return
 
-    console.log(`[CityZoomView] ${this.country} is at war with:`, countryModel.warsWith)
+    // Simply check if this country is defending against anyone
+    const isBeingAttacked = countryModel.isDefending.size > 0
 
-    // Update the visualization
-    this.attackVisualization.updateAttacks()
+    console.log(`[CityZoomView] ${this.country} is at war with:`, Array.from(countryModel.warsWith))
+    console.log(`[CityZoomView] ${this.country} is defending against:`, Array.from(countryModel.isDefending))
+    console.log(`[CityZoomView] ${this.country} is being attacked:`, isBeingAttacked)
+
+    // Only show attack visualization if this country is being attacked
+    if (isBeingAttacked) {
+      // Update the visualization
+      this.attackVisualization.updateAttacks()
+    }
   }
 
   destroy() {
