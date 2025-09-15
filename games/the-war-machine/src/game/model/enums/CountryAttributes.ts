@@ -23,6 +23,8 @@ export interface BranchCapabilities {
   army: number // 1-5
   navy: number // 1-5
   airforce: number // 1-5
+  specialForces: number // 1-5
+  drones: number // 1-5
 }
 
 export interface CountryAttributeData {
@@ -31,6 +33,7 @@ export interface CountryAttributeData {
   corruption: number // Corruption level (1-5, where 1=very clean, 5=highly corrupt)
   visibility: number // How observed operations are (1-5)
   regime: RegimeType
+  militaryStrength: BranchCapabilities // Per branch military strength (1-5)
   industrialProduction: BranchCapabilities // Per branch production capability (1-5)
   industrialTech: BranchCapabilities // Per branch tech level (1-5)
   politicalStance: PoliticalStance
@@ -51,8 +54,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~69
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 5, navy: 5, airforce: 5 },
-    industrialTech: { army: 5, navy: 5, airforce: 5 },
+    militaryStrength: { army: 5, navy: 5, airforce: 5, specialForces: 5, drones: 5 },
+    industrialProduction: { army: 5, navy: 5, airforce: 5, specialForces: 4, drones: 5 },
+    industrialTech: { army: 5, navy: 5, airforce: 5, specialForces: 5, drones: 5 },
     politicalStance: PoliticalStance.INTERVENTIONIST,
   },
   [Country.CHINA]: {
@@ -61,8 +65,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~42
     visibility: 3,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 5, navy: 4, airforce: 4 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 5, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
+    industrialProduction: { army: 5, navy: 4, airforce: 4, specialForces: 2, drones: 4 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.EXPANSIONIST,
   },
   [Country.RUSSIA]: {
@@ -71,8 +76,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~26
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 4, navy: 3, airforce: 4 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 4, navy: 3, airforce: 4, specialForces: 3, drones: 4 },
+    industrialProduction: { army: 4, navy: 3, airforce: 4, specialForces: 2, drones: 4 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.EXPANSIONIST,
   },
   [Country.INDIA]: {
@@ -81,8 +87,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~40
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 3, airforce: 3 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 3, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.GERMANY]: {
@@ -91,8 +98,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~78
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 4, navy: 3, airforce: 4 },
-    industrialTech: { army: 5, navy: 4, airforce: 5 },
+    militaryStrength: { army: 4, navy: 3, airforce: 4, specialForces: 3, drones: 4 },
+    industrialProduction: { army: 4, navy: 3, airforce: 4, specialForces: 2, drones: 4 },
+    industrialTech: { army: 5, navy: 4, airforce: 5, specialForces: 4, drones: 5 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.FRANCE]: {
@@ -101,8 +109,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~71
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 3, airforce: 4 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 3, navy: 3, airforce: 4, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 3, airforce: 4, specialForces: 1, drones: 3 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.INTERVENTIONIST,
   },
   [Country.UK]: {
@@ -111,8 +120,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~71
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 4, airforce: 3 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 3, navy: 4, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 4, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.JAPAN]: {
@@ -121,8 +131,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~73
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 4, airforce: 3 },
-    industrialTech: { army: 5, navy: 5, airforce: 5 },
+    militaryStrength: { army: 3, navy: 4, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 4, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 5, navy: 5, airforce: 5, specialForces: 4, drones: 5 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.CANADA]: {
@@ -131,8 +142,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~74
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.AUSTRALIA]: {
@@ -141,8 +153,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~75
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
 
@@ -153,8 +166,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~36
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 2, airforce: 2 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 3, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 3, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.MEXICO]: {
@@ -163,8 +177,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~31
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ARGENTINA]: {
@@ -173,8 +188,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~37
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SOUTH_AFRICA]: {
@@ -183,8 +199,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~41
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.NORWAY]: {
@@ -193,8 +210,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~84
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 3, airforce: 2 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.SWEDEN]: {
@@ -203,8 +221,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~82
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 3 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SPAIN]: {
@@ -213,8 +232,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~60
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 3, airforce: 2 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.ITALY]: {
@@ -223,8 +243,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~56
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 3, airforce: 3 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 3, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.POLAND]: {
@@ -233,8 +254,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~54
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
 
@@ -245,8 +267,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~51
     visibility: 3,
     regime: RegimeType.MONARCHY,
-    industrialProduction: { army: 2, navy: 2, airforce: 3 },
-    industrialTech: { army: 3, navy: 3, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 4, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.ISRAEL]: {
@@ -255,8 +278,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~62
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 3, airforce: 4 },
-    industrialTech: { army: 5, navy: 4, airforce: 5 },
+    militaryStrength: { army: 3, navy: 3, airforce: 4, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 3, airforce: 4, specialForces: 1, drones: 3 },
+    industrialTech: { army: 5, navy: 4, airforce: 5, specialForces: 4, drones: 5 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.TURKEY]: {
@@ -265,8 +289,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~34
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 3, airforce: 3 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 3, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.IRAN]: {
@@ -275,8 +300,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~24
     visibility: 2,
     regime: RegimeType.THEOCRACY,
-    industrialProduction: { army: 3, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 3, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 3, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.EXPANSIONIST,
   },
   [Country.IRAQ]: {
@@ -285,8 +311,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~23
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.SYRIA]: {
@@ -295,8 +322,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~13
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.JORDAN]: {
@@ -305,8 +333,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~47
     visibility: 3,
     regime: RegimeType.MONARCHY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.LEBANON]: {
@@ -315,8 +344,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~24
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.UAE]: {
@@ -325,8 +355,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~67
     visibility: 3,
     regime: RegimeType.MONARCHY,
-    industrialProduction: { army: 2, navy: 2, airforce: 3 },
-    industrialTech: { army: 3, navy: 3, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 3, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 4, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
 
@@ -337,8 +368,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~35
     visibility: 3,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.ETHIOPIA]: {
@@ -347,8 +379,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~37
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.KENYA]: {
@@ -357,8 +390,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~31
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.NIGERIA]: {
@@ -367,8 +401,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~25
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.MOROCCO]: {
@@ -377,8 +412,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~42
     visibility: 3,
     regime: RegimeType.MONARCHY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ALGERIA]: {
@@ -387,8 +423,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~33
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
 
@@ -399,8 +436,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~29
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.INDONESIA]: {
@@ -409,8 +447,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~34
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SOUTH_KOREA]: {
@@ -419,8 +458,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~61
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 3, navy: 4, airforce: 3 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 3, navy: 4, airforce: 3, specialForces: 2, drones: 3 },
+    industrialProduction: { army: 3, navy: 4, airforce: 3, specialForces: 1, drones: 3 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.VIETNAM]: {
@@ -429,8 +469,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~36
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.THAILAND]: {
@@ -439,8 +480,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~35
     visibility: 3,
     regime: RegimeType.MILITARY_JUNTA,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.MALAYSIA]: {
@@ -449,8 +491,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~47
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SINGAPORE]: {
@@ -459,8 +502,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~83
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 3, airforce: 2 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 1, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 1, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.PHILIPPINES]: {
@@ -469,8 +513,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~33
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
 
@@ -481,8 +526,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~79
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 3, airforce: 2 },
-    industrialTech: { army: 4, navy: 4, airforce: 4 },
+    militaryStrength: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 3, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 4, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.BELGIUM]: {
@@ -491,8 +537,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~73
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.SWITZERLAND]: {
@@ -501,8 +548,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~82
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 4, navy: 2, airforce: 4 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 2, airforce: 4, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.AUSTRIA]: {
@@ -511,8 +559,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~71
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 2 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 1, navy: 1, airforce: 2, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 2, specialForces: 1, drones: 1 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.GREECE]: {
@@ -521,8 +570,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~49
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.PORTUGAL]: {
@@ -531,8 +581,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~61
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 2, airforce: 1 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.CZECH_REPUBLIC]: {
@@ -541,8 +592,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~57
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.HUNGARY]: {
@@ -551,8 +603,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~43
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ROMANIA]: {
@@ -561,8 +614,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~46
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.BULGARIA]: {
@@ -571,8 +625,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~44
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.SERBIA]: {
@@ -581,8 +636,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~36
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.CROATIA]: {
@@ -591,8 +647,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~50
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 2, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
   [Country.UKRAINE]: {
@@ -601,8 +658,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~36
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.FINLAND]: {
@@ -611,8 +669,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~87
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 4, navy: 3, airforce: 4 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 4, navy: 3, airforce: 4, specialForces: 3, drones: 4 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.DENMARK]: {
@@ -621,8 +680,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~88
     visibility: 5,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
 
@@ -633,8 +693,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~40
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 1, airforce: 2 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.VENEZUELA]: {
@@ -643,8 +704,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~14
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.CHILE]: {
@@ -653,8 +715,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~67
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 2, navy: 2, airforce: 2 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialProduction: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.PERU]: {
@@ -663,8 +726,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~35
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ECUADOR]: {
@@ -673,8 +737,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~35
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
 
@@ -685,8 +750,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 1, // CPI ~88
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 2, airforce: 1 },
-    industrialTech: { army: 3, navy: 3, airforce: 3 },
+    militaryStrength: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 2, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 3, navy: 3, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.COOPERATIVE,
   },
 
@@ -697,8 +763,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~38
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SUDAN]: {
@@ -707,8 +774,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~20
     visibility: 2,
     regime: RegimeType.MILITARY_JUNTA,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.LIBYA]: {
@@ -717,8 +785,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~18
     visibility: 2,
     regime: RegimeType.MILITARY_JUNTA,
-    industrialProduction: { army: 2, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 1 },
+    militaryStrength: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.EXPANSIONIST,
   },
   [Country.TUNISIA]: {
@@ -727,8 +796,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~44
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.GHANA]: {
@@ -737,8 +807,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~43
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.UGANDA]: {
@@ -747,8 +818,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~26
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.ZAMBIA]: {
@@ -757,8 +829,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~33
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ZIMBABWE]: {
@@ -767,8 +840,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~23
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.SENEGAL]: {
@@ -777,8 +851,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~43
     visibility: 3,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.ANGOLA]: {
@@ -787,8 +862,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 4, // CPI ~33
     visibility: 2,
     regime: RegimeType.AUTHORITARIAN,
-    industrialProduction: { army: 2, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 1, airforce: 1 },
+    militaryStrength: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
 
@@ -799,8 +875,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 5, // CPI ~25
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.FIJI]: {
@@ -809,8 +886,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~51
     visibility: 2,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SOLOMON_ISLANDS]: {
@@ -819,8 +897,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~42
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.VANUATU]: {
@@ -829,8 +908,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~43
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.SAMOA]: {
@@ -839,8 +919,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~41
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.TONGA]: {
@@ -849,8 +930,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~44
     visibility: 1,
     regime: RegimeType.MONARCHY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.KIRIBATI]: {
@@ -859,8 +941,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~40 (estimated)
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.MICRONESIA]: {
@@ -869,8 +952,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~40 (estimated)
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.PALAU]: {
@@ -879,8 +963,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~45 (estimated)
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
   [Country.MARSHALL_ISLANDS]: {
@@ -889,8 +974,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 3, // CPI ~40 (estimated)
     visibility: 1,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 1, navy: 1, airforce: 1 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
     politicalStance: PoliticalStance.NEUTRAL,
   },
 
@@ -901,8 +987,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~74
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 3, navy: 2, airforce: 3 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 3, navy: 2, airforce: 3, specialForces: 2, drones: 3 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.LATVIA]: {
@@ -911,8 +998,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~59
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
   [Country.LITHUANIA]: {
@@ -921,8 +1009,9 @@ export const StartingCountryAttributes: Record<Country, CountryAttributeData> = 
     corruption: 2, // CPI ~61
     visibility: 4,
     regime: RegimeType.DEMOCRACY,
-    industrialProduction: { army: 1, navy: 1, airforce: 1 },
-    industrialTech: { army: 2, navy: 2, airforce: 2 },
+    militaryStrength: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialProduction: { army: 1, navy: 1, airforce: 1, specialForces: 1, drones: 1 },
+    industrialTech: { army: 2, navy: 2, airforce: 2, specialForces: 1, drones: 2 },
     politicalStance: PoliticalStance.DEFENSIVE,
   },
 }
