@@ -148,21 +148,23 @@ export class ContinentZoomView extends GameObjects.Container {
         8,
       )
 
-      // Create country label with fixed font sizes for better rendering
+      // Create country label with larger font sizes for better visibility
       const countryName = CountryNames[countryInfo.country] || countryInfo.country
-      // Use fixed font sizes instead of scaling
-      let fontSize = 16
+      // Use larger font sizes for better readability
+      let fontSize = 22
       if (countryInfo.relativeSize >= 4) {
-        fontSize = 20
+        fontSize = 28
       } else if (countryInfo.relativeSize >= 2) {
-        fontSize = 18
+        fontSize = 24
+      } else if (countryInfo.relativeSize <= 1) {
+        fontSize = 20
       }
       const label = scene.add.text(blockX, blockY - 5, countryName, {
         fontSize: `${fontSize}px`,
         fontFamily: 'Courier',
         color: '#ffffff',
         stroke: '#000000',
-        strokeThickness: 2,
+        strokeThickness: 3,
         wordWrap: { width: blockSize.width - 10 },
         align: 'center',
       })

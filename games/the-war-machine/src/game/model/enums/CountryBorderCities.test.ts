@@ -34,7 +34,11 @@ describe('CountryBorderCities', () => {
 
           it(`should have correct border cities facing ${neighborCountry} (${direction})`, () => {
             // Calculate the attacker block position for this direction
-            const attackerPos = calculateAttackerBlockPosition(direction, { x: 0, y: 0 })
+            // Convert BorderDirection enum to string literal type
+            const directionStr = direction === BorderDirection.NORTH ? 'NORTH' :
+                                direction === BorderDirection.SOUTH ? 'SOUTH' :
+                                direction === BorderDirection.EAST ? 'EAST' : 'WEST'
+            const attackerPos = calculateAttackerBlockPosition(directionStr, { x: 0, y: 0 })
 
             borderCitiesForDirection.forEach((borderCity) => {
               // Find the border city in the city data
@@ -76,12 +80,14 @@ describe('CountryBorderCities', () => {
 
                   if (distToOther < distToBorder) {
                     // The other city is closer to the attacker than the declared border city
-                    expect(otherCityIsBorder).toBe(true,
-                      `City "${otherCity.name}" at (${otherCity.x}, ${otherCity.y}) is between ` +
-                      `attacker position and border city "${borderCity.cityName}" at (${borderCityData.x}, ${borderCityData.y}). ` +
-                      `"${otherCity.name}" should be marked as a border city facing ${direction}, ` +
-                      `and "${borderCity.cityName}" should not be.`
-                    )
+                    if (!otherCityIsBorder) {
+                      throw new Error(
+                        `City "${otherCity.name}" at (${otherCity.x}, ${otherCity.y}) is between ` +
+                        `attacker position and border city "${borderCity.cityName}" at (${borderCityData.x}, ${borderCityData.y}). ` +
+                        `"${otherCity.name}" should be marked as a border city facing ${direction}, ` +
+                        `and "${borderCity.cityName}" should not be.`
+                      )
+                    }
                   }
                 }
               })
@@ -93,9 +99,9 @@ describe('CountryBorderCities', () => {
         it('should only reference cities that exist', () => {
           borderCities.forEach((borderCity) => {
             const exists = cityData.some(c => c.name === borderCity.cityName)
-            expect(exists).toBe(true,
-              `Border city "${borderCity.cityName}" for ${country} does not exist in city data`
-            )
+            if (!exists) {
+              throw new Error(`Border city "${borderCity.cityName}" for ${country} does not exist in city data`)
+            }
           })
         })
 
@@ -110,24 +116,24 @@ describe('CountryBorderCities', () => {
             // Verify the city is actually in the declared direction from center
             switch (borderCity.direction) {
               case BorderDirection.NORTH:
-                expect(cityPos.y).toBeLessThan(0,
-                  `City "${borderCity.cityName}" declared as NORTH border but has positive Y coordinate`
-                )
+                if (cityPos.y >= 0) {
+                  throw new Error(`City "${borderCity.cityName}" declared as NORTH border but has positive Y coordinate`)
+                }
                 break
               case BorderDirection.SOUTH:
-                expect(cityPos.y).toBeGreaterThan(0,
-                  `City "${borderCity.cityName}" declared as SOUTH border but has negative Y coordinate`
-                )
+                if (cityPos.y <= 0) {
+                  throw new Error(`City "${borderCity.cityName}" declared as SOUTH border but has negative Y coordinate`)
+                }
                 break
               case BorderDirection.EAST:
-                expect(cityPos.x).toBeGreaterThan(0,
-                  `City "${borderCity.cityName}" declared as EAST border but has negative X coordinate`
-                )
+                if (cityPos.x <= 0) {
+                  throw new Error(`City "${borderCity.cityName}" declared as EAST border but has negative X coordinate`)
+                }
                 break
               case BorderDirection.WEST:
-                expect(cityPos.x).toBeLessThan(0,
-                  `City "${borderCity.cityName}" declared as WEST border but has positive X coordinate`
-                )
+                if (cityPos.x >= 0) {
+                  throw new Error(`City "${borderCity.cityName}" declared as WEST border but has positive X coordinate`)
+                }
                 break
             }
           })
@@ -172,23 +178,25 @@ describe('CountryBorderCities', () => {
             cityData.forEach(city => {
               if (borderCityNames.includes(city.name)) return // Skip border cities
 
-              const value = direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH
+              const value = (direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH)
                 ? city.y
                 : city.x
 
               let isFurtherOut = false
-              if (direction === BorderDirection.NORTH) {
-                isFurtherOut = value < extremeValue
-              } else if (direction === BorderDirection.SOUTH) {
-                isFurtherOut = value > extremeValue
-              } else if (direction === BorderDirection.EAST) {
-                isFurtherOut = value > extremeValue
-              } else if (direction === BorderDirection.WEST) {
-                isFurtherOut = value < extremeValue
+              if (extremeValue !== null) {
+                if (direction === BorderDirection.NORTH) {
+                  isFurtherOut = value < extremeValue
+                } else if (direction === BorderDirection.SOUTH) {
+                  isFurtherOut = value > extremeValue
+                } else if (direction === BorderDirection.EAST) {
+                  isFurtherOut = value > extremeValue
+                } else if (direction === BorderDirection.WEST) {
+                  isFurtherOut = value < extremeValue
+                }
               }
 
               if (isFurtherOut) {
-                expect(isFurtherOut).toBe(false,
+                throw new Error(
                   `City "${city.name}" at (${city.x}, ${city.y}) is further ${direction} ` +
                   `than border city/cities: ${borderCityNames.join(', ')}. ` +
                   `"${city.name}" should be marked as a border city for ${direction}.`
@@ -247,9 +255,11 @@ describe('CountryBorderCities', () => {
             const duplicates = cities.filter((name, index) =>
               cities.indexOf(name) !== index
             )
-            expect(cities.length).toBe(uniqueCities.size,
-              `Country ${countryKey} has duplicate border cities for direction ${direction}: ${duplicates.join(', ')}`
-            )
+            if (cities.length !== uniqueCities.size) {
+              throw new Error(
+                `Country ${countryKey} has duplicate border cities for direction ${direction}: ${duplicates.join(', ')}`
+              )
+            }
           }
         })
       })

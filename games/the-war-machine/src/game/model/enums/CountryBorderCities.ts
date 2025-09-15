@@ -99,15 +99,16 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
 
   // Russia (major borders)
   [Country.RUSSIA]: [
-    // Western border
+    // Western border (with European countries)
+    { cityId: 'russia-kaliningrad', cityName: 'Kaliningrad', direction: BorderDirection.WEST },
     { cityId: 'russia-stpetersburg', cityName: 'St Petersburg', direction: BorderDirection.WEST },
-    // { cityId: 'russia-smolensk', cityName: 'Smolensk', direction: BorderDirection.WEST }, // Smolensk not in Cities.ts
     { cityId: 'russia-rostov', cityName: 'Rostov-on-Don', direction: BorderDirection.WEST },
-    // Southern border
+    // Southern border (with China - these are Far Eastern cities that border China)
     { cityId: 'russia-vladivostok', cityName: 'Vladivostok', direction: BorderDirection.SOUTH },
+    { cityId: 'russia-khabarovsk', cityName: 'Khabarovsk', direction: BorderDirection.SOUTH },
     { cityId: 'russia-irkutsk', cityName: 'Irkutsk', direction: BorderDirection.SOUTH },
-    // Eastern border
-    { cityId: 'russia-khabarovsk', cityName: 'Khabarovsk', direction: BorderDirection.EAST },
+    // Eastern border (Pacific coast, facing Japan)
+    { cityId: 'russia-vladivostok2', cityName: 'Vladivostok', direction: BorderDirection.EAST },
   ],
 
   // China
@@ -143,7 +144,7 @@ export const CountryBorderCities: Record<Country, BorderCity[]> = {
     // Western border (towards mainland Asia)
     { cityId: 'japan-fukuoka', cityName: 'Fukuoka', direction: BorderDirection.WEST },
     { cityId: 'japan-hiroshima', cityName: 'Hiroshima', direction: BorderDirection.WEST },
-    { cityId: 'japan-osaka', cityName: 'Osaka', direction: BorderDirection.WEST },
+    { cityId: 'japan-okayama', cityName: 'Okayama', direction: BorderDirection.WEST },
   ],
 
   // Middle East

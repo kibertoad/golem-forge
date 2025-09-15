@@ -330,13 +330,32 @@ Defines which cities are on borders with neighboring countries:
 - Visual representation of conflicts
 
 ###### Attack Visualization
-- **AttackVisualization** component displays incoming attacks only
+
+###### City-Level Attack Visualization
+- **AttackVisualization** component displays incoming attacks only when viewing cities
 - Shows red attacker blocks positioned just outside country grid borders
 - Draws dashed red lines from attacker blocks to specific border cities
 - Arrow heads point to each targeted border city
 - **Only shows when viewing defending country** - no visualization when viewing attacker
 - Uses actual city grid positions for accurate targeting
 - Block positioning based on cardinal direction (800px horizontal, 380px vertical offset)
+
+###### Continental War Visualization
+- **ContinentWarVisualization** component shows wars at continental scale
+- Displays red dashed lines between warring countries within the same continent
+- Directional arrows indicate attacker → defender relationships
+- Animated crossed swords (⚔️) at midpoint of attack lines
+- Only shows attacks where countries are in the same continent
+- Integrated into ContinentZoomView for geopolitical overview
+
+###### War State Management
+- Countries now track war relationships with Sets instead of arrays:
+  - `warsWith`: Set of all countries at war with
+  - `isAttacking`: Set of countries being attacked by this country
+  - `isDefending`: Set of countries attacking this country
+- `declareWarOn(country, asAggressor)` method sets appropriate flags
+- Simplified logic for determining when to show attack visualizations
+- Attack visualizations only render when `isDefending.size > 0`
 
 ##### Game Initialization Flow
 
@@ -668,3 +687,17 @@ If war declarations aren't showing in UI:
 - Check for bidirectional connections in CityNeighbors
 - Verify no cities overlap in CityData (same x,y coordinates)
 - Ensure each country has exactly one capital city
+
+### Border Cities Testing
+- **Test File**: `src/game/model/enums/CountryBorderCities.test.ts`
+- **Constants File**: `src/game/model/constants/MapPositionConstants.ts`
+- Tests validate that border cities are correctly positioned:
+  - Cities marked as NORTH borders should have low Y values (toward 0)
+  - Cities marked as SOUTH borders should have high Y values (toward 9)
+  - Cities marked as EAST borders should have high X values (toward 9)
+  - Cities marked as WEST borders should have low X values (toward 0)
+- Tests check for line-of-sight obstruction:
+  - If a city blocks the attack line to a declared border city, it should be the border city instead
+  - Uses perpendicular distance calculation with 30px tolerance
+- Corner cities can legitimately be border cities for multiple directions
+- Capital cities generally shouldn't be border cities unless geographically necessary

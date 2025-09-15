@@ -63,36 +63,40 @@ export class ContinentWarVisualization extends GameObjects.Container {
     // Set line style for attack lines - thicker and more visible on continent view
     graphics.lineStyle(4, 0xff0000, 0.9) // Red attack lines
 
+    // Calculate angle and arrow position first
+    const angle = Phaser.Math.Angle.Between(attackerPos.x, attackerPos.y, defenderPos.x, defenderPos.y)
+    const arrowDistance = 30
+    const lineEndX = defenderPos.x - Math.cos(angle) * (arrowDistance - 10) // Stop line just before arrow
+    const lineEndY = defenderPos.y - Math.sin(angle) * (arrowDistance - 10)
+
     // Draw the main line
     graphics.beginPath()
     graphics.moveTo(attackerPos.x, attackerPos.y)
 
-    // Create a dashed line effect
+    // Create a dashed line effect to the adjusted end point
     const distance = Phaser.Math.Distance.Between(
       attackerPos.x,
       attackerPos.y,
-      defenderPos.x,
-      defenderPos.y,
+      lineEndX,
+      lineEndY,
     )
     const dashLength = 20
     const steps = Math.floor(distance / dashLength)
 
-    for (let i = 0; i < steps; i++) {
+    for (let i = 1; i <= steps; i++) {
       const t = i / steps
-      const x = Phaser.Math.Linear(attackerPos.x, defenderPos.x, t)
-      const y = Phaser.Math.Linear(attackerPos.y, defenderPos.y, t)
+      const x = Phaser.Math.Linear(attackerPos.x, lineEndX, t)
+      const y = Phaser.Math.Linear(attackerPos.y, lineEndY, t)
 
-      if (i % 2 === 0) {
+      if (i % 2 === 1) {
         graphics.lineTo(x, y)
       } else {
         graphics.moveTo(x, y)
       }
     }
 
-    // Ensure line reaches the target
-    if (steps % 2 === 0) {
-      graphics.lineTo(defenderPos.x, defenderPos.y)
-    }
+    // Always complete the line to the calculated end point
+    graphics.lineTo(lineEndX, lineEndY)
 
     graphics.strokePath()
 
