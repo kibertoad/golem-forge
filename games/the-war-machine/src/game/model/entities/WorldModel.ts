@@ -6,7 +6,7 @@ import {
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
 import { AgentStatus } from '../enums/AgentEnums.ts'
-import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
 import { CountryCities, type CityData } from '../enums/Cities.ts'
 import type { Country } from '../enums/Countries.ts'
 import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
@@ -328,6 +328,27 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
     this.addLocation(warehouse)
     console.log(`Created warehouse in ${randomCity.name}, ${randomCountry} with ${warehouse.armsStock.length} stock items`)
+
+    // Add a random vendor contact for testing
+    this.addRandomStartingVendorContact()
+  }
+
+  // Add a random vendor contact at game start for testing
+  private addRandomStartingVendorContact() {
+    const vendors = [
+      ArmsManufacturer.DESERT_FORGE,
+      ArmsManufacturer.LIBERTY_SURPLUS,
+      ArmsManufacturer.IRON_CURTAIN,
+      ArmsManufacturer.GUERRILLA_WORKS,
+      ArmsManufacturer.BUDGET_BALLISTICS,
+      ArmsManufacturer.FRONTIER_ARMS,
+      ArmsManufacturer.PRECISION_ARMS,
+      ArmsManufacturer.IRONFORGE,
+    ]
+
+    const randomVendor = vendors[Math.floor(Math.random() * vendors.length)]
+    this.addVendorContact(randomVendor)
+    console.log(`Added starting vendor contact: ${randomVendor}`)
   }
 
   // Location management

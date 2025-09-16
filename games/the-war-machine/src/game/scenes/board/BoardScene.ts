@@ -497,6 +497,11 @@ export class BoardScene extends PotatoScene {
         this.scene.sleep()
         this.scene.run(sceneRegistry.ASSETS_SCENE, {})
         break
+      case NavigationState.CONTACTS:
+        // Transition to Contacts Scene
+        this.scene.sleep()
+        this.scene.run(sceneRegistry.CONTACTS_SCENE, {})
+        break
       // Add other navigation cases here as needed
     }
   }

@@ -5,6 +5,8 @@ import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.t
 import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
 import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
+import { Colors, Typography } from '../../../../registries/styleRegistry.ts'
+import { FilterSortManager, type SortConfig } from '../../../../utils/FilterSortManager.ts'
 import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
@@ -23,21 +25,16 @@ export class StockInventoryView extends GameObjects.Container {
   private itemContainers: GameObjects.Container[] = []
   private filterContainer: GameObjects.Container | null = null
   private detailView: ArmsDetailView | null = null
+  private filterSortManager: FilterSortManager<SortBy> | null = null
 
   // UI elements
   private scrollBar: GameObjects.Graphics | null = null
-  private filterButtons: Map<string, GameObjects.Container> = new Map()
-  private sortButtons: Map<SortBy, GameObjects.Container> = new Map()
   private totalValueText: GameObjects.Text | null = null
   private itemCountText: GameObjects.Text | null = null
 
   // State
   private scrollOffset = 0
   private maxScroll = 0
-  private selectedBranchFilter: ArmsBranch | null = null
-  private selectedConditionFilter: ArmsCondition | null = null
-  private currentSort: SortBy = SortBy.NAME
-  private sortAscending = true
   private availableBranches: Set<ArmsBranch> = new Set()
   private maxVisibleItems = 12
   private filterSectionHeight = 150 // Track actual filter section height
@@ -51,20 +48,15 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Title will be positioned after background is sized
     this.titleText = scene.add.text(0, 0, 'ARMS INVENTORY', {
-      fontSize: '36px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h1,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.title,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.titleText.setOrigin(0.5)
     this.add(this.titleText)
 
-    // Create container for filters
-    this.filterContainer = scene.add.container(0, 0)
-    this.add(this.filterContainer)
-
-    // Other UI sections will be created after analyzing stock
-    this.createSortSection(scene)
+    // Create summary section that will be positioned later
     this.createSummarySection(scene)
     this.createScrollBar(scene)
 
@@ -86,218 +78,110 @@ export class StockInventoryView extends GameObjects.Container {
     this.setDepth(DepthRegistry.STOCK_INVENTORY)
   }
 
-  private createFilterSection(scene: PotatoScene) {
-    // Clear existing filters
-    this.filterContainer?.removeAll(true)
-    this.filterButtons.clear()
+  private createFilterSortSection() {
+    // Clean up old filter/sort manager if exists
+    if (this.filterSortManager) {
+      this.filterSortManager.destroy()
+      this.filterSortManager = null
+    }
 
-    // Get window dimensions
+    const scene = this.scene as PotatoScene
     const windowHeight = (this.background as any).currentHeight || 800
     const halfHeight = windowHeight / 2
 
     // Position filter section relative to window top
-    const filterLabelY = -halfHeight + 70 // 70px from top (after title)
-    const baseX = -780
+    const filterY = -halfHeight + 70 // 70px from top (after title)
 
-    // Filter label
-    const filterLabel = scene.add.text(baseX, filterLabelY, 'FILTERS:', {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#888888',
-    })
-    this.filterContainer?.add(filterLabel)
-
-    // Dynamic branch filters based on available stock
-    const branchLabels: Record<ArmsBranch, string> = {
-      [ArmsBranch.SMALL_ARMS]: 'Small Arms',
-      [ArmsBranch.MISSILES]: 'Missiles',
-      [ArmsBranch.ARMORED_VEHICLES]: 'Vehicles',
-      [ArmsBranch.AIRCRAFT]: 'Aircraft',
-      [ArmsBranch.NAVAL]: 'Naval',
-      [ArmsBranch.DRONES]: 'Drones',
-      [ArmsBranch.ARTILLERY]: 'Artillery',
-      [ArmsBranch.AMMUNITION]: 'Ammo',
-      [ArmsBranch.ELECTRONIC_WARFARE]: 'E-War',
-      [ArmsBranch.CYBER_WARFARE]: 'Cyber',
-      [ArmsBranch.SURVEILLANCE]: 'Recon',
-      [ArmsBranch.COMMUNICATIONS]: 'Comms',
-      [ArmsBranch.SPACE]: 'Space',
-      [ArmsBranch.LOGISTICS]: 'Logistics',
-      [ArmsBranch.CBRN]: 'CBRN',
-    }
-
-    const branchesArray = Array.from(this.availableBranches)
-    const buttonsPerRow = 6
-    let currentRow = 0
-    let currentCol = 0
-
-    // Branch filters start 35px below filter label
-    const branchStartY = filterLabelY + 35
-
-    branchesArray.forEach((branch, index) => {
-      if (index > 0 && index % buttonsPerRow === 0) {
-        currentRow++
-        currentCol = 0
+    // Create sort configurations
+    const sortConfigs: SortConfig<SortBy>[] = [
+      {
+        key: SortBy.NAME,
+        label: 'Name',
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.getName().localeCompare(b.getName())
+      },
+      {
+        key: SortBy.QUANTITY,
+        label: 'Qty',
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.quantity - b.quantity
+      },
+      {
+        key: SortBy.VALUE,
+        label: 'Value',
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.getCurrentMarketValue() - b.getCurrentMarketValue()
+      },
+      {
+        key: SortBy.CONDITION,
+        label: 'Cond',
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => {
+          const conditions = Object.values(ArmsCondition)
+          return conditions.indexOf(a.condition) - conditions.indexOf(b.condition)
+        }
+      },
+      {
+        key: SortBy.BRANCH,
+        label: 'Branch',
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => {
+          const aDef = a.getDefinition()
+          const bDef = b.getDefinition()
+          if (aDef && bDef) {
+            return aDef.branch.localeCompare(bDef.branch)
+          }
+          return 0
+        }
       }
+    ]
 
-      const x = baseX + currentCol * 110
-      const y = branchStartY + currentRow * 40
-
-      const button = this.createFilterButton(scene, branchLabels[branch] || branch, x, y, () => {
-        this.toggleBranchFilter(branch)
-      })
-      this.filterButtons.set(`branch_${branch}`, button)
-      currentCol++
-    })
-
-    // Condition filters on next row after branches with proper spacing
-    const conditionY = branchStartY + Math.ceil(branchesArray.length / buttonsPerRow) * 40 + 15
+    // Only show available branches and common conditions
+    const branchesArray = Array.from(this.availableBranches)
     const conditions = [
-      { condition: ArmsCondition.NEW, label: 'New', x: baseX, y: conditionY },
-      { condition: ArmsCondition.GOOD, label: 'Good', x: baseX + 100, y: conditionY },
-      { condition: ArmsCondition.FAIR, label: 'Fair', x: baseX + 200, y: conditionY },
-      { condition: ArmsCondition.POOR, label: 'Poor', x: baseX + 300, y: conditionY },
+      ArmsCondition.NEW,
+      ArmsCondition.GOOD,
+      ArmsCondition.FAIR,
+      ArmsCondition.POOR
     ]
 
-    conditions.forEach(({ condition, label, x, y }) => {
-      const button = this.createFilterButton(scene, label, x, y, () => {
-        this.toggleConditionFilter(condition)
-      })
-      this.filterButtons.set(`condition_${condition}`, button)
-    })
-
-    // Clear filters button
-    const clearButton = this.createFilterButton(scene, 'Clear All', baseX + 420, conditionY, () => {
-      this.clearFilters()
-    })
-    const clearBg = clearButton.getAt(0) as GameObjects.Graphics
-    clearBg.clear()
-    clearBg.fillStyle(0x660000, 0.8)
-    clearBg.fillRoundedRect(0, 0, 100, 35, 4)
-    clearBg.lineStyle(1, 0xaa0000, 1)
-    clearBg.strokeRoundedRect(0, 0, 100, 35, 4)
-    this.filterContainer?.add(clearButton)
+    // Create filter/sort manager
+    this.filterSortManager = new FilterSortManager(
+      scene,
+      0,
+      filterY,
+      {
+        branches: branchesArray,
+        conditions: conditions,
+        showClearButton: true,
+        layout: 'horizontal'
+      },
+      sortConfigs,
+      {
+        onFiltersChanged: () => this.applyFiltersAndSort(),
+        onSortChanged: () => this.applyFiltersAndSort()
+      }
+    )
+    this.add(this.filterSortManager)
   }
 
-  private createSortSection(scene: PotatoScene) {
-    // Sort label - will be repositioned after filter section
-    const sortLabel = scene.add.text(200, -270, 'SORT BY:', {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#888888',
-    })
-    this.add(sortLabel)
-    sortLabel.setData('isSortLabel', true)
-
-    const sortOptions = [
-      { sort: SortBy.NAME, label: 'Name', x: 200, y: -235 },
-      { sort: SortBy.QUANTITY, label: 'Qty', x: 300, y: -235 },
-      { sort: SortBy.VALUE, label: 'Value', x: 380, y: -235 },
-      { sort: SortBy.CONDITION, label: 'Cond', x: 470, y: -235 },
-    ]
-
-    sortOptions.forEach(({ sort, label, x, y }) => {
-      const button = this.createSortButton(scene, label, x, y, sort)
-      this.sortButtons.set(sort, button)
-    })
-  }
+  // Note: Sort section is now handled by FilterSortManager
 
   private createSummarySection(scene: PotatoScene) {
     // Total value - will be repositioned dynamically
     this.totalValueText = scene.add.text(-780, 0, 'Total Value: $0', {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h4,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.profit,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.add(this.totalValueText)
 
     // Item count
     this.itemCountText = scene.add.text(300, 0, 'Items: 0', {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.h4,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
     })
     this.add(this.itemCountText)
   }
 
-  private createFilterButton(
-    scene: PotatoScene,
-    label: string,
-    x: number,
-    y: number,
-    onClick: () => void,
-  ): GameObjects.Container {
-    const container = scene.add.container(x, y)
-
-    const bg = scene.add.graphics()
-    bg.fillStyle(0x2a2a2a, 0.8)
-    bg.fillRoundedRect(0, 0, 100, 35, 4)
-    bg.lineStyle(1, 0x444444, 1)
-    bg.strokeRoundedRect(0, 0, 100, 35, 4)
-
-    const text = scene.add.text(50, 17.5, label, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
-    })
-    text.setOrigin(0.5)
-
-    container.add([bg, text])
-
-    bg.setInteractive(new Phaser.Geom.Rectangle(0, 0, 100, 35), Phaser.Geom.Rectangle.Contains)
-    bg.on('pointerdown', onClick)
-    bg.on('pointerover', () => {
-      bg.clear()
-      bg.fillStyle(0x3a3a3a, 1)
-      bg.fillRoundedRect(0, 0, 100, 35, 4)
-      bg.lineStyle(1, 0x666666, 1)
-      bg.strokeRoundedRect(0, 0, 100, 35, 4)
-    })
-    bg.on('pointerout', () => {
-      bg.clear()
-      bg.fillStyle(0x2a2a2a, 0.8)
-      bg.fillRoundedRect(0, 0, 100, 35, 4)
-      bg.lineStyle(1, 0x444444, 1)
-      bg.strokeRoundedRect(0, 0, 100, 35, 4)
-    })
-
-    this.filterContainer?.add(container)
-    return container
-  }
-
-  private createSortButton(
-    scene: PotatoScene,
-    label: string,
-    x: number,
-    y: number,
-    sortType: SortBy,
-  ): GameObjects.Container {
-    const container = scene.add.container(x, y)
-
-    const bg = scene.add.graphics()
-    bg.fillStyle(0x2a2a2a, 0.8)
-    bg.fillRoundedRect(0, 0, 80, 35, 4)
-    bg.lineStyle(1, 0x444444, 1)
-    bg.strokeRoundedRect(0, 0, 80, 35, 4)
-
-    const text = scene.add.text(40, 17.5, label, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
-    })
-    text.setOrigin(0.5)
-
-    container.add([bg, text])
-
-    bg.setInteractive(new Phaser.Geom.Rectangle(0, 0, 80, 35), Phaser.Geom.Rectangle.Contains)
-    bg.on('pointerdown', () => {
-      this.setSortBy(sortType)
-    })
-
-    this.add(container)
-    return container
-  }
+  // Filter and sort buttons are now handled by FilterSortManager
 
   private createScrollBar(scene: PotatoScene) {
     this.scrollBar = scene.add.graphics()
@@ -342,10 +226,16 @@ export class StockInventoryView extends GameObjects.Container {
       }
     })
 
-    // Calculate filter section height first
-    const numBranchRows = Math.ceil(this.availableBranches.size / 6)
-    // Title: 70px, Filter label: 35px, Branch rows: numBranchRows * 40px, spacing: 15px, Condition row: 40px, Bottom padding: 25px
-    const calculatedFilterHeight = 70 + 35 + numBranchRows * 40 + 15 + 40 + 25
+    // Calculate filter section height for multi-row layout
+    // Each filter row is 40px (35px height + 5px spacing)
+    let filterRows = 0
+    if (this.availableBranches.size > 0) filterRows++ // Branch row
+    if (items.length > 0) filterRows++ // Conditions row (assuming we have items with conditions)
+    filterRows++ // Sort row
+    filterRows++ // Clear button row
+
+    // Title: 70px, Filter rows: filterRows * 40px, Bottom padding: 20px
+    const calculatedFilterHeight = 70 + (filterRows * 40) + 20
 
     // Calculate window height based on number of items (show all without scrolling if possible)
     const itemHeight = 75
@@ -371,9 +261,9 @@ export class StockInventoryView extends GameObjects.Container {
     // Redraw background with new height
     const halfHeight = windowHeight / 2
     this.background.clear()
-    this.background.fillStyle(0x1a1a1a, 0.95)
+    this.background.fillStyle(Colors.inventory.background, 0.95)
     this.background.fillRoundedRect(-800, -halfHeight, 1600, windowHeight, 10)
-    this.background.lineStyle(2, 0x444444, 1)
+    this.background.lineStyle(2, Colors.inventory.backgroundBorder, 1)
     this.background.strokeRoundedRect(-800, -halfHeight, 1600, windowHeight, 10)
     // Store height for later reference
     ;(this.background as any).currentHeight = windowHeight
@@ -381,26 +271,11 @@ export class StockInventoryView extends GameObjects.Container {
     // Reposition title
     this.titleText.setY(-halfHeight + 30)
 
-    // Recreate filter section with dynamic branches
-    const scene = this.scene as PotatoScene
-    this.createFilterSection(scene)
+    // Create filter/sort section with dynamic branches
+    this.createFilterSortSection()
 
-    // Filter section height was already calculated above, just use it
+    // Use the calculated filter height directly (already includes all rows)
     this.filterSectionHeight = calculatedFilterHeight
-
-    // Reposition sort section right after filter section with padding
-    const sortY = -halfHeight + this.filterSectionHeight + 10
-    this.list.forEach((child) => {
-      if (child.getData && child.getData('isSortLabel')) {
-        ;(child as GameObjects.Text).setY(sortY)
-      }
-    })
-
-    // Reposition sort buttons
-    const sortButtonY = sortY + 30
-    this.sortButtons.forEach((button) => {
-      button.setY(sortButtonY)
-    })
 
     // Reposition summary at bottom
     const summaryY = halfHeight - 40
@@ -410,88 +285,35 @@ export class StockInventoryView extends GameObjects.Container {
     this.applyFiltersAndSort()
   }
 
-  private toggleBranchFilter(branch: ArmsBranch) {
-    if (this.selectedBranchFilter === branch) {
-      this.selectedBranchFilter = null
-    } else {
-      this.selectedBranchFilter = branch
-    }
-    this.applyFiltersAndSort()
-  }
-
-  private toggleConditionFilter(condition: ArmsCondition) {
-    if (this.selectedConditionFilter === condition) {
-      this.selectedConditionFilter = null
-    } else {
-      this.selectedConditionFilter = condition
-    }
-    this.applyFiltersAndSort()
-  }
-
-  private clearFilters() {
-    this.selectedBranchFilter = null
-    this.selectedConditionFilter = null
-    this.applyFiltersAndSort()
-  }
-
-  private setSortBy(sortBy: SortBy) {
-    if (this.currentSort === sortBy) {
-      this.sortAscending = !this.sortAscending
-    } else {
-      this.currentSort = sortBy
-      this.sortAscending = true
-    }
-    this.applyFiltersAndSort()
-  }
+  // Filter and sort state is now managed by FilterSortManager
 
   private applyFiltersAndSort() {
-    // Apply filters
-    this.displayedItems = this.stockItems.filter((item) => {
+    if (!this.filterSortManager) {
+      this.displayedItems = [...this.stockItems]
+      this.scrollOffset = 0
+      this.maxScroll = Math.max(0, this.displayedItems.length - this.maxVisibleItems)
+      this.updateDisplay()
+      this.updateSummary()
+      return
+    }
+
+    // Define filter functions for each filter type
+    const filterFunctions = new Map<string, (item: ArmsStockModel, filterValue: any) => boolean>()
+
+    filterFunctions.set('branch_filter', (item: ArmsStockModel, branch: ArmsBranch) => {
       const def = item.getDefinition()
-      if (!def) return false
-
-      if (this.selectedBranchFilter && def.branch !== this.selectedBranchFilter) {
-        return false
-      }
-
-      if (this.selectedConditionFilter && item.condition !== this.selectedConditionFilter) {
-        return false
-      }
-
-      return true
+      return def ? def.branch === branch : false
     })
 
-    // Apply sorting
-    this.displayedItems.sort((a, b) => {
-      let comparison = 0
-
-      switch (this.currentSort) {
-        case SortBy.NAME:
-          comparison = a.getName().localeCompare(b.getName())
-          break
-        case SortBy.QUANTITY:
-          comparison = a.quantity - b.quantity
-          break
-        case SortBy.VALUE:
-          comparison = a.getCurrentMarketValue() - b.getCurrentMarketValue()
-          break
-        case SortBy.CONDITION: {
-          const conditions = Object.values(ArmsCondition)
-          comparison = conditions.indexOf(a.condition) - conditions.indexOf(b.condition)
-          break
-        }
-        case SortBy.BRANCH: {
-          const aDef = a.getDefinition()
-          const bDef = b.getDefinition()
-          if (aDef && bDef) {
-            comparison = aDef.branch.localeCompare(bDef.branch)
-          }
-          break
-        }
-      }
-
-      return this.sortAscending ? comparison : -comparison
+    filterFunctions.set('condition_filter', (item: ArmsStockModel, condition: ArmsCondition) => {
+      return item.condition === condition
     })
+
+    // Apply filters using FilterSortManager
+    this.displayedItems = this.filterSortManager.applyFilters(this.stockItems, filterFunctions)
+
+    // Apply sorting using FilterSortManager
+    this.displayedItems = this.filterSortManager.applySort(this.displayedItems)
 
     this.scrollOffset = 0
     this.maxScroll = Math.max(0, this.displayedItems.length - this.maxVisibleItems)
@@ -531,9 +353,9 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Item background
     const bg = scene.add.graphics()
-    bg.fillStyle(0x1a1a1a, 0.6)
+    bg.fillStyle(Colors.inventory.itemBackground, 0.6)
     bg.fillRoundedRect(0, 0, 1140, 70, 5)
-    bg.lineStyle(1, 0x333333, 0.8)
+    bg.lineStyle(1, Colors.inventory.itemBorder, 0.8)
     bg.strokeRoundedRect(0, 0, 1140, 70, 5)
     container.add(bg)
 
@@ -542,57 +364,57 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Name
     const nameText = scene.add.text(15, 20, def.name, {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h5,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     container.add(nameText)
 
     // Branch
     const branchText = scene.add.text(15, 45, def.branch, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#888888',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
     })
     container.add(branchText)
 
     // Quantity
     const qtyText = scene.add.text(500, 20, `Qty: ${item.quantity}`, {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#00ffff',
+      fontSize: Typography.fontSize.h5,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.value,
     })
     container.add(qtyText)
 
     // Condition
     const conditionColor = this.getConditionColor(item.condition)
     const conditionText = scene.add.text(500, 45, item.condition, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
       color: conditionColor,
     })
     container.add(conditionText)
 
     // Value
     const valueText = scene.add.text(700, 20, `$${item.getCurrentMarketValue().toLocaleString()}`, {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
+      fontSize: Typography.fontSize.h5,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.profit,
     })
     container.add(valueText)
 
     // Profit/Loss
     const profit = item.getPotentialProfit()
-    const profitColor = profit >= 0 ? '#00ff00' : '#ff0000'
+    const profitColor = profit >= 0 ? Colors.inventory.profit : Colors.inventory.loss
     const profitSymbol = profit >= 0 ? '+' : ''
     const profitText = scene.add.text(
       700,
       45,
       `${profitSymbol}$${Math.abs(profit).toLocaleString()}`,
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
         color: profitColor,
       },
     )
@@ -623,15 +445,15 @@ export class StockInventoryView extends GameObjects.Container {
     const container = scene.add.container(x, y)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x004400, 0.8)
+    bg.fillStyle(Colors.inventory.sellButton, 0.8)
     bg.fillRoundedRect(0, 0, 70, 30, 3)
-    bg.lineStyle(1, 0x00ff00, 0.5)
+    bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
     bg.strokeRoundedRect(0, 0, 70, 30, 3)
 
     const text = scene.add.text(35, 15, label, {
-      fontSize: '16px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
+      fontSize: Typography.fontSize.small,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.profit,
     })
     text.setOrigin(0.5)
 
@@ -641,16 +463,16 @@ export class StockInventoryView extends GameObjects.Container {
     bg.on('pointerdown', onClick)
     bg.on('pointerover', () => {
       bg.clear()
-      bg.fillStyle(0x006600, 1)
+      bg.fillStyle(Colors.inventory.sellButtonHover, 1)
       bg.fillRoundedRect(0, 0, 70, 30, 3)
-      bg.lineStyle(1, 0x00ff00, 1)
+      bg.lineStyle(1, Colors.inventory.sellBorder, 1)
       bg.strokeRoundedRect(0, 0, 70, 30, 3)
     })
     bg.on('pointerout', () => {
       bg.clear()
-      bg.fillStyle(0x004400, 0.8)
+      bg.fillStyle(Colors.inventory.sellButton, 0.8)
       bg.fillRoundedRect(0, 0, 70, 30, 3)
-      bg.lineStyle(1, 0x00ff00, 0.5)
+      bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
       bg.strokeRoundedRect(0, 0, 70, 30, 3)
     })
 
@@ -671,7 +493,7 @@ export class StockInventoryView extends GameObjects.Container {
       const scrollStartY = -halfHeight + this.filterSectionHeight + 80
 
       // Draw scrollbar track
-      this.scrollBar.fillStyle(0x1a1a1a, 0.5)
+      this.scrollBar.fillStyle(Colors.inventory.scrollTrack, 0.5)
       this.scrollBar.fillRoundedRect(580, scrollStartY, 10, scrollTrackHeight, 5)
 
       // Draw scrollbar thumb
@@ -682,7 +504,7 @@ export class StockInventoryView extends GameObjects.Container {
       const thumbY =
         scrollStartY + (this.scrollOffset / this.maxScroll) * (scrollTrackHeight - thumbHeight)
 
-      this.scrollBar.fillStyle(0x666666, 0.8)
+      this.scrollBar.fillStyle(Colors.inventory.scrollThumb, 0.8)
       this.scrollBar.fillRoundedRect(580, thumbY, 10, thumbHeight, 5)
     }
   }
@@ -702,103 +524,25 @@ export class StockInventoryView extends GameObjects.Container {
       this.itemCountText.setText(`Items: ${totalItems.toLocaleString()}`)
     }
 
-    // Update filter button states
-    this.filterButtons.forEach((button, key) => {
-      const bg = button.getAt(0) as GameObjects.Graphics
-      const text = button.getAt(1) as GameObjects.Text
-
-      if (key.startsWith('branch_')) {
-        const branch = key.replace('branch_', '') as ArmsBranch
-        bg.clear()
-        if (this.selectedBranchFilter === branch) {
-          bg.fillStyle(0x00aa00, 0.8)
-          bg.fillRoundedRect(0, 0, 100, 35, 4)
-          bg.lineStyle(1, 0x00ff00, 1)
-          bg.strokeRoundedRect(0, 0, 100, 35, 4)
-          text.setColor('#ffffff')
-        } else {
-          bg.fillStyle(0x2a2a2a, 0.8)
-          bg.fillRoundedRect(0, 0, 100, 35, 4)
-          bg.lineStyle(1, 0x444444, 1)
-          bg.strokeRoundedRect(0, 0, 100, 35, 4)
-          text.setColor('#aaaaaa')
-        }
-      } else if (key.startsWith('condition_')) {
-        const condition = key.replace('condition_', '') as ArmsCondition
-        bg.clear()
-        if (this.selectedConditionFilter === condition) {
-          bg.fillStyle(0x00aa00, 0.8)
-          bg.fillRoundedRect(0, 0, 100, 35, 4)
-          bg.lineStyle(1, 0x00ff00, 1)
-          bg.strokeRoundedRect(0, 0, 100, 35, 4)
-          text.setColor('#ffffff')
-        } else {
-          bg.fillStyle(0x2a2a2a, 0.8)
-          bg.fillRoundedRect(0, 0, 100, 35, 4)
-          bg.lineStyle(1, 0x444444, 1)
-          bg.strokeRoundedRect(0, 0, 100, 35, 4)
-          text.setColor('#aaaaaa')
-        }
-      }
-    })
-
-    // Update sort button states
-    this.sortButtons.forEach((button, sortType) => {
-      const bg = button.getAt(0) as GameObjects.Graphics
-      const text = button.getAt(1) as GameObjects.Text
-
-      // Get original label without arrow
-      let label = ''
-      switch (sortType) {
-        case SortBy.NAME:
-          label = 'Name'
-          break
-        case SortBy.QUANTITY:
-          label = 'Qty'
-          break
-        case SortBy.VALUE:
-          label = 'Value'
-          break
-        case SortBy.CONDITION:
-          label = 'Cond'
-          break
-      }
-
-      bg.clear()
-      if (this.currentSort === sortType) {
-        bg.fillStyle(0x0066aa, 0.8)
-        bg.fillRoundedRect(0, 0, 80, 35, 4)
-        bg.lineStyle(1, 0x00aaff, 1)
-        bg.strokeRoundedRect(0, 0, 80, 35, 4)
-        text.setColor('#ffffff')
-        text.setText(label + (this.sortAscending ? '↑' : '↓'))
-      } else {
-        bg.fillStyle(0x2a2a2a, 0.8)
-        bg.fillRoundedRect(0, 0, 80, 35, 4)
-        bg.lineStyle(1, 0x444444, 1)
-        bg.strokeRoundedRect(0, 0, 80, 35, 4)
-        text.setColor('#aaaaaa')
-        text.setText(label)
-      }
-    })
+    // Filter and sort button states are now handled by FilterSortManager
   }
 
   private getConditionColor(condition: ArmsCondition): string {
     switch (condition) {
       case ArmsCondition.NEW:
-        return '#00ff00'
+        return Colors.inventory.profit
       case ArmsCondition.EXCELLENT:
         return '#88ff00'
       case ArmsCondition.GOOD:
-        return '#ffff00'
+        return Colors.money.neutral
       case ArmsCondition.FAIR:
         return '#ff8800'
       case ArmsCondition.POOR:
         return '#ff4400'
       case ArmsCondition.SALVAGE:
-        return '#ff0000'
+        return Colors.inventory.loss
       default:
-        return '#ffffff'
+        return Colors.text.primary
     }
   }
 

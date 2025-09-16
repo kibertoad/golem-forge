@@ -12,6 +12,7 @@ import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { ArmsShowScene } from '../scenes/armsShow/ArmsShowScene.ts'
 import { AssetsScene } from '../scenes/assets/AssetsScene.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
+import { ContactsScene } from '../scenes/contacts/ContactsScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { PersonnelScene } from '../scenes/personnel/PersonnelScene.ts'
 import { ResearchScene } from '../scenes/research/ResearchScene.ts'
@@ -32,6 +33,7 @@ export interface Dependencies {
   assetsScene: AssetsScene
   researchScene: ResearchScene
   personnelScene: PersonnelScene
+  contactsScene: ContactsScene
   endTurnProcessor: EndTurnProcessor
   warDirector: WarDirector
   warSystem: WarSystem
@@ -57,6 +59,7 @@ export function instantiateContainer() {
     assetsScene: asClass(AssetsScene, SINGLETON_CONFIG),
     researchScene: asClass(ResearchScene, SINGLETON_CONFIG),
     personnelScene: asClass(PersonnelScene, SINGLETON_CONFIG),
+    contactsScene: asClass(ContactsScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
     warSystem: asClass(WarSystem, SINGLETON_CONFIG),
     warDirector: asClass(WarDirector, SINGLETON_CONFIG),

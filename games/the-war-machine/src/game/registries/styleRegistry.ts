@@ -55,6 +55,31 @@ export const Colors = {
     neutral: '#fbbf24', // Yellow for costs
   },
 
+  // Stock Inventory specific colors
+  inventory: {
+    title: '#00ff00', // Bright green for inventory title
+    value: '#00ffff', // Cyan for values
+    profit: '#00ff00', // Green for profit
+    loss: '#ff0000', // Red for loss
+    filterActive: 0x00aa00, // Active filter green
+    filterBorder: 0x00ff00, // Filter border green
+    sortActive: 0x0066aa, // Active sort blue
+    sortBorder: 0x00aaff, // Sort border blue
+    clearButton: 0x660000, // Dark red for clear button
+    clearBorder: 0xaa0000, // Red border for clear
+    sellButton: 0x004400, // Dark green for sell button
+    sellButtonHover: 0x006600, // Brighter green on hover
+    sellBorder: 0x00ff00, // Green border
+    scrollTrack: 0x1a1a1a, // Dark track
+    scrollThumb: 0x666666, // Grey thumb
+    background: 0x1a1a1a, // Inventory background
+    backgroundBorder: 0x444444, // Background border
+    itemBackground: 0x2a2a2a, // Item row background
+    itemBorder: 0x444444, // Item row border
+    itemHover: 0x3a3a3a, // Item hover background
+    itemHoverBorder: 0x666666, // Item hover border
+  },
+
   // Heat Levels
   heat: {
     low: '#10b981', // Green (0-3)

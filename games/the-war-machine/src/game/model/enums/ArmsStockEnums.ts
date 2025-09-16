@@ -9,6 +9,14 @@ export enum ArmsCondition {
   SALVAGE = 'salvage',
 }
 
+export enum ArmsGrade {
+  OBSOLETE = 'obsolete',
+  LEGACY = 'legacy',
+  MODERN = 'modern',
+  NEXTGEN = 'nextgen',
+  EXPERIMENTAL = 'experimental',
+}
+
 // Subcategory groups - categories within a group are mutually exclusive
 export interface SubcategoryGroup {
   name: string

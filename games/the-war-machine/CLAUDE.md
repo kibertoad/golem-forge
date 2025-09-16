@@ -155,6 +155,95 @@ class EntityView extends GameObjects.Container {
 - Prefer composition over inheritance
 - Keep views and models separated
 
+## Reusable UI Components
+
+### FilterSortManager
+
+A generic, reusable component for managing filters and sorting in UI views.
+
+**Location**: `src/game/utils/FilterSortManager.ts`
+
+**Features**:
+- Dynamic filter creation for branches, conditions, grades, and custom filters
+- Multi-row layout with each filter category on its own labeled row
+- Configurable sort options with custom comparison functions
+- Unified UI creation with consistent styling from StyleRegistry
+- State management for active filters and sort direction
+- Callbacks for filter/sort changes
+- Type-safe with generics for sort keys
+- Enhanced clear button with red styling and hover effects
+- Automatic height calculation for proper layout integration
+
+**Layout**:
+- Each filter category (Branches, Conditions, Grades, Custom) appears on its own row
+- Category labels positioned at x: -650, filter buttons start at x: -450
+- Row height: 35px with 5px spacing between rows
+- Clear button on its own row with distinctive red styling
+- Sort options appear on the last row
+
+**Usage Example**:
+```typescript
+import { FilterSortManager, type SortConfig } from '../utils/FilterSortManager.ts'
+
+// Define sort configurations
+const sortConfigs: SortConfig<MySortKey>[] = [
+  {
+    key: MySortKey.PRICE,
+    label: 'Price',
+    compareFunction: (a, b) => a.price - b.price
+  },
+  // ... more sort options
+]
+
+// Create the manager
+const filterSortManager = new FilterSortManager(
+  scene,
+  x,
+  y,
+  {
+    branches: [ArmsBranch.MISSILES, ArmsBranch.SMALL_ARMS],
+    conditions: [ArmsCondition.GOOD, ArmsCondition.FAIR],
+    grades: [ArmsGrade.OBSOLETE, ArmsGrade.LEGACY],
+    custom: [{ key: 'special', label: 'Special Items', value: true }],
+    showClearButton: true  // Default is true
+  },
+  sortConfigs,
+  {
+    onFiltersChanged: () => this.applyFilters(),
+    onSortChanged: () => this.applySort(),
+  }
+)
+
+// Define filter functions for your data
+const filterFunctions = new Map([
+  ['branch_filter', (item, branch) => item.definition?.branch === branch],
+  ['condition_filter', (item, condition) => item.condition === condition],
+  ['grade_filter', (item, grade) => item.definition?.grade === grade],
+  ['special_filter', (item, value) => item.isSpecial === value]
+])
+
+// Apply filters to a collection
+const filtered = filterSortManager.applyFilters(items, filterFunctions)
+
+// Apply sorting
+const sorted = filterSortManager.applySort(filtered)
+
+// Get current state
+const activeFilters = filterSortManager.getActiveFilters() // Map<string, any>
+const currentSort = filterSortManager.getCurrentSort() // { key: SortKey, ascending: boolean }
+```
+
+**Currently Used By**:
+- `BlackMarketView`: Filters and sorts black market offers
+- `StockInventoryView`: Filters and sorts arms inventory with dynamic window sizing
+
+**Integration Notes**:
+- The component returns its total height for proper container layout
+- Buttons are positioned to avoid text overlap (labels at x: -650, buttons at x: -450)
+- Each row consumes 40px of vertical space (35px height + 5px spacing)
+- Clear button uses red styling with hover effects for better visibility
+- Multi-row layout ensures scalability for many filter options
+
 ## Utility Functions
 
 ### Money Formatting
@@ -174,6 +263,76 @@ class EntityView extends GameObjects.Container {
   formatMoney(1500000)  // "$1.5M"
   formatMoney(1500, false) // "$2K" (no decimals)
   ```
+
+## Contacts System
+
+The Contacts system provides access to various suppliers and connections for acquiring arms.
+
+### ContactsScene
+**Location**: `src/game/scenes/contacts/ContactsScene.ts`
+
+A dedicated scene for managing all player contacts, accessible from BoardScene via the Contacts button in the navigation bar.
+
+**Tabs**:
+1. **Black Market**: Immediate purchase of lower-grade equipment
+2. **Vendors**: Legitimate suppliers unlocked through Arms Shows
+3. **Insurgents**: (Coming Soon)
+4. **State Actors**: (Coming Soon)
+5. **Mercenaries**: (Coming Soon)
+6. **Brokers**: (Coming Soon)
+
+### Black Market
+**Location**: `src/game/scenes/contacts/tabs/BlackMarketView.ts`
+
+**Features**:
+- 10 random offers generated at game start
+- Offers refresh monthly
+- Equipment limited to Obsolete, Legacy, or Modern grades
+- Condition varies by grade:
+  - Obsolete: Mostly salvage to fair
+  - Legacy: Poor to good
+  - Modern: Only fair or below
+- Each offer includes: quantity, condition, price, location (country/city)
+- Purchase requires selecting a warehouse with sufficient space
+- Uses FilterSortManager for filtering and sorting
+
+### Vendor Contacts
+**Location**: `src/game/scenes/contacts/tabs/VendorsView.ts`
+
+**Features**:
+- Shows vendors unlocked through successful Arms Show attendance
+- Vendors categorized by quality tier: Basic, Standard, Premium
+- Each vendor specializes in specific equipment types and grade ranges
+- Starting vendor contact added randomly for testing
+- Future: Direct purchasing from vendor catalogs
+
+### Arms Grade System
+
+**Location**: `src/game/model/enums/ArmsStockEnums.ts`
+
+Equipment is categorized into technology generations:
+
+```typescript
+export enum ArmsGrade {
+  OBSOLETE = 'obsolete',    // Old, outdated equipment
+  LEGACY = 'legacy',        // Previous generation, still functional
+  MODERN = 'modern',        // Current standard military equipment
+  NEXTGEN = 'nextgen',      // Advanced, cutting-edge technology
+  EXPERIMENTAL = 'experimental' // Prototype/experimental systems
+}
+```
+
+**Grade Distribution**:
+- **Obsolete**: Budget manufacturers (Backyard Defense, Budget Ballistics)
+- **Legacy**: Regional manufacturers (Desert Forge, Frontier Arms)
+- **Modern**: Major defense contractors (IronForge, Precision Arms)
+- **Nextgen**: Advanced systems (Autonomous Systems, Maritime Defense)
+- **Experimental**: Future research projects
+
+**Impact on Availability**:
+- Black Market: Only Obsolete, Legacy, and Modern (poor condition)
+- Vendor Contacts: Access based on vendor tier
+- Arms Shows: Full range based on manufacturer
 
 ## Important Game Data Files
 
