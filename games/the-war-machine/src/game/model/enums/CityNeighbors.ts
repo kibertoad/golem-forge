@@ -481,20 +481,22 @@ export const CountryCityNeighbors: Partial<Record<Country, CityNeighbors>> = {
 
   [Country.UKRAINE]: {
     Kyiv: ['Chernihiv', 'Vinnytsia', 'Poltava'],
-    Kharkiv: ['Poltava', 'Luhansk'],
+    Kharkiv: ['Poltava', 'Luhansk', 'Sumy'],
     Odesa: ['Mykolaiv', 'Simferopol'],
     Dnipro: ['Poltava', 'Zaporizhzhia', 'Kryvyi Rih', 'Donetsk'],
     Donetsk: ['Dnipro', 'Luhansk', 'Mariupol'],
     Zaporizhzhia: ['Dnipro', 'Mariupol', 'Kryvyi Rih'],
-    Lviv: ['Vinnytsia'],
+    Lviv: ['Vinnytsia', 'Lutsk'],
     'Kryvyi Rih': ['Dnipro', 'Zaporizhzhia', 'Mykolaiv'],
     Mykolaiv: ['Odesa', 'Kryvyi Rih'],
     Mariupol: ['Donetsk', 'Zaporizhzhia'],
     Luhansk: ['Kharkiv', 'Donetsk'],
-    Vinnytsia: ['Kyiv', 'Lviv'],
+    Vinnytsia: ['Kyiv', 'Lviv', 'Lutsk'],
     Simferopol: ['Odesa'],
-    Chernihiv: ['Kyiv'],
-    Poltava: ['Kyiv', 'Kharkiv', 'Dnipro'],
+    Chernihiv: ['Kyiv', 'Sumy'],
+    Poltava: ['Kyiv', 'Kharkiv', 'Dnipro', 'Sumy'],
+    Lutsk: ['Lviv', 'Vinnytsia'],
+    Sumy: ['Kharkiv', 'Poltava', 'Chernihiv'],
   },
 
   [Country.NETHERLANDS]: {
@@ -657,7 +659,7 @@ export const CountryCityNeighbors: Partial<Record<Country, CityNeighbors>> = {
   },
 
   [Country.IRAN]: {
-    Tehran: ['Qom', 'Kashan', 'Hamadan', 'Sari'],
+    Tehran: ['Qom', 'Kashan', 'Hamadan', 'Sari', 'Isfahan'],
     Mashhad: ['Gorgan', 'Sari', 'Kerman'],
     Isfahan: ['Tehran', 'Qom', 'Kashan', 'Yazd', 'Shiraz'],
     Shiraz: ['Isfahan', 'Yazd', 'Kerman', 'Bushehr'],
