@@ -19,10 +19,12 @@ export class WarehouseView extends Phaser.GameObjects.Container {
   private stockOverlay?: Phaser.GameObjects.Container
   private selectedWarehouseId?: string
   private warehouseBackgrounds: Map<string, Phaser.GameObjects.Rectangle> = new Map()
+  private assetsScene: any // Reference to parent AssetsScene
 
   constructor(scene: PotatoScene, worldModel: WorldModel) {
     super(scene, 0, 0)
     this.worldModel = worldModel
+    this.assetsScene = scene // Store reference to parent scene
 
     this.createView()
   }
@@ -319,6 +321,11 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       this.stockOverlay = undefined
     }
 
+    // Hide the entire content container while overlay is shown
+    if (this.assetsScene.contentContainer) {
+      this.assetsScene.contentContainer.setVisible(false)
+    }
+
     // Create stock overlay using the shared component
     const title = `Stock in ${warehouse.city}, ${warehouse.country}`
     this.stockOverlay = new StockOverlay(
@@ -327,6 +334,10 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       title,
       () => {
         this.stockOverlay = undefined
+        // Show the content container again when overlay closes
+        if (this.assetsScene.contentContainer) {
+          this.assetsScene.contentContainer.setVisible(true)
+        }
       },
     )
   }

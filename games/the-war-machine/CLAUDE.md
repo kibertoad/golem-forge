@@ -114,6 +114,29 @@ class EntityView extends GameObjects.Container {
 - Global scene events via `globalSceneEventEmitter`
 - Board-specific events via `boardEmitter`
 
+## Item Height Standards
+
+Consistent item heights improve visual cohesion:
+
+### Standard Heights
+- **Compact** (40px): Black market, filtered lists with many items
+- **Normal** (50px): Stock overlays, simple lists
+- **Comfortable** (70px): Inventory views with details
+- **Expanded** (100px+): Detailed cards with multiple data points
+
+### Spacing Standards
+- **Item gap**: 5px between items in lists
+- **Section gap**: 20-30px between major sections
+- **Filter gap**: 150px minimum for filter sections
+
+### Calculating List Container Heights
+```typescript
+const visibleItems = 10  // Max items before scrolling
+const itemHeight = 45     // Item + spacing
+const listHeight = visibleItems * itemHeight
+const containerHeight = headerHeight + filterHeight + listHeight + padding
+```
+
 ## Testing Approach
 - Test framework: **Vitest**
 - Run tests: `npm test`
@@ -157,11 +180,21 @@ class EntityView extends GameObjects.Container {
 
 ## Reusable UI Components
 
+All reusable UI components are located in `src/game/components/` for better organization and discoverability.
+
+### Component Architecture Principles
+
+1. **Generic Type Parameters**: Components use TypeScript generics to work with different data types while maintaining type safety
+2. **Interface-Based Contracts**: Components depend on interfaces (like `StockListItem`) rather than concrete types
+3. **Configuration Over Code**: Extensive configuration options to customize behavior without modifying component code
+4. **Event-Driven Communication**: Components emit events rather than directly calling parent methods
+5. **Style Registry Integration**: All colors, fonts, and dimensions come from centralized style registry
+
 ### FilterSortManager
 
 A generic, reusable component for managing filters and sorting in UI views.
 
-**Location**: `src/game/utils/FilterSortManager.ts`
+**Location**: `src/game/components/FilterSortManager.ts`
 
 **Features**:
 - Dynamic filter creation for branches, conditions, grades, and custom filters
@@ -183,7 +216,7 @@ A generic, reusable component for managing filters and sorting in UI views.
 
 **Usage Example**:
 ```typescript
-import { FilterSortManager, type SortConfig } from '../utils/FilterSortManager.ts'
+import { FilterSortManager, type SortConfig } from '../components/FilterSortManager.ts'
 
 // Define sort configurations
 const sortConfigs: SortConfig<MySortKey>[] = [
@@ -243,6 +276,333 @@ const currentSort = filterSortManager.getCurrentSort() // { key: SortKey, ascend
 - Each row consumes 40px of vertical space (35px height + 5px spacing)
 - Clear button uses red styling with hover effects for better visibility
 - Multi-row layout ensures scalability for many filter options
+
+### StockListDisplay
+
+A reusable component for displaying lists of arms stock items with consistent styling and behavior.
+
+**Location**: `src/game/components/StockListDisplay.ts`
+
+**Base Interface**:
+```typescript
+interface StockListItem {
+  quantity: number
+  condition: ArmsCondition
+  getName?: () => string
+  getDefinition?: () => ArmsDefinition | undefined
+  getCurrentMarketValue?: () => number
+  getPotentialProfit?: () => number
+  [key: string]: any // Allow additional properties
+}
+```
+
+Any data type that extends `StockListItem` can be displayed by this component.
+
+**Features**:
+- Configurable columns (quantity, condition, value, profit/loss)
+- Custom action buttons with hover effects
+- Built-in scrolling with scrollbar visualization
+- Item hover and click callbacks
+- Consistent styling from StyleRegistry
+- Support for custom columns and data
+- Automatic scrollbar management
+- Configurable item dimensions and spacing
+
+**Configuration Options**:
+```typescript
+interface StockListConfig {
+  width?: number         // Item width (default: 1140)
+  height?: number        // Item height (default: 70)
+  spacing?: number       // Space between items (default: 5)
+  showQuantity?: boolean // Show quantity column (default: true)
+  showCondition?: boolean // Show condition column (default: true)
+  showValue?: boolean    // Show value column (default: true)
+  showProfit?: boolean   // Show profit/loss column (default: true)
+  showActions?: boolean  // Show action buttons (default: true)
+  actions?: StockItemAction[] // Custom action buttons
+  columns?: ColumnConfig[]    // Additional custom columns
+}
+```
+
+**Usage Example**:
+```typescript
+import { StockListDisplay } from '../components/StockListDisplay.ts'
+
+// Create the stock list display
+const stockList = new StockListDisplay(
+  scene,
+  x,
+  y,
+  {
+    width: 1140,
+    height: 70,
+    showQuantity: true,
+    showCondition: true,
+    showValue: true,
+    showProfit: true,
+    actions: [
+      {
+        label: 'SELL',
+        onClick: (item) => this.sellItem(item),
+        color: Colors.inventory.sellButton,
+        hoverColor: Colors.inventory.sellButtonHover,
+      },
+      {
+        label: 'INFO',
+        onClick: (item) => this.showItemDetails(item),
+      }
+    ],
+    // Add custom columns
+    columns: [
+      {
+        key: 'location',
+        label: 'Location',
+        x: 900,
+        getValue: (item) => item.location || 'Unknown',
+        getColor: (item) => Colors.text.muted,
+      }
+    ]
+  },
+  {
+    onItemClick: (item) => console.log('Clicked:', item),
+    onItemHover: (item) => console.log('Hovering:', item),
+  }
+)
+
+// Set items to display
+stockList.setItems(items, maxVisibleItems)
+
+// Handle scrolling
+scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
+  stockList.scroll(deltaY > 0 ? 1 : -1)
+})
+
+// Listen to events
+stockList.on('item-sell', (item) => handleSell(item))
+stockList.on('item-info', (item) => showDetails(item))
+```
+
+**Currently Used By**:
+- `StockInventoryView`: Displays arms inventory with filtering and sorting
+- `BlackMarketView`: Shows black market offers with custom columns for location and price
+
+**Benefits**:
+- Eliminates duplicate item rendering code
+- Consistent appearance across all stock lists
+- Easily customizable for different contexts
+- Built-in scrolling and event handling
+- Reduces code by ~200 lines per implementation
+
+### StockListView & StockOverlay
+
+Legacy components for displaying stock in modal overlays. Located in `src/game/scenes/components/`.
+
+**StockListView**: A simpler list view without filtering/sorting capabilities
+- Uses rectangles instead of graphics for backgrounds
+- 50px item height with single-line layout
+- All text on one line (name, quantity, condition, value)
+- Simpler but less flexible than StockListDisplay
+
+**StockOverlay**: Modal wrapper that displays StockListView with overlay background
+
+**Currently Used By**:
+- `WarehouseView`: Shows warehouse stock in a modal overlay
+
+**Key Differences from StockListDisplay**:
+- **StockListView**: Simple, fixed layout, better for uniform content
+- **StockListDisplay**: Complex, flexible, supports variable heights and custom columns
+
+**When to Use Which**:
+- Use `StockListView` for simple modal displays with uniform items
+- Use `StockListDisplay` for complex lists with filtering, sorting, and custom layouts
+
+### Column Layout Best Practices
+
+When designing multi-column layouts:
+
+```typescript
+// Define clear column positions
+const columnPositions = {
+  name: 15,
+  quantity: 450,
+  value: 600,
+  custom: 750,
+  actions: 1000
+}
+
+// Ensure adequate spacing
+// Minimum 150px between column starts for readability
+// Account for text width when positioning
+```
+
+**Responsive Column Positioning**:
+- Primary info (name): Far left (x: 15-30)
+- Secondary data (qty, condition): Center-left (x: 450)
+- Values/prices: Center-right (x: 600-750)
+- Actions: Far right (x: 1000+)
+- Custom columns: Adjust based on content
+
+## Component Best Practices
+
+### When Creating New Components
+
+1. **Define Clear Interfaces**: Create interfaces for configuration and callbacks
+2. **Use Generics**: Make components work with multiple data types
+3. **Emit Events**: Use `this.emit()` for parent communication rather than callbacks
+4. **Support Scrolling**: Include scrollbar visualization for long lists
+5. **Use Style Registry**: Never hardcode colors or dimensions
+6. **Make It Configurable**: Provide options to toggle features on/off
+7. **Document Usage**: Add examples in CLAUDE.md
+
+### Component vs. Scene Architecture
+
+- **Components** (`src/game/components/`): Reusable UI elements used across multiple scenes
+- **Scene Components** (`src/game/scenes/components/`): Scene-specific components, often legacy
+- **Molecules/Organisms** (`src/game/scenes/*/molecules/`): Complex scene-specific UI elements
+
+## UI Layout and Positioning
+
+### Dynamic Frame Sizing
+
+When content varies in height (like filtered lists), frames should resize dynamically:
+
+```typescript
+// ContactsScene example for black market
+if (this.contentBg && this.contentContainer) {
+  const frameHeight = 950  // Calculate based on content
+  const frameTop = 190     // Below tabs
+  const frameCenterY = frameTop + frameHeight / 2
+
+  // Position both frame and container together
+  this.contentBg.setSize(1400, frameHeight)
+  this.contentBg.y = frameCenterY
+  this.contentContainer.y = frameCenterY
+}
+```
+
+**Key Points**:
+- Calculate total height needed for all content elements
+- Keep frame top edge consistent (e.g., below tabs)
+- Move both background and container together
+- Reset to defaults when switching views
+
+### Text Alignment in Variable Height Items
+
+For components that support different item heights (e.g., StockListDisplay):
+
+```typescript
+// Calculate positions based on actual item height
+const itemCenterY = this.config.height / 2
+const hasBranch = itemBranch && this.config.height > 35
+
+// Conditional positioning
+const nameY = hasBranch
+  ? (this.config.height > 50 ? itemCenterY - 10 : 10)
+  : itemCenterY  // Center if single line
+
+// Always use setOrigin for vertical centering
+text.setOrigin(0, 0.5)
+```
+
+**Height Breakpoints**:
+- **< 35px**: Single line only, centered
+- **35-50px**: Two lines, tighter spacing
+- **> 50px**: Two lines, comfortable spacing
+
+### Centering Elements in Phaser
+
+#### Button Centering
+```typescript
+// Center button graphics around container position
+const buttonHeight = 30
+bg.fillRoundedRect(0, -buttonHeight/2, width, buttonHeight, radius)
+text.setPosition(width/2, 0)  // Text at center
+text.setOrigin(0.5)  // Center origin
+```
+
+#### Interactive Area for Centered Elements
+```typescript
+bg.setInteractive(
+  new Phaser.Geom.Rectangle(0, -height/2, width, height),
+  Phaser.Geom.Rectangle.Contains
+)
+```
+
+### Overlay Management
+
+When showing overlays, hide underlying elements to avoid visual clutter:
+
+```typescript
+// In BoardScene when showing stock inventory
+if (this.stockInventoryView) {
+  this.earthMap.setVisible(false)  // Hide map
+  this.stockInventoryView.show()
+}
+
+// Listen for close event to restore visibility
+stockInventoryView.on('inventory-closed', () => {
+  this.earthMap.setVisible(true)
+  this.navigationBar.setActiveButton(NavigationState.DEFAULT)
+})
+```
+
+### Dynamic Filter Generation
+
+Filters should reflect actual available data, not hardcoded options:
+
+```typescript
+// Collect actual values from data
+const availableBranches = new Set<ArmsBranch>()
+const availableConditions = new Set<ArmsCondition>()
+
+this.offers.forEach(offer => {
+  const armsDef = armsRegistry.getDefinition(offer.armsId)
+  if (armsDef) {
+    availableBranches.add(armsDef.branch)
+  }
+  availableConditions.add(offer.condition)
+})
+
+// Sort in logical order
+const conditionOrder = [ArmsCondition.NEW, ArmsCondition.GOOD, ...]
+const sorted = Array.from(availableConditions).sort((a, b) =>
+  conditionOrder.indexOf(a) - conditionOrder.indexOf(b)
+)
+```
+
+### Common UI Patterns
+
+#### Scrolling Implementation
+```typescript
+// Standard mouse wheel scrolling setup
+scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
+  if (this.visible && this.component) {
+    this.component.scroll(deltaY > 0 ? 1 : -1)
+  }
+})
+```
+
+#### Right-Click Navigation
+```typescript
+// Standard right-click to close/go back
+scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+  if (pointer.rightButtonDown() && this.visible) {
+    this.hide()
+    this.emit('closed')
+  }
+})
+
+// For scenes, implement goBack method
+private goBack() {
+  this.scene.stop()  // Stop current scene
+  this.scene.wake(sceneRegistry.PREVIOUS_SCENE)  // Wake previous
+}
+```
+
+**Best Practices**:
+- Always emit a close event for parent handling
+- Reset navigation state when appropriate
+- Implement consistent back navigation across all overlays
 
 ## Utility Functions
 

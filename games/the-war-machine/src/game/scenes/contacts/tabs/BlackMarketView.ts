@@ -8,7 +8,8 @@ import type { ArmsId } from '../../../model/definitions/armsDefinitions.ts'
 import { armsRegistry } from '../../../registries/armsRegistry.ts'
 import { WarehouseModel } from '../../../model/entities/locations/WarehouseModel.ts'
 import { ArmsBranch } from '../../../model/enums/ArmsBranches.ts'
-import { FilterSortManager, type SortConfig } from '../../../utils/FilterSortManager.ts'
+import { FilterSortManager, type SortConfig } from '../../../components/FilterSortManager.ts'
+import { StockListDisplay, type StockListItem } from '../../../components/StockListDisplay.ts'
 import {
   Colors,
   Typography,
@@ -26,11 +27,10 @@ export enum BlackMarketSortBy {
   LOCATION = 'location',
 }
 
-export interface BlackMarketOffer {
+export interface BlackMarketOffer extends StockListItem {
   id: string
   armsId: ArmsId
-  quantity: number
-  condition: ArmsCondition
+  // quantity and condition are inherited from StockListItem
   price: number  // Total price for the quantity
   country: Country
   city: string
@@ -40,13 +40,11 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
   private worldModel: WorldModel
   private offers: BlackMarketOffer[] = []
   private displayedOffers: BlackMarketOffer[] = []
-  private offerContainers: Phaser.GameObjects.Container[] = []
   private selectedOfferId?: string
-  private offerBackgrounds: Map<string, Phaser.GameObjects.Rectangle> = new Map()
   private warehouseSelectionOverlay?: Phaser.GameObjects.Container
   private filterSortManager?: FilterSortManager<BlackMarketSortBy>
+  private stockListDisplay?: StockListDisplay<BlackMarketOffer>
   private titleText?: Phaser.GameObjects.Text
-  private infoText?: Phaser.GameObjects.Text
 
   constructor(scene: PotatoScene, worldModel: WorldModel) {
     super(scene, 0, 0)
@@ -165,6 +163,22 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
   }
 
   private createFilterSortManager() {
+    // Collect actual branches, conditions, and grades from offers
+    const availableBranches = new Set<ArmsBranch>()
+    const availableConditions = new Set<ArmsCondition>()
+    const availableGrades = new Set<ArmsGrade>()
+
+    this.offers.forEach(offer => {
+      const armsDef = armsRegistry.getDefinition(offer.armsId)
+      if (armsDef) {
+        availableBranches.add(armsDef.branch)
+        if (armsDef.grade) {
+          availableGrades.add(armsDef.grade)
+        }
+      }
+      availableConditions.add(offer.condition)
+    })
+
     // Define sort configurations
     const sortConfigs: SortConfig<BlackMarketSortBy>[] = [
       {
@@ -203,15 +217,27 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       },
     ]
 
-    // Create filter sort manager
+    // Sort conditions in quality order (best to worst)
+    const conditionOrder = [ArmsCondition.NEW, ArmsCondition.GOOD, ArmsCondition.FAIR, ArmsCondition.POOR, ArmsCondition.SALVAGE]
+    const sortedConditions = Array.from(availableConditions).sort((a, b) =>
+      conditionOrder.indexOf(a) - conditionOrder.indexOf(b)
+    )
+
+    // Sort grades in quality order (obsolete to experimental)
+    const gradeOrder = [ArmsGrade.OBSOLETE, ArmsGrade.LEGACY, ArmsGrade.MODERN, ArmsGrade.NEXTGEN, ArmsGrade.EXPERIMENTAL]
+    const sortedGrades = Array.from(availableGrades).sort((a, b) =>
+      gradeOrder.indexOf(a) - gradeOrder.indexOf(b)
+    )
+
+    // Create filter sort manager with actual available options
     this.filterSortManager = new FilterSortManager(
       this.scene as PotatoScene,
       0,
       -180,
       {
-        branches: [ArmsBranch.MISSILES, ArmsBranch.SMALL_ARMS, ArmsBranch.ARMORED_VEHICLES],
-        conditions: [ArmsCondition.GOOD, ArmsCondition.FAIR, ArmsCondition.POOR],
-        grades: [ArmsGrade.OBSOLETE, ArmsGrade.LEGACY, ArmsGrade.MODERN],
+        branches: Array.from(availableBranches).sort(),
+        conditions: sortedConditions,
+        grades: sortedGrades,
       },
       sortConfigs,
       {
@@ -224,141 +250,71 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
   }
 
   private displayOffers() {
-    // Clear existing offer containers
-    this.offerContainers.forEach(container => container.destroy())
-    this.offerContainers = []
-    this.offerBackgrounds.clear()
+    // Remove old stock list display if exists
+    if (this.stockListDisplay) {
+      this.stockListDisplay.destroy()
+      this.stockListDisplay = undefined
+    }
 
-    // Create offer listings (limit to 10 visible offers to prevent overflow)
-    const visibleOffers = this.displayedOffers.slice(0, 10)
-    visibleOffers.forEach((offer, index) => {
-      const y = -90 + index * 45  // Compact spacing, adjusted for filters
-
-      const offerContainer = this.scene.add.container(-650, y)
-
-      // Background
-      const bg = this.scene.add.rectangle(
-        350,
-        20,
-        1300,
-        40,
-        Colors.background.card,
-      )
-      bg.setStrokeStyle(Borders.width.thin, Colors.ui.divider)
-      bg.setInteractive()
-      offerContainer.add(bg)
-
-      // Store background reference
-      this.offerBackgrounds.set(offer.id, bg)
-
-      // Get arms definition
-      const armsDef = armsRegistry.getDefinition(offer.armsId)
-      if (!armsDef) return
-
-      // Item name
-      const nameText = this.scene.add.text(10, 10, armsDef.name, {
-        fontSize: Typography.fontSize.regular,
-        fontFamily: Typography.fontFamily.primary,
-        color: Colors.text.primary,
-        fontStyle: Typography.fontStyle.bold,
-      })
-      offerContainer.add(nameText)
-
-      // Quantity
-      const qtyText = this.scene.add.text(250, 10, `Qty: ${offer.quantity}`, {
-        fontSize: Typography.fontSize.small,
-        fontFamily: Typography.fontFamily.primary,
-        color: Colors.text.secondary,
-      })
-      offerContainer.add(qtyText)
-
-      // Condition
-      const conditionColor = this.getConditionColor(offer.condition)
-      const conditionText = this.scene.add.text(350, 10, offer.condition, {
-        fontSize: Typography.fontSize.small,
-        fontFamily: Typography.fontFamily.primary,
-        color: conditionColor,
-      })
-      offerContainer.add(conditionText)
-
-      // Location
-      const locationText = this.scene.add.text(500, 10, `${offer.city}, ${offer.country}`, {
-        fontSize: Typography.fontSize.small,
-        fontFamily: Typography.fontFamily.primary,
-        color: Colors.text.muted,
-      })
-      offerContainer.add(locationText)
-
-      // Price
-      const priceText = this.scene.add.text(800, 10, `$${offer.price.toLocaleString()}`, {
-        fontSize: Typography.fontSize.regular,
-        fontFamily: Typography.fontFamily.primary,
-        color: Colors.money.neutral,
-      })
-      offerContainer.add(priceText)
-
-      // Buy button
-      const canAfford = this.worldModel.gameStatus.money >= offer.price
-      const buyButton = this.scene.add.container(1000, 10)
-
-      const buyBg = this.scene.add.rectangle(
-        0,
-        0,
-        80,
-        30,
-        canAfford ? Colors.status.success : Colors.background.cardHover,
-      )
-      buyBg.setInteractive()
-      buyButton.add(buyBg)
-
-      const buyText = this.scene.add.text(0, 0, 'BUY', {
-        fontSize: Typography.fontSize.small,
-        fontFamily: Typography.fontFamily.primary,
-        color: canAfford ? Colors.text.primary : Colors.text.disabled,
-        fontStyle: Typography.fontStyle.bold,
-      })
-      buyText.setOrigin(0.5)
-      buyButton.add(buyText)
-
-      if (canAfford) {
-        buyBg.on('pointerover', () => buyBg.setFillStyle(Colors.status.successHover))
-        buyBg.on('pointerout', () => buyBg.setFillStyle(Colors.status.success))
-        buyBg.on('pointerdown', () => {
-          this.handleBuyClick(offer)
-        })
+    // Create new stock list display
+    const scene = this.scene as PotatoScene
+    this.stockListDisplay = new StockListDisplay<BlackMarketOffer>(
+      scene,
+      -650,
+      20,  // Moved even lower to give more space after filters
+      {
+        width: 1300,
+        height: 40,
+        spacing: 5,
+        showQuantity: true,
+        showCondition: true,
+        showValue: false,  // We'll use custom column for price
+        showProfit: false,  // No profit/loss for black market
+        showActions: true,
+        actions: [
+          {
+            label: 'BUY',
+            onClick: (offer) => this.handleBuyClick(offer),
+            color: Colors.status.success,
+            hoverColor: Colors.status.successHover,
+          },
+        ],
+        columns: [
+          {
+            key: 'price',
+            label: 'Price',
+            x: 750,
+            getValue: (offer) => `$${offer.price.toLocaleString()}`,
+            getColor: () => Colors.money.neutral,
+            fontSize: Typography.fontSize.regular,
+          },
+          {
+            key: 'location',
+            label: 'Location',
+            x: 750,
+            getValue: (offer) => `${offer.city}, ${offer.country}`,
+            getColor: () => Colors.text.muted,
+            fontSize: Typography.fontSize.small,
+          },
+        ],
+        getItemName: (offer) => {
+          const armsDef = armsRegistry.getDefinition(offer.armsId)
+          return armsDef?.name || 'Unknown'
+        },
+        getItemBranch: (offer) => {
+          const armsDef = armsRegistry.getDefinition(offer.armsId)
+          return armsDef?.branch || ''
+        },
+      },
+      {
+        onItemClick: (offer) => this.selectOffer(offer.id),
       }
+    )
 
-      offerContainer.add(buyButton)
+    // Set items (show max 10)
+    this.stockListDisplay.setItems(this.displayedOffers, 10)
+    this.add(this.stockListDisplay)
 
-      bg.on('pointerover', () => {
-        if (this.selectedOfferId !== offer.id) {
-          bg.setFillStyle(Colors.background.cardHover)
-        }
-      })
-
-      bg.on('pointerout', () => {
-        if (this.selectedOfferId !== offer.id) {
-          bg.setFillStyle(Colors.background.card)
-        }
-      })
-
-      bg.on('pointerdown', () => {
-        this.selectOffer(offer.id)
-      })
-
-      this.add(offerContainer)
-      this.offerContainers.push(offerContainer)
-    })
-
-    // Info text at bottom
-    this.infoText = this.scene.add.text(0, 200, `Showing ${this.displayedOffers.length}/${this.offers.length} offers | Refresh monthly`, {
-      fontSize: Typography.fontSize.caption,
-      fontFamily: Typography.fontFamily.primary,
-      color: Colors.text.muted,
-      fontStyle: Typography.fontStyle.italic,
-    })
-    this.infoText.setOrigin(0.5)
-    this.add(this.infoText)
   }
 
   private applyFiltersAndSort() {
@@ -388,9 +344,6 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
     this.displayedOffers = this.filterSortManager.applySort(this.displayedOffers)
 
     // Update info text
-    if (this.infoText) {
-      this.infoText.setText(`Showing ${this.displayedOffers.length}/${this.offers.length} offers | Refresh monthly`)
-    }
 
     // Redisplay offers
     this.displayOffers()
@@ -398,17 +351,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
 
   private selectOffer(offerId: string) {
     this.selectedOfferId = offerId
-
-    // Update visual selection
-    this.offerBackgrounds.forEach((bg, id) => {
-      if (id === offerId) {
-        bg.setFillStyle(Colors.primary.main, 0.2)
-        bg.setStrokeStyle(Borders.width.normal, Colors.primary.light)
-      } else {
-        bg.setFillStyle(Colors.background.card)
-        bg.setStrokeStyle(Borders.width.thin, Colors.ui.divider)
-      }
-    })
+    // Visual selection is now handled by StockListDisplay's hover effects
   }
 
   private handleBuyClick(offer: BlackMarketOffer) {
@@ -552,10 +495,9 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       const index = this.offers.findIndex(o => o.id === offer.id)
       if (index !== -1) {
         this.offers.splice(index, 1)
-        // Remove the visual container
-        const container = this.offerContainers[index]
-        container.destroy()
-        this.offerContainers.splice(index, 1)
+        // Update the stock list display
+        this.displayedOffers = [...this.offers]
+        this.applyFiltersAndSort()
       }
 
       // Update money display

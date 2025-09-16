@@ -32,6 +32,7 @@ export class ContactsScene extends PotatoScene {
   private currentTab: ContactTab = ContactTab.BLACK_MARKET
   private tabButtons: Map<ContactTab, Phaser.GameObjects.Container> = new Map()
   private contentContainer?: Phaser.GameObjects.Container
+  private contentBg?: Phaser.GameObjects.Rectangle
   private currentView?: Phaser.GameObjects.Container
 
   constructor({ globalSceneEventEmitter, worldModel }: ContactsSceneDependencies) {
@@ -151,9 +152,9 @@ export class ContactsScene extends PotatoScene {
   }
 
   private createContentArea() {
-    // Content background
-    const contentBg = this.add.rectangle(740, 440, 1400, 500, Colors.background.tertiary)
-    contentBg.setDepth(DepthRegistry.UI_BACKGROUND)
+    // Content background - will be resized based on content
+    this.contentBg = this.add.rectangle(740, 440, 1400, 500, Colors.background.tertiary)
+    this.contentBg.setDepth(DepthRegistry.UI_BACKGROUND)
 
     // Content container
     this.contentContainer = this.add.container(740, 440)
@@ -208,11 +209,39 @@ export class ContactsScene extends PotatoScene {
   private showBlackMarketView() {
     this.currentView = new BlackMarketView(this, this.worldModel)
     this.contentContainer?.add(this.currentView)
+
+    if (this.contentBg && this.contentContainer) {
+      // Elements in BlackMarketView relative to container center:
+      // - Title at y: -230
+      // - Filters at y: -180 (extend to about -30)
+      // - Stock list at y: 20
+      // - 10 items, each 45px = 450px total
+      // - List bottom at: 20 + 450 = 470
+
+      // Simple approach: make frame big enough and position both together
+      const frameHeight = 950  // Extra large to definitely fit everything
+      const frameTop = 190     // Just below tabs
+      const frameCenterY = frameTop + frameHeight / 2  // 190 + 450 = 640
+
+      // Position both frame and container at the same Y
+      this.contentBg.setSize(1400, frameHeight)
+      this.contentBg.y = frameCenterY
+      this.contentContainer.y = frameCenterY
+    }
   }
 
   private showVendorsView() {
     this.currentView = new VendorsView(this, this.worldModel)
     this.contentContainer?.add(this.currentView)
+
+    // Reset content background to default size and position
+    if (this.contentBg) {
+      this.contentBg.setSize(1400, 500)
+      this.contentBg.y = 440
+    }
+    if (this.contentContainer) {
+      this.contentContainer.y = 440
+    }
   }
 
   private showInsurgentsView() {
@@ -228,6 +257,15 @@ export class ContactsScene extends PotatoScene {
     this.currentView.add(text)
 
     this.contentContainer?.add(this.currentView)
+
+    // Reset content background to default size and position
+    if (this.contentBg) {
+      this.contentBg.setSize(1400, 500)
+      this.contentBg.y = 440
+    }
+    if (this.contentContainer) {
+      this.contentContainer.y = 440
+    }
   }
 
   private showStateActorsView() {
@@ -243,6 +281,15 @@ export class ContactsScene extends PotatoScene {
     this.currentView.add(text)
 
     this.contentContainer?.add(this.currentView)
+
+    // Reset content background to default size and position
+    if (this.contentBg) {
+      this.contentBg.setSize(1400, 500)
+      this.contentBg.y = 440
+    }
+    if (this.contentContainer) {
+      this.contentContainer.y = 440
+    }
   }
 
   private showMercenariesView() {
@@ -258,6 +305,15 @@ export class ContactsScene extends PotatoScene {
     this.currentView.add(text)
 
     this.contentContainer?.add(this.currentView)
+
+    // Reset content background to default size and position
+    if (this.contentBg) {
+      this.contentBg.setSize(1400, 500)
+      this.contentBg.y = 440
+    }
+    if (this.contentContainer) {
+      this.contentContainer.y = 440
+    }
   }
 
   private showBrokersView() {
@@ -273,6 +329,15 @@ export class ContactsScene extends PotatoScene {
     this.currentView.add(text)
 
     this.contentContainer?.add(this.currentView)
+
+    // Reset content background to default size and position
+    if (this.contentBg) {
+      this.contentBg.setSize(1400, 500)
+      this.contentBg.y = 440
+    }
+    if (this.contentContainer) {
+      this.contentContainer.y = 440
+    }
   }
 
   private createBackButton() {

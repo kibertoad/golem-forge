@@ -32,7 +32,7 @@ export class AssetsScene extends PotatoScene {
   private worldModel: WorldModel
   private currentTab: AssetTab = AssetTab.WAREHOUSES
   private tabButtons: Map<AssetTab, Phaser.GameObjects.Container> = new Map()
-  private contentContainer?: Phaser.GameObjects.Container
+  public contentContainer?: Phaser.GameObjects.Container
   private currentView?: Phaser.GameObjects.Container
   private selectedLocationId?: string
   private locationBackgrounds: Map<string, Phaser.GameObjects.Rectangle> = new Map()
@@ -69,6 +69,13 @@ export class AssetsScene extends PotatoScene {
 
     // Create back button
     this.createBackButton()
+
+    // Add right-click to go back
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown()) {
+        this.goBack()
+      }
+    })
   }
 
   private createHeader() {
@@ -392,12 +399,14 @@ export class AssetsScene extends PotatoScene {
 
     bg.on('pointerover', () => bg.setFillStyle(Colors.background.card))
     bg.on('pointerout', () => bg.setFillStyle(Colors.background.cardHover))
-    bg.on('pointerdown', () => {
-      this.scene.stop() // Stop current scene
-      this.scene.wake(sceneRegistry.BOARD_SCENE) // Wake the board scene
-    })
+    bg.on('pointerdown', () => this.goBack())
 
     backButton.setDepth(DepthRegistry.UI_ELEMENTS)
+  }
+
+  private goBack() {
+    this.scene.stop() // Stop current scene
+    this.scene.wake(sceneRegistry.BOARD_SCENE) // Wake the board scene
   }
 
   private selectLocation(locationId: string) {

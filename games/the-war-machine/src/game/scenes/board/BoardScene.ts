@@ -424,6 +424,12 @@ export class BoardScene extends PotatoScene {
     this.stockInventoryView.on('item-sold', (item: ArmsStockModel) => {
       this.handleStockSale(item)
     })
+    this.stockInventoryView.on('inventory-closed', () => {
+      // Restore map visibility when stock inventory is closed
+      this.earthMap.setVisible(true)
+      // Reset navigation state
+      this.navigationBar.setActiveButton(NavigationState.DEFAULT)
+    })
 
     this.earthMap = new EarthMap(
       this,
@@ -475,10 +481,17 @@ export class BoardScene extends PotatoScene {
       this.stockInventoryView.setVisible(false)
     }
 
+    // Restore map visibility when closing overlays
+    if (state === NavigationState.DEFAULT) {
+      this.earthMap.setVisible(true)
+    }
+
     // Show the selected view
     switch (state) {
       case NavigationState.STOCK:
         if (this.stockInventoryView) {
+          // Hide the map when showing stock inventory
+          this.earthMap.setVisible(false)
           this.stockInventoryView.show()
         }
         break

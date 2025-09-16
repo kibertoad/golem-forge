@@ -6,7 +6,8 @@ import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
 import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
 import { Colors, Typography } from '../../../../registries/styleRegistry.ts'
-import { FilterSortManager, type SortConfig } from '../../../../utils/FilterSortManager.ts'
+import { FilterSortManager, type SortConfig } from '../../../../components/FilterSortManager.ts'
+import { StockListDisplay } from '../../../../components/StockListDisplay.ts'
 import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
@@ -22,19 +23,15 @@ export class StockInventoryView extends GameObjects.Container {
   private titleText: GameObjects.Text
   private stockItems: ArmsStockModel[] = []
   private displayedItems: ArmsStockModel[] = []
-  private itemContainers: GameObjects.Container[] = []
-  private filterContainer: GameObjects.Container | null = null
   private detailView: ArmsDetailView | null = null
   private filterSortManager: FilterSortManager<SortBy> | null = null
+  private stockListDisplay: StockListDisplay<ArmsStockModel> | null = null
 
   // UI elements
-  private scrollBar: GameObjects.Graphics | null = null
   private totalValueText: GameObjects.Text | null = null
   private itemCountText: GameObjects.Text | null = null
 
   // State
-  private scrollOffset = 0
-  private maxScroll = 0
   private availableBranches: Set<ArmsBranch> = new Set()
   private maxVisibleItems = 12
   private filterSectionHeight = 150 // Track actual filter section height
@@ -58,11 +55,16 @@ export class StockInventoryView extends GameObjects.Container {
 
     // Create summary section that will be positioned later
     this.createSummarySection(scene)
-    this.createScrollBar(scene)
 
-    // Setup mouse wheel scrolling and right-click to close
-    this.setupScrolling(scene)
+    // Setup right-click to close
     this.setupRightClickClose(scene)
+
+    // Setup mouse wheel scrolling
+    scene.input.on('wheel', (pointer: any, gameObjects: any[], deltaX: number, deltaY: number) => {
+      if (this.visible && this.stockListDisplay) {
+        this.stockListDisplay.scroll(deltaY > 0 ? 1 : -1)
+      }
+    })
 
     // Create detail view overlay
     this.detailView = new ArmsDetailView(
@@ -183,20 +185,6 @@ export class StockInventoryView extends GameObjects.Container {
 
   // Filter and sort buttons are now handled by FilterSortManager
 
-  private createScrollBar(scene: PotatoScene) {
-    this.scrollBar = scene.add.graphics()
-    this.add(this.scrollBar)
-  }
-
-  private setupScrolling(scene: PotatoScene) {
-    // Mouse wheel scrolling
-    scene.input.on('wheel', (pointer: any, gameObjects: any[], deltaX: number, deltaY: number) => {
-      if (this.visible) {
-        this.scroll(deltaY > 0 ? 1 : -1)
-      }
-    })
-  }
-
   private setupRightClickClose(scene: PotatoScene) {
     // Right-click to close the inventory view
     scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -208,10 +196,7 @@ export class StockInventoryView extends GameObjects.Container {
     })
   }
 
-  private scroll(direction: number) {
-    this.scrollOffset = Math.max(0, Math.min(this.maxScroll, this.scrollOffset + direction))
-    this.updateDisplay()
-  }
+  // Scrolling is now handled by StockListDisplay
 
   // Data management
   public setStockItems(items: ArmsStockModel[]) {
@@ -290,8 +275,6 @@ export class StockInventoryView extends GameObjects.Container {
   private applyFiltersAndSort() {
     if (!this.filterSortManager) {
       this.displayedItems = [...this.stockItems]
-      this.scrollOffset = 0
-      this.maxScroll = Math.max(0, this.displayedItems.length - this.maxVisibleItems)
       this.updateDisplay()
       this.updateSummary()
       return
@@ -315,20 +298,16 @@ export class StockInventoryView extends GameObjects.Container {
     // Apply sorting using FilterSortManager
     this.displayedItems = this.filterSortManager.applySort(this.displayedItems)
 
-    this.scrollOffset = 0
-    this.maxScroll = Math.max(0, this.displayedItems.length - this.maxVisibleItems)
     this.updateDisplay()
     this.updateSummary()
   }
 
   private updateDisplay() {
-    // Clear existing item displays
-    this.itemContainers.forEach((container) => container.destroy())
-    this.itemContainers = []
-
-    // Display visible items based on calculated max
-    const startIndex = this.scrollOffset
-    const endIndex = Math.min(startIndex + this.maxVisibleItems, this.displayedItems.length)
+    // Remove old stock list display if exists
+    if (this.stockListDisplay) {
+      this.stockListDisplay.destroy()
+      this.stockListDisplay = null
+    }
 
     // Calculate starting Y position based on window height
     const windowHeight = (this.background as any).currentHeight || 800
@@ -336,178 +315,52 @@ export class StockInventoryView extends GameObjects.Container {
     // Items start after filter section and sort section with extra padding
     const itemsStartY = -halfHeight + this.filterSectionHeight + 80
 
-    for (let i = startIndex; i < endIndex; i++) {
-      const item = this.displayedItems[i]
-      const yPos = itemsStartY + (i - startIndex) * 75
-      const itemContainer = this.createItemDisplay(item, yPos)
-      this.itemContainers.push(itemContainer)
-    }
-
-    // Update scrollbar
-    this.updateScrollBar()
-  }
-
-  private createItemDisplay(item: ArmsStockModel, yPos: number): GameObjects.Container {
+    // Create new stock list display
     const scene = this.scene as PotatoScene
-    const container = scene.add.container(-770, yPos)
-
-    // Item background
-    const bg = scene.add.graphics()
-    bg.fillStyle(Colors.inventory.itemBackground, 0.6)
-    bg.fillRoundedRect(0, 0, 1140, 70, 5)
-    bg.lineStyle(1, Colors.inventory.itemBorder, 0.8)
-    bg.strokeRoundedRect(0, 0, 1140, 70, 5)
-    container.add(bg)
-
-    const def = item.getDefinition()
-    if (!def) return container
-
-    // Name
-    const nameText = scene.add.text(15, 20, def.name, {
-      fontSize: Typography.fontSize.h5,
-      fontFamily: Typography.fontFamily.monospace,
-      color: Colors.text.primary,
-      fontStyle: Typography.fontStyle.bold,
-    })
-    container.add(nameText)
-
-    // Branch
-    const branchText = scene.add.text(15, 45, def.branch, {
-      fontSize: Typography.fontSize.regular,
-      fontFamily: Typography.fontFamily.monospace,
-      color: Colors.text.muted,
-    })
-    container.add(branchText)
-
-    // Quantity
-    const qtyText = scene.add.text(500, 20, `Qty: ${item.quantity}`, {
-      fontSize: Typography.fontSize.h5,
-      fontFamily: Typography.fontFamily.monospace,
-      color: Colors.inventory.value,
-    })
-    container.add(qtyText)
-
-    // Condition
-    const conditionColor = this.getConditionColor(item.condition)
-    const conditionText = scene.add.text(500, 45, item.condition, {
-      fontSize: Typography.fontSize.regular,
-      fontFamily: Typography.fontFamily.monospace,
-      color: conditionColor,
-    })
-    container.add(conditionText)
-
-    // Value
-    const valueText = scene.add.text(700, 20, `$${item.getCurrentMarketValue().toLocaleString()}`, {
-      fontSize: Typography.fontSize.h5,
-      fontFamily: Typography.fontFamily.monospace,
-      color: Colors.inventory.profit,
-    })
-    container.add(valueText)
-
-    // Profit/Loss
-    const profit = item.getPotentialProfit()
-    const profitColor = profit >= 0 ? Colors.inventory.profit : Colors.inventory.loss
-    const profitSymbol = profit >= 0 ? '+' : ''
-    const profitText = scene.add.text(
-      700,
-      45,
-      `${profitSymbol}$${Math.abs(profit).toLocaleString()}`,
+    this.stockListDisplay = new StockListDisplay<ArmsStockModel>(
+      scene,
+      -770,
+      itemsStartY,
       {
-        fontSize: Typography.fontSize.regular,
-        fontFamily: Typography.fontFamily.monospace,
-        color: profitColor,
+        width: 1140,
+        height: 70,
+        spacing: 5,
+        showQuantity: true,
+        showCondition: true,
+        showValue: true,
+        showProfit: true,
+        showActions: true,
+        actions: [
+          {
+            label: 'SELL',
+            onClick: (item) => this.sellItem(item),
+          },
+          {
+            label: 'INFO',
+            onClick: (item) => this.showItemDetails(item),
+          },
+        ],
       },
+      {
+        onItemHover: (item) => {
+          // Optional: Add hover effects
+        },
+      }
     )
-    container.add(profitText)
 
-    // Action buttons
-    const sellButton = this.createActionButton(scene, 'SELL', 950, 20, () => {
-      this.sellItem(item)
-    })
-    container.add(sellButton)
+    // Set items and max visible based on window size
+    if (this.stockListDisplay) {
+      this.stockListDisplay.setItems(this.displayedItems, this.maxVisibleItems)
 
-    const detailButton = this.createActionButton(scene, 'INFO', 1040, 20, () => {
-      this.showItemDetails(item)
-    })
-    container.add(detailButton)
+      // Listen to stock list events
+      this.stockListDisplay.on('item-sell', (item: ArmsStockModel) => this.sellItem(item))
+      this.stockListDisplay.on('item-info', (item: ArmsStockModel) => this.showItemDetails(item))
 
-    this.add(container)
-    return container
-  }
-
-  private createActionButton(
-    scene: PotatoScene,
-    label: string,
-    x: number,
-    y: number,
-    onClick: () => void,
-  ): GameObjects.Container {
-    const container = scene.add.container(x, y)
-
-    const bg = scene.add.graphics()
-    bg.fillStyle(Colors.inventory.sellButton, 0.8)
-    bg.fillRoundedRect(0, 0, 70, 30, 3)
-    bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
-    bg.strokeRoundedRect(0, 0, 70, 30, 3)
-
-    const text = scene.add.text(35, 15, label, {
-      fontSize: Typography.fontSize.small,
-      fontFamily: Typography.fontFamily.monospace,
-      color: Colors.inventory.profit,
-    })
-    text.setOrigin(0.5)
-
-    container.add([bg, text])
-
-    bg.setInteractive(new Phaser.Geom.Rectangle(0, 0, 70, 30), Phaser.Geom.Rectangle.Contains)
-    bg.on('pointerdown', onClick)
-    bg.on('pointerover', () => {
-      bg.clear()
-      bg.fillStyle(Colors.inventory.sellButtonHover, 1)
-      bg.fillRoundedRect(0, 0, 70, 30, 3)
-      bg.lineStyle(1, Colors.inventory.sellBorder, 1)
-      bg.strokeRoundedRect(0, 0, 70, 30, 3)
-    })
-    bg.on('pointerout', () => {
-      bg.clear()
-      bg.fillStyle(Colors.inventory.sellButton, 0.8)
-      bg.fillRoundedRect(0, 0, 70, 30, 3)
-      bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
-      bg.strokeRoundedRect(0, 0, 70, 30, 3)
-    })
-
-    return container
-  }
-
-  private updateScrollBar() {
-    if (!this.scrollBar) return
-
-    this.scrollBar.clear()
-
-    if (this.maxScroll > 0) {
-      const windowHeight = (this.background as any).currentHeight || 800
-      const halfHeight = windowHeight / 2
-      // Scroll track height accounts for filter section, sort section, and footer
-      const scrollTrackHeight = windowHeight - (this.filterSectionHeight + 80 + 60)
-      // Scroll starts at the same position as items
-      const scrollStartY = -halfHeight + this.filterSectionHeight + 80
-
-      // Draw scrollbar track
-      this.scrollBar.fillStyle(Colors.inventory.scrollTrack, 0.5)
-      this.scrollBar.fillRoundedRect(580, scrollStartY, 10, scrollTrackHeight, 5)
-
-      // Draw scrollbar thumb
-      const thumbHeight = Math.max(
-        30,
-        scrollTrackHeight / (this.displayedItems.length / this.maxVisibleItems),
-      )
-      const thumbY =
-        scrollStartY + (this.scrollOffset / this.maxScroll) * (scrollTrackHeight - thumbHeight)
-
-      this.scrollBar.fillStyle(Colors.inventory.scrollThumb, 0.8)
-      this.scrollBar.fillRoundedRect(580, thumbY, 10, thumbHeight, 5)
+      this.add(this.stockListDisplay)
     }
   }
+
+  // Item display and scrollbar are now handled by StockListDisplay
 
   private updateSummary() {
     const totalValue = this.displayedItems.reduce(
@@ -527,24 +380,7 @@ export class StockInventoryView extends GameObjects.Container {
     // Filter and sort button states are now handled by FilterSortManager
   }
 
-  private getConditionColor(condition: ArmsCondition): string {
-    switch (condition) {
-      case ArmsCondition.NEW:
-        return Colors.inventory.profit
-      case ArmsCondition.EXCELLENT:
-        return '#88ff00'
-      case ArmsCondition.GOOD:
-        return Colors.money.neutral
-      case ArmsCondition.FAIR:
-        return '#ff8800'
-      case ArmsCondition.POOR:
-        return '#ff4400'
-      case ArmsCondition.SALVAGE:
-        return Colors.inventory.loss
-      default:
-        return Colors.text.primary
-    }
-  }
+  // Condition color logic is now in StockListDisplay
 
   private sellItem(item: ArmsStockModel) {
     // TODO: Implement selling logic
