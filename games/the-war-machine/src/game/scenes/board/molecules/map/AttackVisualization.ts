@@ -1,6 +1,12 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
+import {
+  ATTACKER_BLOCK_HORIZONTAL_OFFSET,
+  ATTACKER_BLOCK_VERTICAL_OFFSET,
+  calculateCityPosition,
+} from '../../../../model/constants/MapPositionConstants.ts'
 import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
+import { CountryCities } from '../../../../model/enums/Cities.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import {
   type BorderCity,
@@ -12,12 +18,6 @@ import {
   CountryNeighborDirections,
   getOppositeDirection,
 } from '../../../../model/enums/CountryNeighborDirections.ts'
-import { CountryCities } from '../../../../model/enums/Cities.ts'
-import {
-  ATTACKER_BLOCK_HORIZONTAL_OFFSET,
-  ATTACKER_BLOCK_VERTICAL_OFFSET,
-  calculateCityPosition,
-} from '../../../../model/constants/MapPositionConstants.ts'
 
 export interface AttackInfo {
   attacker: Country
@@ -69,7 +69,10 @@ export class AttackVisualization extends GameObjects.Container {
     // We don't show outgoing attacks from the attacker's perspective
     const incomingAttacks = this.getIncomingAttacks(this.viewedCountry)
 
-    console.log(`[AttackVisualization] Incoming attacks on ${this.viewedCountry}:`, incomingAttacks.length)
+    console.log(
+      `[AttackVisualization] Incoming attacks on ${this.viewedCountry}:`,
+      incomingAttacks.length,
+    )
     incomingAttacks.forEach((attack) => {
       console.log(
         `  Incoming attack: ${attack.attacker} -> ${attack.defender} (${attack.assaultUnits} units, direction: ${attack.direction})`,
@@ -123,7 +126,6 @@ export class AttackVisualization extends GameObjects.Container {
 
     return attacks
   }
-
 
   private createAttackVisualization(attack: AttackInfo) {
     console.log(`[AttackVisualization] createAttackVisualization() called for attack:`, attack)
@@ -363,7 +365,7 @@ export class AttackVisualization extends GameObjects.Container {
     }
 
     // Find the specific city
-    const city = cityData.find(c => c.name === cityName)
+    const city = cityData.find((c) => c.name === cityName)
     if (!city) {
       // Fallback to generic position if city not found
       console.warn(`[AttackVisualization] City ${cityName} not found for ${country}`)

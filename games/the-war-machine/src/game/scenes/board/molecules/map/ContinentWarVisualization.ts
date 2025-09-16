@@ -1,9 +1,9 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
 import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
-import { Country } from '../../../../model/enums/Countries.ts'
-import { type CountryInfo } from '../../../../model/enums/ContinentData.ts'
-import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
+import type { CountryInfo } from '../../../../model/enums/ContinentData.ts'
+import type { Country } from '../../../../model/enums/Countries.ts'
+import type { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
 
 export class ContinentWarVisualization extends GameObjects.Container {
   private warLines: GameObjects.Graphics[] = []
@@ -35,15 +35,15 @@ export class ContinentWarVisualization extends GameObjects.Container {
     this.clearVisualizations()
 
     // Get all countries in this continent
-    const continentCountrySet = new Set(continentCountries.map(ci => ci.country))
+    const continentCountrySet = new Set(continentCountries.map((ci) => ci.country))
 
     // Check each country in the continent
-    continentCountries.forEach(countryInfo => {
+    continentCountries.forEach((countryInfo) => {
       const countryModel = this.worldModel.getCountry(countryInfo.country)
       if (!countryModel || !countryModel.isAtWar) return
 
       // Check who this country is attacking (only show attacks within the same continent)
-      countryModel.isAttacking.forEach(targetCountry => {
+      countryModel.isAttacking.forEach((targetCountry) => {
         // Only show if the target is also in this continent
         if (continentCountrySet.has(targetCountry)) {
           this.drawAttackLine(countryInfo.country, targetCountry)
@@ -64,7 +64,12 @@ export class ContinentWarVisualization extends GameObjects.Container {
     graphics.lineStyle(4, 0xff0000, 0.9) // Red attack lines
 
     // Calculate angle and arrow position first
-    const angle = Phaser.Math.Angle.Between(attackerPos.x, attackerPos.y, defenderPos.x, defenderPos.y)
+    const angle = Phaser.Math.Angle.Between(
+      attackerPos.x,
+      attackerPos.y,
+      defenderPos.x,
+      defenderPos.y,
+    )
     const arrowDistance = 30
     const lineEndX = defenderPos.x - Math.cos(angle) * (arrowDistance - 10) // Stop line just before arrow
     const lineEndY = defenderPos.y - Math.sin(angle) * (arrowDistance - 10)
@@ -74,12 +79,7 @@ export class ContinentWarVisualization extends GameObjects.Container {
     graphics.moveTo(attackerPos.x, attackerPos.y)
 
     // Create a dashed line effect to the adjusted end point
-    const distance = Phaser.Math.Distance.Between(
-      attackerPos.x,
-      attackerPos.y,
-      lineEndX,
-      lineEndY,
-    )
+    const distance = Phaser.Math.Distance.Between(attackerPos.x, attackerPos.y, lineEndX, lineEndY)
     const dashLength = 20
     const steps = Math.floor(distance / dashLength)
 
@@ -165,7 +165,7 @@ export class ContinentWarVisualization extends GameObjects.Container {
 
   private clearVisualizations() {
     // Clear war lines
-    this.warLines.forEach(line => line.destroy())
+    this.warLines.forEach((line) => line.destroy())
     this.warLines = []
 
     // Clear all children

@@ -226,7 +226,9 @@ export class WarDirector implements TurnProcessor {
         // For now, we'll assign to the first war enemy if any
         const enemyCountry = country.warsWith.size > 0 ? Array.from(country.warsWith)[0] : null
         if (!enemyCountry) {
-          console.warn(`[WarDirector] Country ${country.country} has no war targets for assault units`)
+          console.warn(
+            `[WarDirector] Country ${country.country} has no war targets for assault units`,
+          )
           continue
         }
 

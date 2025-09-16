@@ -10,15 +10,16 @@ import {
 import type { EventEmitter } from 'emitix'
 import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { ArmsShowScene } from '../scenes/armsShow/ArmsShowScene.ts'
+import { AssetsScene } from '../scenes/assets/AssetsScene.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { PersonnelScene } from '../scenes/personnel/PersonnelScene.ts'
 import { ResearchScene } from '../scenes/research/ResearchScene.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
+import { GameInitializer } from './GameInitializer.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
 import { WarDirector } from './processors/WarDirector.ts'
 import { WarSystem } from './WarSystem.ts'
-import { GameInitializer } from './GameInitializer.ts'
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>
@@ -28,6 +29,7 @@ export interface Dependencies {
   boardScene: BoardScene
   mainMenuScene: MainMenuScene
   armsShowScene: ArmsShowScene
+  assetsScene: AssetsScene
   researchScene: ResearchScene
   personnelScene: PersonnelScene
   endTurnProcessor: EndTurnProcessor
@@ -52,6 +54,7 @@ export function instantiateContainer() {
     boardScene: asClass(BoardScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     armsShowScene: asClass(ArmsShowScene, SINGLETON_CONFIG),
+    assetsScene: asClass(AssetsScene, SINGLETON_CONFIG),
     researchScene: asClass(ResearchScene, SINGLETON_CONFIG),
     personnelScene: asClass(PersonnelScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),

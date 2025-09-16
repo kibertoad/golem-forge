@@ -9,4 +9,5 @@ export const sceneRegistry = {
   ARMS_SHOW_SCENE: 'armsShow',
   RESEARCH_SCENE: 'research',
   PERSONNEL_SCENE: 'personnel',
+  ASSETS_SCENE: 'assets',
 } as const

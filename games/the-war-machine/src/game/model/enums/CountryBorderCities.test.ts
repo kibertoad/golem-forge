@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest'
-import { CountryBorderCities, getBorderCitiesForDirection } from './CountryBorderCities'
-import { Country } from './Countries'
-import { CountryCities } from './Cities'
-import { CountryNeighborDirections, BorderDirection } from './CountryNeighborDirections'
+import { describe, expect, it } from 'vitest'
 import {
-  calculateCityPosition,
   calculateAttackerBlockPosition,
+  calculateCityPosition,
   doesLinePassNearPoint,
-} from '../constants/MapPositionConstants'
+} from '../constants/MapPositionConstants.ts'
+import { CountryCities } from './Cities.ts'
+import { Country } from './Countries.ts'
+import { CountryBorderCities, getBorderCitiesForDirection } from './CountryBorderCities.ts'
+import { BorderDirection, CountryNeighborDirections } from './CountryNeighborDirections.ts'
 
 describe('CountryBorderCities', () => {
   describe('Border City Validation', () => {
@@ -35,17 +35,24 @@ describe('CountryBorderCities', () => {
           it(`should have correct border cities facing ${neighborCountry} (${direction})`, () => {
             // Calculate the attacker block position for this direction
             // Convert BorderDirection enum to string literal type
-            const directionStr = direction === BorderDirection.NORTH ? 'NORTH' :
-                                direction === BorderDirection.SOUTH ? 'SOUTH' :
-                                direction === BorderDirection.EAST ? 'EAST' : 'WEST'
+            const directionStr =
+              direction === BorderDirection.NORTH
+                ? 'NORTH'
+                : direction === BorderDirection.SOUTH
+                  ? 'SOUTH'
+                  : direction === BorderDirection.EAST
+                    ? 'EAST'
+                    : 'WEST'
             const attackerPos = calculateAttackerBlockPosition(directionStr, { x: 0, y: 0 })
 
             borderCitiesForDirection.forEach((borderCity) => {
               // Find the border city in the city data
-              const borderCityData = cityData.find(c => c.name === borderCity.cityName)
+              const borderCityData = cityData.find((c) => c.name === borderCity.cityName)
 
               if (!borderCityData) {
-                throw new Error(`Border city ${borderCity.cityName} not found in city data for ${country}`)
+                throw new Error(
+                  `Border city ${borderCity.cityName} not found in city data for ${country}`,
+                )
               }
 
               // Calculate the border city's actual position
@@ -65,17 +72,17 @@ describe('CountryBorderCities', () => {
                 if (isOnLine) {
                   // If another city is on the attack line, it should also be a border city
                   const otherCityIsBorder = borderCitiesForDirection.some(
-                    bc => bc.cityName === otherCity.name
+                    (bc) => bc.cityName === otherCity.name,
                   )
 
                   // Calculate distances to determine which is closer to the attacker
                   const distToBorder = Math.sqrt(
                     Math.pow(borderCityPos.x - attackerPos.x, 2) +
-                    Math.pow(borderCityPos.y - attackerPos.y, 2)
+                      Math.pow(borderCityPos.y - attackerPos.y, 2),
                   )
                   const distToOther = Math.sqrt(
                     Math.pow(otherCityPos.x - attackerPos.x, 2) +
-                    Math.pow(otherCityPos.y - attackerPos.y, 2)
+                      Math.pow(otherCityPos.y - attackerPos.y, 2),
                   )
 
                   if (distToOther < distToBorder) {
@@ -83,9 +90,9 @@ describe('CountryBorderCities', () => {
                     if (!otherCityIsBorder) {
                       throw new Error(
                         `City "${otherCity.name}" at (${otherCity.x}, ${otherCity.y}) is between ` +
-                        `attacker position and border city "${borderCity.cityName}" at (${borderCityData.x}, ${borderCityData.y}). ` +
-                        `"${otherCity.name}" should be marked as a border city facing ${direction}, ` +
-                        `and "${borderCity.cityName}" should not be.`
+                          `attacker position and border city "${borderCity.cityName}" at (${borderCityData.x}, ${borderCityData.y}). ` +
+                          `"${otherCity.name}" should be marked as a border city facing ${direction}, ` +
+                          `and "${borderCity.cityName}" should not be.`,
                       )
                     }
                   }
@@ -98,9 +105,11 @@ describe('CountryBorderCities', () => {
         // Additional test: Check that all border cities actually exist in the city data
         it('should only reference cities that exist', () => {
           borderCities.forEach((borderCity) => {
-            const exists = cityData.some(c => c.name === borderCity.cityName)
+            const exists = cityData.some((c) => c.name === borderCity.cityName)
             if (!exists) {
-              throw new Error(`Border city "${borderCity.cityName}" for ${country} does not exist in city data`)
+              throw new Error(
+                `Border city "${borderCity.cityName}" for ${country} does not exist in city data`,
+              )
             }
           })
         })
@@ -108,7 +117,7 @@ describe('CountryBorderCities', () => {
         // Check that border cities match their declared direction
         it('should have border cities in the correct direction', () => {
           borderCities.forEach((borderCity) => {
-            const cityInfo = cityData.find(c => c.name === borderCity.cityName)
+            const cityInfo = cityData.find((c) => c.name === borderCity.cityName)
             if (!cityInfo) return
 
             const cityPos = calculateCityPosition(cityInfo.x, cityInfo.y)
@@ -117,22 +126,30 @@ describe('CountryBorderCities', () => {
             switch (borderCity.direction) {
               case BorderDirection.NORTH:
                 if (cityPos.y >= 0) {
-                  throw new Error(`City "${borderCity.cityName}" declared as NORTH border but has positive Y coordinate`)
+                  throw new Error(
+                    `City "${borderCity.cityName}" declared as NORTH border but has positive Y coordinate`,
+                  )
                 }
                 break
               case BorderDirection.SOUTH:
                 if (cityPos.y <= 0) {
-                  throw new Error(`City "${borderCity.cityName}" declared as SOUTH border but has negative Y coordinate`)
+                  throw new Error(
+                    `City "${borderCity.cityName}" declared as SOUTH border but has negative Y coordinate`,
+                  )
                 }
                 break
               case BorderDirection.EAST:
                 if (cityPos.x <= 0) {
-                  throw new Error(`City "${borderCity.cityName}" declared as EAST border but has negative X coordinate`)
+                  throw new Error(
+                    `City "${borderCity.cityName}" declared as EAST border but has negative X coordinate`,
+                  )
                 }
                 break
               case BorderDirection.WEST:
                 if (cityPos.x >= 0) {
-                  throw new Error(`City "${borderCity.cityName}" declared as WEST border but has positive X coordinate`)
+                  throw new Error(
+                    `City "${borderCity.cityName}" declared as WEST border but has positive X coordinate`,
+                  )
                 }
                 break
             }
@@ -143,7 +160,7 @@ describe('CountryBorderCities', () => {
         it('should not have inland cities further out than border cities', () => {
           // Group border cities by direction
           const bordersByDirection = new Map<BorderDirection, string[]>()
-          borderCities.forEach(bc => {
+          borderCities.forEach((bc) => {
             if (!bordersByDirection.has(bc.direction)) {
               bordersByDirection.set(bc.direction, [])
             }
@@ -153,13 +170,14 @@ describe('CountryBorderCities', () => {
           bordersByDirection.forEach((borderCityNames, direction) => {
             // Find the extreme position for this direction among border cities
             let extremeValue: number | null = null
-            borderCityNames.forEach(cityName => {
-              const city = cityData.find(c => c.name === cityName)
+            borderCityNames.forEach((cityName) => {
+              const city = cityData.find((c) => c.name === cityName)
               if (!city) return
 
-              const value = direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH
-                ? city.y
-                : city.x
+              const value =
+                direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH
+                  ? city.y
+                  : city.x
 
               if (extremeValue === null) {
                 extremeValue = value
@@ -175,12 +193,13 @@ describe('CountryBorderCities', () => {
             if (extremeValue === null) return
 
             // Check if any non-border city is further out
-            cityData.forEach(city => {
+            cityData.forEach((city) => {
               if (borderCityNames.includes(city.name)) return // Skip border cities
 
-              const value = (direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH)
-                ? city.y
-                : city.x
+              const value =
+                direction === BorderDirection.NORTH || direction === BorderDirection.SOUTH
+                  ? city.y
+                  : city.x
 
               let isFurtherOut = false
               if (extremeValue !== null) {
@@ -198,8 +217,8 @@ describe('CountryBorderCities', () => {
               if (isFurtherOut) {
                 throw new Error(
                   `City "${city.name}" at (${city.x}, ${city.y}) is further ${direction} ` +
-                  `than border city/cities: ${borderCityNames.join(', ')}. ` +
-                  `"${city.name}" should be marked as a border city for ${direction}.`
+                    `than border city/cities: ${borderCityNames.join(', ')}. ` +
+                    `"${city.name}" should be marked as a border city for ${direction}.`,
                 )
               }
             })
@@ -217,12 +236,12 @@ describe('CountryBorderCities', () => {
         const eastBorderCities = getBorderCitiesForDirection(Country.UKRAINE, BorderDirection.EAST)
 
         // Should only return cities marked as EAST
-        eastBorderCities.forEach(city => {
+        eastBorderCities.forEach((city) => {
           expect(city.direction).toBe(BorderDirection.EAST)
         })
 
         // Should contain expected cities (based on our data)
-        const eastCityNames = eastBorderCities.map(c => c.cityName)
+        const eastCityNames = eastBorderCities.map((c) => c.cityName)
         expect(eastCityNames).toContain('Kharkiv')
       }
     })
@@ -240,7 +259,7 @@ describe('CountryBorderCities', () => {
         // Group by direction
         const byDirection = new Map<string, string[]>()
 
-        borderCities.forEach(bc => {
+        borderCities.forEach((bc) => {
           const key = bc.direction
           if (!byDirection.has(key)) {
             byDirection.set(key, [])
@@ -252,12 +271,10 @@ describe('CountryBorderCities', () => {
         byDirection.forEach((cities, direction) => {
           const uniqueCities = new Set(cities)
           if (cities.length !== uniqueCities.size) {
-            const duplicates = cities.filter((name, index) =>
-              cities.indexOf(name) !== index
-            )
+            const duplicates = cities.filter((name, index) => cities.indexOf(name) !== index)
             if (cities.length !== uniqueCities.size) {
               throw new Error(
-                `Country ${countryKey} has duplicate border cities for direction ${direction}: ${duplicates.join(', ')}`
+                `Country ${countryKey} has duplicate border cities for direction ${direction}: ${duplicates.join(', ')}`,
               )
             }
           }
@@ -273,13 +290,13 @@ describe('CountryBorderCities', () => {
         if (!cityData) return
 
         borderCities.forEach((borderCity) => {
-          const cityInfo = cityData.find(c => c.name === borderCity.cityName)
+          const cityInfo = cityData.find((c) => c.name === borderCity.cityName)
           if (cityInfo?.isCapital) {
             // Capital is marked as border city - this should be rare
             // Log a warning (not a failure) as some capitals might actually be on borders
             console.warn(
               `Warning: Capital city "${borderCity.cityName}" of ${country} is marked as a border city. ` +
-              `Verify this is correct (some capitals like Jerusalem might actually be border cities).`
+                `Verify this is correct (some capitals like Jerusalem might actually be border cities).`,
             )
           }
         })

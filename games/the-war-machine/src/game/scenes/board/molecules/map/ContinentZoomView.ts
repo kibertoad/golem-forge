@@ -102,7 +102,13 @@ export class ContinentZoomView extends GameObjects.Container {
     this.add(instructionText)
 
     // Create war visualization first (but don't update yet)
-    this.warVisualization = new ContinentWarVisualization(scene, 0, 0, this.worldModel, this.continent)
+    this.warVisualization = new ContinentWarVisualization(
+      scene,
+      0,
+      0,
+      this.worldModel,
+      this.continent,
+    )
     this.add(this.warVisualization)
 
     // Create country blocks (this will set positions in war visualization)

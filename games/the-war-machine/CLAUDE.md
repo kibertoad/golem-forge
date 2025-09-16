@@ -651,6 +651,214 @@ if (management > complexity) {
 - **Anti-Gravity** (Tech 10): Theoretical gravity manipulation
 - **Antimatter Weapon** (Tech 10): Ultimate strategic weapon
 
+## Z-Index Layer Management
+
+### Depth Registry (`src/game/registries/depthRegistry.ts`)
+
+The depth registry centralizes all z-index (depth) values for proper layering of UI elements. This ensures overlays, modals, and popups appear in the correct visual order.
+
+#### Layer Ranges
+
+**0-99: Board and Map Layers**
+- Background elements, UI chrome, basic interface
+
+**100-999: Entities and Game Objects**
+- Game pieces, animations, navigation elements
+
+**1000-2999: UI Overlays and Modals**
+- Toast notifications, zoom views, selection dialogs
+
+**3000-3999: Inventory and Stock Views**
+- Stock inventory, research dialogs, tooltips
+- Stock detail views (info popups) at 3500
+
+**4000-4999: Country Info Overlays**
+- High-priority country information displays
+
+**9000+: Critical Overlays**
+- Input blockers, game over screens
+
+#### Usage Guidelines
+
+1. **Always use DepthRegistry constants** instead of hardcoded numbers:
+```typescript
+import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
+
+// Good
+this.setDepth(DepthRegistry.STOCK_INVENTORY)
+
+// Bad
+this.setDepth(3000)
+```
+
+2. **Parent-child depth relationships**: Child overlays should have higher depth than their parents:
+- StockInventoryView: 3000 (STOCK_INVENTORY)
+- ArmsDetailView (info popup): 3500 (STOCK_DETAIL)
+
+3. **Modal overlays** should block interaction with elements below by using semi-transparent backgrounds
+
+4. **Right-click navigation**: All overlays should support right-click to close:
+```typescript
+private setupRightClickClose(scene: PotatoScene) {
+  scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+    if (pointer.rightButtonDown() && this.visible) {
+      this.hide()
+    }
+  })
+}
+```
+
+## Visual Style System
+
+### Style Registry (`src/game/registries/styleRegistry.ts`)
+
+The style registry centralizes all visual constants for consistent design across the game. All colors, typography, spacing, and visual properties should be defined here rather than hardcoded in components.
+
+#### Color Palette
+
+**Primary Colors**
+- `Colors.primary.main`: 0x3b82f6 - Blue for main interactive elements
+- `Colors.primary.light`: 0x60a5fa - Light blue for hover states and highlights
+- `Colors.primary.dark`: 0x2563eb - Dark blue for pressed states
+
+**Background Colors**
+- `Colors.background.primary`: 0x1a1a2e - Main scene background
+- `Colors.background.secondary`: 0x16213e - Secondary panels
+- `Colors.background.tertiary`: 0x0f172a - Content areas
+- `Colors.background.card`: 0x1e293b - Card/item backgrounds
+- `Colors.background.cardHover`: 0x2d3748 - Card hover state
+
+**Text Colors** (string format for Phaser)
+- `Colors.text.primary`: '#ffffff' - Main text
+- `Colors.text.secondary`: '#e2e8f0' - Secondary text
+- `Colors.text.muted`: '#94a3b8' - Muted/subtle text
+- `Colors.text.disabled`: '#64748b' - Disabled text
+
+**Status Colors**
+- `Colors.status.success`: Green (0x10b981) - Success, positive
+- `Colors.status.warning`: Orange (0xf59e0b) - Warning
+- `Colors.status.danger`: Red (0xef4444) - Danger, negative
+- `Colors.money.positive`: '#4ade80' - Profits
+- `Colors.money.negative`: '#ef4444' - Losses
+- `Colors.money.neutral`: '#fbbf24' - Costs
+
+**Special Colors**
+- Heat levels: `getHeatColor(heat)` helper function
+  - Low (0-3): Green
+  - Medium (4-7): Orange
+  - High (8-10): Red
+
+#### Typography
+
+**Font Families**
+- `Typography.fontFamily.primary`: 'Arial' - Main UI font
+- `Typography.fontFamily.monospace`: 'Courier' - Code/data display
+- `Typography.fontFamily.display`: 'Arial' - Display text
+
+**Font Sizes**
+- Headings: `h1` (36px) through `h6` (18px)
+- Body: `large` (20px), `regular` (18px), `small` (16px), `tiny` (14px)
+- Special: `title` (36px), `button` (20px), `caption` (14px)
+
+**Font Styles**
+- `Typography.fontStyle.bold`, `normal`, `italic`
+- Text shadows: `small`, `medium`, `large` presets
+
+#### Borders & Spacing
+
+**Border Widths**
+- `Borders.width.thin`: 1px
+- `Borders.width.normal`: 2px
+- `Borders.width.thick`: 3px
+- `Borders.width.heavy`: 4px
+
+**Border Radius**
+- `Borders.radius.small`: 5px
+- `Borders.radius.medium`: 10px
+- `Borders.radius.large`: 20px
+
+**Spacing**
+- `Spacing.xs`: 5px through `Spacing.xxl`: 60px
+- Component padding presets for buttons, cards, containers
+- List item gaps: `compact` (40px), `normal` (60px), `large` (100px)
+
+#### Dimensions
+
+**Common Sizes**
+- Scene: 1480x800
+- Buttons: `default` (150x50), `small` (100x35), `large` (200x60), `wide` (250x50)
+- Cards: `warehouse` (1300x120), `location` (1300x80), `stock` (1100x50)
+- Modals: `default` (1200x500), `large` (1400x600), `small` (800x400)
+- Tabs: 280x50 with 10px gap
+
+#### Animations
+
+**Durations**
+- `Animations.duration.fast`: 100ms
+- `Animations.duration.normal`: 200ms
+- `Animations.duration.slow`: 300ms
+
+**Easing**
+- `Animations.easing.easeIn/Out/InOut`: 'Power2'
+
+#### Opacity
+
+**Preset Values**
+- `Opacity.selection`: 0.3 - Selected items
+- `Opacity.overlay`: 0.8 - Modal overlays
+- `Opacity.disabled`: 0.5 - Disabled elements
+- `Opacity.hover`: 0.1 - Hover overlays
+
+#### Style Presets
+
+Pre-configured style combinations for common UI elements:
+
+```typescript
+// Primary button
+StylePresets.primaryButton = {
+  background: Colors.primary.main,
+  backgroundHover: Colors.primary.light,
+  text: Colors.text.primary,
+  fontSize: Typography.fontSize.button,
+}
+
+// Selected card
+StylePresets.cardSelected = {
+  background: Colors.primary.main,
+  backgroundOpacity: Opacity.selection,
+  border: Colors.primary.light,
+  borderWidth: Borders.width.thick,
+}
+```
+
+#### Usage Examples
+
+```typescript
+// Import style constants
+import { Colors, Typography, Borders, Spacing } from '../../registries/styleRegistry.ts'
+
+// Use in Phaser objects
+const button = this.add.rectangle(0, 0,
+  Dimensions.button.default.width,
+  Dimensions.button.default.height,
+  Colors.primary.main
+)
+
+const text = this.add.text(0, 0, 'Hello', {
+  fontSize: Typography.fontSize.h3,
+  fontFamily: Typography.fontFamily.primary,
+  color: Colors.text.primary,
+  fontStyle: Typography.fontStyle.bold,
+})
+
+// Use heat color helper
+const heatColor = getHeatColor(warehouse.heat)
+
+// Apply selection highlight
+bg.setFillStyle(Colors.primary.main, Opacity.selection)
+bg.setStrokeStyle(Borders.width.thick, Colors.primary.light)
+```
+
 ## Common Issues and Fixes
 
 ### Duplicate Country Entries

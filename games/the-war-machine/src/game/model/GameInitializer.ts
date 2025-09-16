@@ -1,6 +1,6 @@
 import type { Dependencies } from './diConfig.ts'
-import type { WarDirector } from './processors/WarDirector.ts'
 import type { WorldModel } from './entities/WorldModel.ts'
+import type { WarDirector } from './processors/WarDirector.ts'
 
 /**
  * Responsible for initializing the game state when a new game starts.

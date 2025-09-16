@@ -7,12 +7,16 @@ import {
 import { EventEmitter } from 'emitix'
 import { AgentStatus } from '../enums/AgentEnums.ts'
 import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
+import { CountryCities, type CityData } from '../enums/Cities.ts'
 import type { Country } from '../enums/Countries.ts'
 import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
 import type { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
 import { CountryModel } from './CountryModel.ts'
 import type { EntityModel } from './EntityModel.ts'
+import type { AbstractLocationModel } from './locations/AbstractLocationModel.ts'
+import { LocationSize } from './locations/AbstractLocationModel.ts'
+import { WarehouseModel } from './locations/WarehouseModel.ts'
 import type { ResearchDirectorModel } from './ResearchDirectorModel.ts'
 import type { ResearchFacilityModel } from './ResearchFacilityModel.ts'
 
@@ -37,6 +41,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly researchFacilities: ResearchFacilityModel[] = []
   public readonly researchDirectors: ResearchDirectorModel[] = []
   public readonly countries: Map<string, CountryModel> = new Map()
+  public readonly playerLocations: AbstractLocationModel[] = []
   public gameStatus: GameStatus
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
@@ -58,6 +63,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
     // Initialize countries from starting data
     this.initializeCountries()
+
+    // Initialize with a starting warehouse
+    this.initializeStartingWarehouse()
   }
 
   private initializeCountries() {
@@ -204,6 +212,76 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   getAllCountries(): CountryModel[] {
     return Array.from(this.countries.values())
+  }
+
+  // Initialize starting warehouse
+  private initializeStartingWarehouse() {
+    const countries = Array.from(this.countries.keys())
+    let countryCities: CityData[] | undefined
+    let randomCountry: Country
+    let attempts = 0
+    const maxAttempts = 100  // Safety limit to prevent infinite loop
+
+    // Keep picking random countries until we find one with cities
+    do {
+      randomCountry = countries[Math.floor(Math.random() * countries.length)] as Country
+      countryCities = CountryCities[randomCountry]
+      attempts++
+    } while ((!countryCities || countryCities.length === 0) && attempts < maxAttempts)
+
+    if (!countryCities || countryCities.length === 0) {
+      console.error(`Could not find a country with cities after ${maxAttempts} attempts!`)
+      return
+    }
+
+    const randomCity = countryCities[Math.floor(Math.random() * countryCities.length)]
+
+    const warehouse = new WarehouseModel({
+      id: 'warehouse-1',
+      country: randomCountry,
+      city: randomCity.name,
+      legality: 5,
+      heat: 0,
+      concealment: 1,
+      infrastructure: 1,
+      size: LocationSize.SMALL,
+    })
+
+    // Add some initial stock to the warehouse for testing
+    // Note: In a real game, this would be moved/purchased by the player
+    // This is just for demonstration
+
+    this.addLocation(warehouse)
+    console.log(`Created warehouse in ${randomCity.name}, ${randomCountry}`)
+  }
+
+  // Location management
+  addLocation(location: AbstractLocationModel) {
+    this.playerLocations.push(location)
+  }
+
+  removeLocation(locationId: string): AbstractLocationModel | null {
+    const index = this.playerLocations.findIndex((l) => l.id === locationId)
+    if (index !== -1) {
+      return this.playerLocations.splice(index, 1)[0]
+    }
+    return null
+  }
+
+  getLocation(locationId: string): AbstractLocationModel | undefined {
+    return this.playerLocations.find((l) => l.id === locationId)
+  }
+
+  getLocationsByCountry(country: Country): AbstractLocationModel[] {
+    return this.playerLocations.filter((l) => l.country === country)
+  }
+
+  getLocationsByCity(country: Country, city: string): AbstractLocationModel[] {
+    return this.playerLocations.filter((l) => l.country === country && l.city === city)
+  }
+
+  hasLocationInCity(country: Country, city: string): boolean {
+    return this.playerLocations.some((l) => l.country === country && l.city === city)
   }
 }
 

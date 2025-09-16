@@ -180,6 +180,16 @@ export class CityZoomView extends GameObjects.Container {
 
       drawCity(baseColor)
 
+      // Add house symbol if player has location in this city
+      if (this.worldModel && this.worldModel.hasLocationInCity(this.country, city.name)) {
+        const houseSymbol = scene.add.text(35, -35, '🏠', {
+          fontSize: '24px',
+          fontFamily: 'Arial',
+        })
+        houseSymbol.setOrigin(0.5)
+        cityContainer.add(houseSymbol)
+      }
+
       // City name label - increased font sizes for better readability
       const fontSize = city.isCapital ? '18px' : '16px'
       const nameLabel = scene.add.text(0, city.isCapital ? 45 : 40, city.name, {
@@ -365,7 +375,10 @@ export class CityZoomView extends GameObjects.Container {
     const isBeingAttacked = countryModel.isDefending.size > 0
 
     console.log(`[CityZoomView] ${this.country} is at war with:`, Array.from(countryModel.warsWith))
-    console.log(`[CityZoomView] ${this.country} is defending against:`, Array.from(countryModel.isDefending))
+    console.log(
+      `[CityZoomView] ${this.country} is defending against:`,
+      Array.from(countryModel.isDefending),
+    )
     console.log(`[CityZoomView] ${this.country} is being attacked:`, isBeingAttacked)
 
     // Only show attack visualization if this country is being attacked

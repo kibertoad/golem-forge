@@ -8,14 +8,14 @@ export const CITY_GRID_WIDTH = 1480
 export const CITY_GRID_HEIGHT = 680
 export const CITY_GRID_COLUMNS = 10
 export const CITY_GRID_ROWS = 10
-export const CITY_BLOCK_SIZE_X = CITY_GRID_WIDTH / CITY_GRID_COLUMNS  // 148
-export const CITY_BLOCK_SIZE_Y = CITY_GRID_HEIGHT / CITY_GRID_ROWS    // 68
-export const CITY_GRID_START_X = -CITY_GRID_WIDTH / 2   // -740
-export const CITY_GRID_START_Y = -CITY_GRID_HEIGHT / 2 + 40  // -300 (with title offset)
+export const CITY_BLOCK_SIZE_X = CITY_GRID_WIDTH / CITY_GRID_COLUMNS // 148
+export const CITY_BLOCK_SIZE_Y = CITY_GRID_HEIGHT / CITY_GRID_ROWS // 68
+export const CITY_GRID_START_X = -CITY_GRID_WIDTH / 2 // -740
+export const CITY_GRID_START_Y = -CITY_GRID_HEIGHT / 2 + 40 // -300 (with title offset)
 
 // Attack visualization offsets
-export const ATTACKER_BLOCK_HORIZONTAL_OFFSET = 800  // Distance from center for E/W attackers
-export const ATTACKER_BLOCK_VERTICAL_OFFSET = 380    // Distance from center for N/S attackers
+export const ATTACKER_BLOCK_HORIZONTAL_OFFSET = 800 // Distance from center for E/W attackers
+export const ATTACKER_BLOCK_VERTICAL_OFFSET = 380 // Distance from center for N/S attackers
 
 /**
  * Calculate the actual screen position of a city based on its grid coordinates.
@@ -32,7 +32,7 @@ export function calculateCityPosition(gridX: number, gridY: number): { x: number
  */
 export function calculateAttackerBlockPosition(
   direction: 'NORTH' | 'SOUTH' | 'EAST' | 'WEST',
-  defenderPos: { x: number; y: number } = { x: 0, y: 0 }
+  defenderPos: { x: number; y: number } = { x: 0, y: 0 },
 ): { x: number; y: number } {
   switch (direction) {
     case 'NORTH':
@@ -54,7 +54,7 @@ export function isPointBetween(
   pointA: { x: number; y: number },
   pointB: { x: number; y: number },
   pointC: { x: number; y: number },
-  tolerance: number = 10
+  tolerance: number = 10,
 ): boolean {
   // Calculate distances
   const distAB = Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2))
@@ -74,7 +74,7 @@ export function doesLinePassNearPoint(
   lineStart: { x: number; y: number },
   lineEnd: { x: number; y: number },
   point: { x: number; y: number },
-  maxDistance: number = 20
+  maxDistance: number = 20,
 ): boolean {
   // Vector from lineStart to lineEnd
   const lineVecX = lineEnd.x - lineStart.x
@@ -83,25 +83,25 @@ export function doesLinePassNearPoint(
 
   if (lineLengthSquared === 0) {
     // Line start and end are the same point
-    const dist = Math.sqrt(
-      Math.pow(point.x - lineStart.x, 2) + Math.pow(point.y - lineStart.y, 2)
-    )
+    const dist = Math.sqrt(Math.pow(point.x - lineStart.x, 2) + Math.pow(point.y - lineStart.y, 2))
     return dist <= maxDistance
   }
 
   // Calculate parameter t for the projection of point onto the line
-  const t = Math.max(0, Math.min(1,
-    ((point.x - lineStart.x) * lineVecX + (point.y - lineStart.y) * lineVecY) / lineLengthSquared
-  ))
+  const t = Math.max(
+    0,
+    Math.min(
+      1,
+      ((point.x - lineStart.x) * lineVecX + (point.y - lineStart.y) * lineVecY) / lineLengthSquared,
+    ),
+  )
 
   // Find the nearest point on the line segment
   const nearestX = lineStart.x + t * lineVecX
   const nearestY = lineStart.y + t * lineVecY
 
   // Calculate distance from point to nearest point on line
-  const distance = Math.sqrt(
-    Math.pow(point.x - nearestX, 2) + Math.pow(point.y - nearestY, 2)
-  )
+  const distance = Math.sqrt(Math.pow(point.x - nearestX, 2) + Math.pow(point.y - nearestY, 2))
 
   return distance <= maxDistance
 }

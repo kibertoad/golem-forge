@@ -4,6 +4,7 @@ import { GameObjects } from 'phaser'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
 import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
+import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
 import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
@@ -82,7 +83,7 @@ export class StockInventoryView extends GameObjects.Container {
     })
 
     scene.add.existing(this)
-    this.setDepth(3000) // Higher than continent zoom view (2000)
+    this.setDepth(DepthRegistry.STOCK_INVENTORY)
   }
 
   private createFilterSection(scene: PotatoScene) {

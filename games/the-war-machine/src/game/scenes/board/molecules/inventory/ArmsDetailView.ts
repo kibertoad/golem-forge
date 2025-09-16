@@ -7,6 +7,7 @@ import {
   getManufacturerDisplayName,
   manufacturerDetails,
 } from '../../../../model/enums/ArmsManufacturer.ts'
+import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
 
 export class ArmsDetailView extends GameObjects.Container {
   private background: GameObjects.Graphics
@@ -62,8 +63,11 @@ export class ArmsDetailView extends GameObjects.Container {
     )
 
     scene.add.existing(this)
-    this.setDepth(2000)
+    this.setDepth(DepthRegistry.STOCK_DETAIL)
     this.setVisible(false)
+
+    // Setup right-click to close
+    this.setupRightClickClose(scene)
   }
 
   private createCloseButton(scene: PotatoScene): GameObjects.Container {
@@ -411,6 +415,16 @@ export class ArmsDetailView extends GameObjects.Container {
       salvage: '#ff0000',
     }
     return conditionColors[condition.toLowerCase()] || '#ffffff'
+  }
+
+  private setupRightClickClose(scene: PotatoScene) {
+    // Right-click anywhere to close the detail view
+    scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // Check if right mouse button and detail view is visible
+      if (pointer.rightButtonDown() && this.visible) {
+        this.hide()
+      }
+    })
   }
 
   public hide() {
