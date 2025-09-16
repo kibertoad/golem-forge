@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { armsRegistry } from '../../registries/armsRegistry.ts'
-import type { ArmsDefinition } from '../definitions/armsDefinitions.ts'
+import type { ArmsDefinition, ArmsId } from '../definitions/armsDefinitions.ts'
 import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
 
 export interface ArmsStockParams {
-  armsId: string // Reference to the arms definition
+  armsId: ArmsId // Reference to the arms definition (type-safe)
   quantity: number
   purchasePrice: number // What the player paid per unit
   condition?: ArmsCondition
@@ -13,7 +13,7 @@ export interface ArmsStockParams {
 
 export class ArmsStockModel {
   public readonly id: string
-  public readonly armsId: string // Reference to immutable definition
+  public readonly armsId: ArmsId // Reference to immutable definition (type-safe)
   public quantity: number
   public purchasePrice: number // What was paid per unit
   public condition: ArmsCondition

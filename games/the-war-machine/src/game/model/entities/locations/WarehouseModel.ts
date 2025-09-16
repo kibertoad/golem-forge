@@ -2,16 +2,8 @@ import type { Country } from '../../enums/Countries.ts'
 import type { ArmsStockModel } from '../ArmsStockModel.ts'
 import { AbstractLocationModel, LocationSize } from './AbstractLocationModel.ts'
 
-export interface StockItem {
-  id: string
-  name: string
-  quantity: number
-  unitSize: number // storage space per unit
-}
-
 export class WarehouseModel extends AbstractLocationModel {
   public maxStorage: number
-  public stockItems: Map<string, StockItem>
   public armsStock: ArmsStockModel[] = []
 
   constructor(params: {
@@ -42,8 +34,6 @@ export class WarehouseModel extends AbstractLocationModel {
       }
       this.maxStorage = baseStorage[this.size] * this.infrastructure
     }
-
-    this.stockItems = new Map()
   }
 
   public getCapacity(): number {
@@ -51,42 +41,50 @@ export class WarehouseModel extends AbstractLocationModel {
   }
 
   public getUsedStorage(): number {
-    let used = 0
-    for (const item of this.stockItems.values()) {
-      used += item.quantity * item.unitSize
-    }
-    return used
+    // Each arms stock item takes up space based on quantity
+    // For simplicity, let's say each item takes 1 unit of space
+    return this.armsStock.reduce((total, item) => total + item.quantity, 0)
   }
 
   public getAvailableStorage(): number {
     return this.maxStorage - this.getUsedStorage()
   }
 
-  public addStock(item: StockItem): boolean {
-    const requiredSpace = item.quantity * item.unitSize
+  public addArmsStock(item: ArmsStockModel): boolean {
+    const requiredSpace = item.quantity
     if (requiredSpace > this.getAvailableStorage()) {
-      return false
+      return false // Not enough space
     }
 
-    const existing = this.stockItems.get(item.id)
+    // Check if we already have this item type
+    const existing = this.armsStock.find(stock =>
+      stock.armsId === item.armsId &&
+      stock.condition === item.condition
+    )
+
     if (existing) {
+      // Merge quantities
       existing.quantity += item.quantity
     } else {
-      this.stockItems.set(item.id, { ...item })
+      // Add new stock item
+      this.armsStock.push(item)
     }
     return true
   }
 
-  public removeStock(itemId: string, quantity: number): boolean {
-    const item = this.stockItems.get(itemId)
-    if (!item || item.quantity < quantity) {
-      return false
+  public removeArmsStock(stockId: string): ArmsStockModel | null {
+    const index = this.armsStock.findIndex(s => s.id === stockId)
+    if (index !== -1) {
+      return this.armsStock.splice(index, 1)[0]
     }
+    return null
+  }
 
-    item.quantity -= quantity
-    if (item.quantity === 0) {
-      this.stockItems.delete(itemId)
-    }
-    return true
+  public getArmsStock(): ArmsStockModel[] {
+    return this.armsStock
+  }
+
+  public getTotalStockValue(): number {
+    return this.armsStock.reduce((total, item) => total + item.getTotalValue(), 0)
   }
 }

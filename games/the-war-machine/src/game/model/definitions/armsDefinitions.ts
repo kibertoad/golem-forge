@@ -2,9 +2,38 @@ import { ArmsBranch } from '../enums/ArmsBranches.ts'
 import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
 import type { BranchQuality } from '../enums/ArmsStockEnums.ts'
 
+// Type for valid arms IDs
+export type ArmsId =
+  | 'viper_7_aam'
+  | 'talon_atg'
+  | 'horizon_cm'
+  | 'thunderbolt_mbt'
+  | 'wolverine_ifv'
+  | 'guardian_apc'
+  | 'phantom_x5'
+  | 'storm_rider_gunship'
+  | 'nexus_ac7'
+  | 'longshot_50'
+  | 'leviathan_destroyer'
+  | 'spectre_ew_suite'
+  | 'sentinel_uav'
+  | 'scorpion_rifle'
+  | 'dune_runner_apc'
+  | 'liberty_surplus_rifle'
+  | 'grad_lite'
+  | 'steel_bear_tank'
+  | 'jungle_viper_smg'
+  | 'wasp_drone'
+  | 'thunder_rocket'
+  | 'sky_needle_sam'
+  | 'rhino_mrap'
+  | 'frontier_carbine'
+  | 'copycat_ak'
+  | 'thunder_mortar'
+
 // Immutable definition of an arms product
 export interface ArmsDefinition {
-  id: string // Unique identifier for this arms type
+  id: ArmsId // Unique identifier for this arms type
   name: string // Display name
   branch: ArmsBranch // Which branch this belongs to
   subcategories: Set<string> // All applicable subcategories
@@ -17,7 +46,7 @@ export interface ArmsDefinition {
 }
 
 // Example arms definitions
-export const armsDefinitions: Record<string, ArmsDefinition> = {
+export const armsDefinitions: Record<ArmsId, ArmsDefinition> = {
   // MISSILES
   viper_7_aam: {
     id: 'viper_7_aam',

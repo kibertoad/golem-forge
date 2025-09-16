@@ -10,8 +10,10 @@ import type { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
 import { CountryCities, type CityData } from '../enums/Cities.ts'
 import type { Country } from '../enums/Countries.ts'
 import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
-import type { ArmsStockModel } from './ArmsStockModel.ts'
+import { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
+import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
+import type { ArmsId } from '../definitions/armsDefinitions.ts'
 import { CountryModel } from './CountryModel.ts'
 import type { EntityModel } from './EntityModel.ts'
 import type { AbstractLocationModel } from './locations/AbstractLocationModel.ts'
@@ -36,7 +38,6 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   public readonly entities: EntityModel[] = []
   public readonly businessAgents: BusinessAgentModel[] = []
-  public readonly playerStock: ArmsStockModel[] = []
   public readonly vendorContacts: Set<ArmsManufacturer> = new Set()
   public readonly researchFacilities: ResearchFacilityModel[] = []
   public readonly researchDirectors: ResearchDirectorModel[] = []
@@ -98,14 +99,53 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   }
 
   // Stock management
-  addStock(stock: ArmsStockModel) {
-    this.playerStock.push(stock)
+  // Get all stock from all warehouses
+  getAllStock(): ArmsStockModel[] {
+    const allStock: ArmsStockModel[] = []
+    for (const location of this.playerLocations) {
+      if (location.type === 'warehouse') {
+        const warehouse = location as WarehouseModel
+        allStock.push(...warehouse.getArmsStock())
+      }
+    }
+    return allStock
   }
 
+  // Add stock to a specific warehouse
+  addStockToWarehouse(warehouseId: string, stock: ArmsStockModel): boolean {
+    const warehouse = this.playerLocations.find(
+      loc => loc.id === warehouseId && loc.type === 'warehouse'
+    ) as WarehouseModel | undefined
+
+    if (warehouse) {
+      return warehouse.addArmsStock(stock)
+    }
+    return false
+  }
+
+  // Remove stock from any warehouse
   removeStock(stockId: string): ArmsStockModel | null {
-    const index = this.playerStock.findIndex((s) => s.id === stockId)
-    if (index !== -1) {
-      return this.playerStock.splice(index, 1)[0]
+    for (const location of this.playerLocations) {
+      if (location.type === 'warehouse') {
+        const warehouse = location as WarehouseModel
+        const removed = warehouse.removeArmsStock(stockId)
+        if (removed) {
+          return removed
+        }
+      }
+    }
+    return null
+  }
+
+  // Get the first available warehouse with space
+  getAvailableWarehouse(requiredSpace: number = 1): WarehouseModel | null {
+    for (const location of this.playerLocations) {
+      if (location.type === 'warehouse') {
+        const warehouse = location as WarehouseModel
+        if (warehouse.getAvailableStorage() >= requiredSpace) {
+          return warehouse
+        }
+      }
     }
     return null
   }
@@ -214,6 +254,42 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     return Array.from(this.countries.values())
   }
 
+  // Create initial stock for the starting warehouse
+  private createInitialStock(warehouse: WarehouseModel) {
+    // Create some basic starting stock using actual arms definition IDs
+    const initialStock = [
+      new ArmsStockModel({
+        armsId: 'copycat_ak',  // AK-47 knockoff
+        quantity: 50,
+        purchasePrice: 500,
+        condition: ArmsCondition.GOOD,
+        acquiredFrom: 'Starting Inventory',
+      }),
+      new ArmsStockModel({
+        armsId: 'scorpion_rifle',  // Basic assault rifle
+        quantity: 30,
+        purchasePrice: 800,
+        condition: ArmsCondition.NEW,
+        acquiredFrom: 'Starting Inventory',
+      }),
+      new ArmsStockModel({
+        armsId: 'thunder_rocket',  // Basic RPG
+        quantity: 10,
+        purchasePrice: 2000,
+        condition: ArmsCondition.FAIR,
+        acquiredFrom: 'Starting Inventory',
+      }),
+    ]
+
+    // Add each stock item to the warehouse
+    for (const stock of initialStock) {
+      const success = warehouse.addArmsStock(stock)
+      if (!success) {
+        console.warn(`Could not add ${stock.getName()} to warehouse - insufficient space`)
+      }
+    }
+  }
+
   // Initialize starting warehouse
   private initializeStartingWarehouse() {
     const countries = Array.from(this.countries.keys())
@@ -248,11 +324,10 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     })
 
     // Add some initial stock to the warehouse for testing
-    // Note: In a real game, this would be moved/purchased by the player
-    // This is just for demonstration
+    this.createInitialStock(warehouse)
 
     this.addLocation(warehouse)
-    console.log(`Created warehouse in ${randomCity.name}, ${randomCountry}`)
+    console.log(`Created warehouse in ${randomCity.name}, ${randomCountry} with ${warehouse.armsStock.length} stock items`)
   }
 
   // Location management

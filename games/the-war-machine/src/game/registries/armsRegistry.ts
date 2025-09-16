@@ -1,9 +1,9 @@
-import { type ArmsDefinition, armsDefinitions } from '../model/definitions/armsDefinitions.ts'
+import { type ArmsDefinition, type ArmsId, armsDefinitions } from '../model/definitions/armsDefinitions.ts'
 import type { ArmsBranch } from '../model/enums/ArmsBranches.ts'
 import type { ArmsManufacturer } from '../model/enums/ArmsManufacturer.ts'
 
 class ArmsRegistry {
-  private definitions: Map<string, ArmsDefinition>
+  private definitions: Map<ArmsId, ArmsDefinition>
 
   constructor() {
     this.definitions = new Map()
@@ -16,8 +16,8 @@ class ArmsRegistry {
     })
   }
 
-  // Get a specific arms definition by ID
-  getDefinition(id: string): ArmsDefinition | undefined {
+  // Get a specific arms definition by ID (now type-safe)
+  getDefinition(id: ArmsId): ArmsDefinition | undefined {
     return this.definitions.get(id)
   }
 
@@ -64,8 +64,8 @@ class ArmsRegistry {
     )
   }
 
-  // Check if a definition exists
-  hasDefinition(id: string): boolean {
+  // Check if a definition exists (now type-safe)
+  hasDefinition(id: ArmsId): boolean {
     return this.definitions.has(id)
   }
 

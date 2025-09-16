@@ -144,7 +144,7 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       warehouseContainer.add(concealmentText)
 
       // Items count
-      const itemsCount = warehouse.stockItems.size
+      const itemsCount = warehouse.armsStock.length
       const itemsText = this.scene.add.text(
         850,
         25,

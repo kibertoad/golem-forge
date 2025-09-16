@@ -334,8 +334,8 @@ export class BoardScene extends PotatoScene {
       }),
     ]
 
-    // Add all stock to world model
-    startingStock.forEach((stock) => this.worldModel.addStock(stock))
+    // Stock is now managed in warehouses - this method is deprecated
+    // startingStock.forEach((stock) => this.worldModel.addStock(stock))
   }
 
   private initializeResearchFacilities() {
@@ -420,7 +420,7 @@ export class BoardScene extends PotatoScene {
     // Create stock inventory view (initially hidden)
     this.stockInventoryView = new StockInventoryView(this, width / 2, height / 2)
     this.stockInventoryView.setVisible(false)
-    this.stockInventoryView.setStockItems(this.worldModel.playerStock)
+    this.stockInventoryView.setStockItems(this.worldModel.getAllStock())
     this.stockInventoryView.on('item-sold', (item: ArmsStockModel) => {
       this.handleStockSale(item)
     })
@@ -514,7 +514,7 @@ export class BoardScene extends PotatoScene {
 
     // Update the inventory view
     if (this.stockInventoryView) {
-      this.stockInventoryView.setStockItems(this.worldModel.playerStock)
+      this.stockInventoryView.setStockItems(this.worldModel.getAllStock())
     }
   }
 
