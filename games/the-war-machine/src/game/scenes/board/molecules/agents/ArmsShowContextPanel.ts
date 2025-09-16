@@ -2,6 +2,7 @@ import type { PotatoScene } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
 import type { ArmsShowDefinition } from '../../../../model/definitions/armsShowsDefinitions.ts'
 import type { BusinessAgentModel } from '../../../../model/entities/BusinessAgentModel.ts'
+import { CountryNames } from '../../../../model/enums/Countries.ts'
 
 export function createArmsShowContextPanel(
   scene: PotatoScene,
@@ -30,8 +31,9 @@ export function createArmsShowContextPanel(
   panel.add(showName)
 
   // Show details - more compact layout with reduced spacing
+  const countryName = CountryNames[armsShow.country] || armsShow.country
   const details = [
-    `Country: ${armsShow.country}`,
+    `Country: ${countryName}`,
     `Entry Fee: $${armsShow.entranceFee.toLocaleString()}`,
     `Prestige: ${'★'.repeat(armsShow.prestigeLevel)}${'☆'.repeat(5 - armsShow.prestigeLevel)}`,
     `Arms Branches: ${armsShow.armsBranches.join(', ')}`,

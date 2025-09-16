@@ -3,11 +3,13 @@ import * as Phaser from 'phaser'
 import { GameObjects } from 'phaser'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
 import { ArmsBranchNames } from '../../../../model/enums/ArmsBranches.ts'
+import { CountryNames } from '../../../../model/enums/Countries.ts'
 import {
   getManufacturerDisplayName,
   manufacturerDetails,
 } from '../../../../model/enums/ArmsManufacturer.ts'
 import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
+import { Colors, Typography, Borders, Opacity, Dimensions } from '../../../../registries/styleRegistry.ts'
 
 export class ArmsDetailView extends GameObjects.Container {
   private background: GameObjects.Graphics
@@ -20,7 +22,7 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Create semi-transparent overlay background
     const overlayBg = scene.add.graphics()
-    overlayBg.fillStyle(0x000000, 0.7)
+    overlayBg.fillStyle(0x000000, Opacity.overlay)
     overlayBg.fillRect(
       -scene.cameras.main.width / 2,
       -scene.cameras.main.height / 2,
@@ -31,18 +33,18 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Create main detail window
     this.background = scene.add.graphics()
-    this.background.fillStyle(0x1a1a1a, 0.98)
-    this.background.fillRoundedRect(-400, -300, 800, 600, 10)
-    this.background.lineStyle(3, 0x444444, 1)
-    this.background.strokeRoundedRect(-400, -300, 800, 600, 10)
+    this.background.fillStyle(Colors.background.primary, 0.98)
+    this.background.fillRoundedRect(-400, -300, 800, 600, Borders.radius.medium)
+    this.background.lineStyle(Borders.width.thick, Colors.ui.border, 1)
+    this.background.strokeRoundedRect(-400, -300, 800, 600, Borders.radius.medium)
     this.add(this.background)
 
     // Title
     this.titleText = scene.add.text(0, -260, 'ARMS DETAILS', {
-      fontSize: '32px',
-      fontFamily: 'Courier',
-      color: '#00ff00',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h1,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.title,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.titleText.setOrigin(0.5)
     this.add(this.titleText)
@@ -74,16 +76,16 @@ export class ArmsDetailView extends GameObjects.Container {
     const container = scene.add.container(360, -260)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x660000, 0.8)
-    bg.fillRoundedRect(-15, -15, 30, 30, 4)
-    bg.lineStyle(2, 0xaa0000, 1)
-    bg.strokeRoundedRect(-15, -15, 30, 30, 4)
+    bg.fillStyle(Colors.status.danger, 0.8)
+    bg.fillRoundedRect(-15, -15, 30, 30, Borders.radius.small)
+    bg.lineStyle(Borders.width.normal, Colors.status.danger, 1)
+    bg.strokeRoundedRect(-15, -15, 30, 30, Borders.radius.small)
 
     const text = scene.add.text(0, 0, 'X', {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#ff0000',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h4,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.status.dangerText,
+      fontStyle: Typography.fontStyle.bold,
     })
     text.setOrigin(0.5)
 
@@ -95,17 +97,17 @@ export class ArmsDetailView extends GameObjects.Container {
     })
     bg.on('pointerover', () => {
       bg.clear()
-      bg.fillStyle(0x880000, 1)
-      bg.fillRoundedRect(-15, -15, 30, 30, 4)
-      bg.lineStyle(2, 0xff0000, 1)
-      bg.strokeRoundedRect(-15, -15, 30, 30, 4)
+      bg.fillStyle(Colors.status.danger, 1)
+      bg.fillRoundedRect(-15, -15, 30, 30, Borders.radius.small)
+      bg.lineStyle(Borders.width.normal, 0xff0000, 1)
+      bg.strokeRoundedRect(-15, -15, 30, 30, Borders.radius.small)
     })
     bg.on('pointerout', () => {
       bg.clear()
-      bg.fillStyle(0x660000, 0.8)
-      bg.fillRoundedRect(-15, -15, 30, 30, 4)
-      bg.lineStyle(2, 0xaa0000, 1)
-      bg.strokeRoundedRect(-15, -15, 30, 30, 4)
+      bg.fillStyle(Colors.status.danger, 0.8)
+      bg.fillRoundedRect(-15, -15, 30, 30, Borders.radius.small)
+      bg.lineStyle(Borders.width.normal, Colors.status.danger, 1)
+      bg.strokeRoundedRect(-15, -15, 30, 30, Borders.radius.small)
     })
 
     return container
@@ -133,10 +135,10 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Weapon name and branch
     const nameText = scene.add.text(0, yPos, def.name, {
-      fontSize: '36px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h2,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     nameText.setOrigin(0.5)
     this.add(nameText)
@@ -144,9 +146,9 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Branch
     const branchText = scene.add.text(0, yPos, `${ArmsBranchNames[def.branch]}`, {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#00ffff',
+      fontSize: Typography.fontSize.h4,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.inventory.value,
     })
     branchText.setOrigin(0.5)
     this.add(branchText)
@@ -154,7 +156,7 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Divider
     const divider1 = scene.add.graphics()
-    divider1.lineStyle(1, 0x444444, 0.8)
+    divider1.lineStyle(Borders.width.thin, Colors.ui.divider, 0.8)
     divider1.lineBetween(-350, yPos, 350, yPos)
     this.add(divider1)
     yPos += 30
@@ -167,26 +169,27 @@ export class ArmsDetailView extends GameObjects.Container {
     const manufInfo = manufacturerDetails[def.manufacturer]
 
     const manufTitle = scene.add.text(leftX, yPos, 'MANUFACTURER', {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#888888',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.add(manufTitle)
     yPos += 30
 
     const manufName = scene.add.text(leftX, yPos, getManufacturerDisplayName(def.manufacturer), {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.h5,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
     })
     this.add(manufName)
     yPos += 30
 
-    const manufCountry = scene.add.text(leftX, yPos, `Country: ${manufInfo.country}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
+    const countryName = CountryNames[manufInfo.country] || manufInfo.country
+    const manufCountry = scene.add.text(leftX, yPos, `Country: ${countryName}`, {
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.secondary,
     })
     this.add(manufCountry)
     yPos += 25
@@ -196,9 +199,9 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos,
       `Prestige: ${'★'.repeat(manufInfo.prestigeLevel)}${'☆'.repeat(5 - manufInfo.prestigeLevel)}`,
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#ffaa00',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.status.warningText,
       },
     )
     this.add(manufPrestige)
@@ -209,9 +212,9 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos,
       `Technology: ${'▮'.repeat(manufInfo.technologyLevel)}${'▯'.repeat(5 - manufInfo.technologyLevel)}`,
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#00aaff',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.inventory.value,
       },
     )
     this.add(manufTech)
@@ -219,25 +222,25 @@ export class ArmsDetailView extends GameObjects.Container {
 
     // Stock info section
     const stockTitle = scene.add.text(leftX, yPos, 'STOCK INFO', {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#888888',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.add(stockTitle)
     yPos += 30
 
     const quantity = scene.add.text(leftX, yPos, `Quantity: ${item.quantity} units`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
     })
     this.add(quantity)
     yPos += 25
 
     const condition = scene.add.text(leftX, yPos, `Condition: ${item.condition}`, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
       color: this.getConditionColor(item.condition),
     })
     this.add(condition)
@@ -248,9 +251,9 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos,
       `Purchase Price: $${item.purchasePrice.toLocaleString()}/unit`,
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#aaaaaa',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.text.secondary,
       },
     )
     this.add(purchasePrice)
@@ -261,9 +264,9 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos,
       `Market Value: $${def.basePrice.toLocaleString()}/unit`,
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#00ff00',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.status.successText,
       },
     )
     this.add(marketValue)
@@ -272,10 +275,10 @@ export class ArmsDetailView extends GameObjects.Container {
     yPos = -200 + 70 + 40 + 30 // Reset to after divider
 
     const qualityTitle = scene.add.text(rightX, yPos, 'QUALITY ATTRIBUTES', {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#888888',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.add(qualityTitle)
     yPos += 30
@@ -289,16 +292,16 @@ export class ArmsDetailView extends GameObjects.Container {
 
           // Attribute name
           const attrText = scene.add.text(rightX, yPos, attrName, {
-            fontSize: '16px',
-            fontFamily: 'Courier',
-            color: '#cccccc',
+            fontSize: Typography.fontSize.small,
+            fontFamily: Typography.fontFamily.monospace,
+            color: Colors.text.secondary,
           })
           this.add(attrText)
 
           // Value
           const valueText = scene.add.text(rightX + 200, yPos, `${value}`, {
-            fontSize: '16px',
-            fontFamily: 'Courier',
+            fontSize: Typography.fontSize.small,
+            fontFamily: Typography.fontFamily.monospace,
             color: this.getAttributeColor(value),
           })
           this.add(valueText)
@@ -306,13 +309,13 @@ export class ArmsDetailView extends GameObjects.Container {
 
           // Progress bar
           const barBg = scene.add.graphics()
-          barBg.fillStyle(0x222222, 0.8)
-          barBg.fillRoundedRect(rightX, yPos, barWidth, 8, 2)
+          barBg.fillStyle(Colors.background.secondary, 0.8)
+          barBg.fillRoundedRect(rightX, yPos, barWidth, 8, Borders.radius.small)
           this.add(barBg)
 
           const barFill = scene.add.graphics()
           barFill.fillStyle(this.getAttributeColorHex(value), 0.9)
-          barFill.fillRoundedRect(rightX, yPos, filledWidth, 8, 2)
+          barFill.fillRoundedRect(rightX, yPos, filledWidth, 8, Borders.radius.small)
           this.add(barFill)
           yPos += 20
         }
@@ -324,15 +327,15 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos = Math.max(yPos, 100) // Ensure we're below other content
 
       const divider2 = scene.add.graphics()
-      divider2.lineStyle(1, 0x444444, 0.8)
+      divider2.lineStyle(Borders.width.thin, Colors.ui.divider, 0.8)
       divider2.lineBetween(-350, yPos, 350, yPos)
       this.add(divider2)
       yPos += 20
 
       const subcatTitle = scene.add.text(-350, yPos, 'CATEGORIES:', {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#888888',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.text.muted,
       })
       this.add(subcatTitle)
 
@@ -345,16 +348,16 @@ export class ArmsDetailView extends GameObjects.Container {
         }
 
         const subcatBg = scene.add.graphics()
-        subcatBg.fillStyle(0x004444, 0.6)
-        subcatBg.fillRoundedRect(xOffset, subcatY, 170, 30, 3)
-        subcatBg.lineStyle(1, 0x008888, 0.8)
-        subcatBg.strokeRoundedRect(xOffset, subcatY, 170, 30, 3)
+        subcatBg.fillStyle(Colors.primary.dark, 0.6)
+        subcatBg.fillRoundedRect(xOffset, subcatY, 170, 30, Borders.radius.small)
+        subcatBg.lineStyle(Borders.width.thin, Colors.primary.main, 0.8)
+        subcatBg.strokeRoundedRect(xOffset, subcatY, 170, 30, Borders.radius.small)
         this.add(subcatBg)
 
         const subcatText = scene.add.text(xOffset + 85, subcatY + 15, subcat.replace(/_/g, ' '), {
-          fontSize: '14px',
-          fontFamily: 'Courier',
-          color: '#00ffff',
+          fontSize: Typography.fontSize.caption,
+          fontFamily: Typography.fontFamily.monospace,
+          color: Colors.inventory.value,
         })
         subcatText.setOrigin(0.5)
         this.add(subcatText)
@@ -369,9 +372,9 @@ export class ArmsDetailView extends GameObjects.Container {
       yPos = Math.max(yPos, 150)
 
       const descText = scene.add.text(0, yPos, def.description, {
-        fontSize: '16px',
-        fontFamily: 'Courier',
-        color: '#aaaaaa',
+        fontSize: Typography.fontSize.small,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.text.secondary,
         wordWrap: { width: 700 },
         align: 'center',
       })
@@ -390,31 +393,31 @@ export class ArmsDetailView extends GameObjects.Container {
   }
 
   private getAttributeColor(value: number): string {
-    if (value >= 80) return '#00ff00'
-    if (value >= 60) return '#88ff00'
-    if (value >= 40) return '#ffff00'
-    if (value >= 20) return '#ff8800'
-    return '#ff0000'
+    if (value >= 80) return Colors.status.successText
+    if (value >= 60) return Colors.money.positive
+    if (value >= 40) return Colors.money.neutral
+    if (value >= 20) return Colors.status.warningText
+    return Colors.status.dangerText
   }
 
   private getAttributeColorHex(value: number): number {
-    if (value >= 80) return 0x00ff00
+    if (value >= 80) return Colors.status.success
     if (value >= 60) return 0x88ff00
-    if (value >= 40) return 0xffff00
+    if (value >= 40) return Colors.status.warning
     if (value >= 20) return 0xff8800
-    return 0xff0000
+    return Colors.status.danger
   }
 
   private getConditionColor(condition: string): string {
     const conditionColors: Record<string, string> = {
-      new: '#00ff00',
-      excellent: '#88ff00',
-      good: '#ffff00',
-      fair: '#ff8800',
+      new: Colors.status.successText,
+      excellent: Colors.money.positive,
+      good: Colors.money.neutral,
+      fair: Colors.status.warningText,
       poor: '#ff4400',
-      salvage: '#ff0000',
+      salvage: Colors.status.dangerText,
     }
-    return conditionColors[condition.toLowerCase()] || '#ffffff'
+    return conditionColors[condition.toLowerCase()] || Colors.text.primary
   }
 
   private setupRightClickClose(scene: PotatoScene) {

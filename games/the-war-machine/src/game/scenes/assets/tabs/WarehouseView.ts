@@ -2,6 +2,7 @@ import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
 import type { WarehouseModel } from '../../../model/entities/locations/WarehouseModel.ts'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
+import { CountryNames } from '../../../model/enums/Countries.ts'
 import {
   Borders,
   Colors,
@@ -72,7 +73,8 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       this.warehouseBackgrounds.set(warehouse.id, bg)
 
       // Warehouse name and location
-      const nameText = this.scene.add.text(10, 10, `${warehouse.city}, ${warehouse.country}`, {
+      const countryName = CountryNames[warehouse.country] || warehouse.country
+      const nameText = this.scene.add.text(10, 10, `${warehouse.city}, ${countryName}`, {
         fontSize: '22px',
         fontFamily: 'Arial',
         color: '#ffffff',
@@ -327,7 +329,8 @@ export class WarehouseView extends Phaser.GameObjects.Container {
     }
 
     // Create stock overlay using the shared component
-    const title = `Stock in ${warehouse.city}, ${warehouse.country}`
+    const countryName = CountryNames[warehouse.country] || warehouse.country
+    const title = `Stock in ${warehouse.city}, ${countryName}`
     this.stockOverlay = new StockOverlay(
       this.scene as PotatoScene,
       warehouse.armsStock,

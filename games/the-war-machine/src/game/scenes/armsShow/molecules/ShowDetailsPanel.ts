@@ -1,6 +1,7 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
 import type { ArmsShowDefinition } from '../../../model/definitions/armsShowsDefinitions.ts'
+import { CountryNames } from '../../../model/enums/Countries.ts'
 
 export class ShowDetailsPanel extends GameObjects.Container {
   private background: GameObjects.Graphics
@@ -25,8 +26,9 @@ export class ShowDetailsPanel extends GameObjects.Container {
     this.add(this.background)
 
     // Show details
+    const countryName = CountryNames[armsShow.country] || armsShow.country
     const details = [
-      `Location: ${armsShow.country}`,
+      `Location: ${countryName}`,
       `Prestige Level: ${'★'.repeat(armsShow.prestigeLevel)}${'☆'.repeat(5 - armsShow.prestigeLevel)}`,
       `Entry Fee Paid: $${armsShow.entranceFee.toLocaleString()}`,
       `Arms Branches Present: ${armsShow.armsBranches.join(', ')}`,

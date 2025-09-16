@@ -1,7 +1,7 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
-import type { Country } from '../../../model/enums/Countries.ts'
+import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
 import { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
 import { ArmsCondition, ArmsGrade } from '../../../model/enums/ArmsStockEnums.ts'
 import type { ArmsId } from '../../../model/definitions/armsDefinitions.ts'
@@ -292,7 +292,10 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
             key: 'location',
             label: 'Location',
             x: 750,
-            getValue: (offer) => `${offer.city}, ${offer.country}`,
+            getValue: (offer) => {
+              const countryName = CountryNames[offer.country] || offer.country
+              return `${offer.city}, ${countryName}`
+            },
             getColor: () => Colors.text.muted,
             fontSize: Typography.fontSize.small,
           },
@@ -414,7 +417,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       const locationText = this.scene.add.text(
         -330,
         0,
-        `${warehouse.city}, ${warehouse.country}`,
+        `${warehouse.city}, ${CountryNames[warehouse.country] || warehouse.country}`,
         {
           fontSize: Typography.fontSize.regular,
           fontFamily: Typography.fontFamily.primary,

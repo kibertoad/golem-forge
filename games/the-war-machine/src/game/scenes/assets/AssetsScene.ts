@@ -2,6 +2,7 @@ import type { GlobalSceneEvents } from '@potato-golem/core'
 import { PotatoScene } from '@potato-golem/ui'
 import type { EventEmitter } from 'emitix'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
+import { CountryNames } from '../../model/enums/Countries.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import {
@@ -253,10 +254,11 @@ export class AssetsScene extends PotatoScene {
       this.locationBackgrounds.set(location.id, bg)
 
       // Location type and name
+      const countryName = CountryNames[location.country] || location.country
       const nameText = this.add.text(
         10,
         5,
-        `${location.type.toUpperCase()} - ${location.city}, ${location.country}`,
+        `${location.type.toUpperCase()} - ${location.city}, ${countryName}`,
         {
           fontSize: '20px',
           fontFamily: 'Arial',

@@ -428,7 +428,7 @@ export class BoardScene extends PotatoScene {
       // Restore map visibility when stock inventory is closed
       this.earthMap.setVisible(true)
       // Reset navigation state
-      this.navigationBar.setActiveButton(NavigationState.DEFAULT)
+      this.navigationBar.clearActiveState()
     })
 
     this.earthMap = new EarthMap(
@@ -481,10 +481,7 @@ export class BoardScene extends PotatoScene {
       this.stockInventoryView.setVisible(false)
     }
 
-    // Restore map visibility when closing overlays
-    if (state === NavigationState.DEFAULT) {
-      this.earthMap.setVisible(true)
-    }
+    // Map visibility is handled by individual views
 
     // Show the selected view
     switch (state) {

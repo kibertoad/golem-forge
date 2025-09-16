@@ -1,4 +1,4 @@
-import type { Country } from '../enums/Countries.ts'
+import { type Country, CountryNames } from '../enums/Countries.ts'
 import type { BranchCapabilities, CountryAttributeData } from '../enums/CountryAttributes.ts'
 import type { AssaultUnit } from './units/AssaultUnit.ts'
 import type { RegularUnit } from './units/RegularUnit.ts'
@@ -34,7 +34,7 @@ export class CountryModel {
   constructor(country: Country, initialAttributes: CountryAttributeData) {
     this.id = `country-${country}`
     this.country = country
-    this.name = country
+    this.name = CountryNames[country] || country
 
     // Initialize from starting attributes
     this.militaryBudget = initialAttributes.budget

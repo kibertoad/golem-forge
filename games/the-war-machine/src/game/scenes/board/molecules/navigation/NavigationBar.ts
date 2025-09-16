@@ -130,4 +130,15 @@ export class NavigationBar extends GameObjects.Container {
   getActiveState(): NavigationState | null {
     return this.activeState
   }
+
+  clearActiveState() {
+    if (this.activeState !== null) {
+      const activeButton = this.buttons.get(this.activeState)
+      if (activeButton) {
+        const bg = activeButton.button.list[0] as GameObjects.Rectangle
+        bg.setFillStyle(0x2a2a2a, 0.9)
+      }
+      this.activeState = null
+    }
+  }
 }

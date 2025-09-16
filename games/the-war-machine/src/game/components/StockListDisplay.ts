@@ -76,7 +76,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
   private scrollBar: Phaser.GameObjects.Graphics | null = null
   private frame: Phaser.GameObjects.Graphics | null = null
   private itemsContainer: Phaser.GameObjects.Container | null = null
-  private mask: Phaser.GameObjects.Graphics | null = null
+  private clipMask: Phaser.GameObjects.Graphics | null = null
 
   constructor(
     scene: PotatoScene,
