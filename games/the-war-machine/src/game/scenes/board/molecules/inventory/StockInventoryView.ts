@@ -1,13 +1,13 @@
 import type { PotatoScene } from '@potato-golem/ui'
-import * as Phaser from 'phaser'
+import type * as Phaser from 'phaser'
 import { GameObjects } from 'phaser'
+import { FilterSortManager, type SortConfig } from '../../../../components/FilterSortManager.ts'
+import { StockListDisplay } from '../../../../components/StockListDisplay.ts'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
-import { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
+import type { ArmsBranch } from '../../../../model/enums/ArmsBranches.ts'
 import { ArmsCondition } from '../../../../model/enums/ArmsStockEnums.ts'
 import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
 import { Colors, Typography } from '../../../../registries/styleRegistry.ts'
-import { FilterSortManager, type SortConfig } from '../../../../components/FilterSortManager.ts'
-import { StockListDisplay } from '../../../../components/StockListDisplay.ts'
 import { ArmsDetailView } from './ArmsDetailView.ts'
 
 export enum SortBy {
@@ -99,17 +99,19 @@ export class StockInventoryView extends GameObjects.Container {
       {
         key: SortBy.NAME,
         label: 'Name',
-        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.getName().localeCompare(b.getName())
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) =>
+          a.getName().localeCompare(b.getName()),
       },
       {
         key: SortBy.QUANTITY,
         label: 'Qty',
-        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.quantity - b.quantity
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.quantity - b.quantity,
       },
       {
         key: SortBy.VALUE,
         label: 'Value',
-        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => a.getCurrentMarketValue() - b.getCurrentMarketValue()
+        compareFunction: (a: ArmsStockModel, b: ArmsStockModel) =>
+          a.getCurrentMarketValue() - b.getCurrentMarketValue(),
       },
       {
         key: SortBy.CONDITION,
@@ -117,7 +119,7 @@ export class StockInventoryView extends GameObjects.Container {
         compareFunction: (a: ArmsStockModel, b: ArmsStockModel) => {
           const conditions = Object.values(ArmsCondition)
           return conditions.indexOf(a.condition) - conditions.indexOf(b.condition)
-        }
+        },
       },
       {
         key: SortBy.BRANCH,
@@ -129,8 +131,8 @@ export class StockInventoryView extends GameObjects.Container {
             return aDef.branch.localeCompare(bDef.branch)
           }
           return 0
-        }
-      }
+        },
+      },
     ]
 
     // Only show available branches and common conditions
@@ -139,7 +141,7 @@ export class StockInventoryView extends GameObjects.Container {
       ArmsCondition.NEW,
       ArmsCondition.GOOD,
       ArmsCondition.FAIR,
-      ArmsCondition.POOR
+      ArmsCondition.POOR,
     ]
 
     // Create filter/sort manager
@@ -151,13 +153,13 @@ export class StockInventoryView extends GameObjects.Container {
         branches: branchesArray,
         conditions: conditions,
         showClearButton: true,
-        layout: 'horizontal'
+        layout: 'horizontal',
       },
       sortConfigs,
       {
         onFiltersChanged: () => this.applyFiltersAndSort(),
-        onSortChanged: () => this.applyFiltersAndSort()
-      }
+        onSortChanged: () => this.applyFiltersAndSort(),
+      },
     )
     this.add(this.filterSortManager)
   }
@@ -220,7 +222,7 @@ export class StockInventoryView extends GameObjects.Container {
     filterRows++ // Clear button row
 
     // Title: 70px, Filter rows: filterRows * 40px, Bottom padding: 20px
-    const calculatedFilterHeight = 70 + (filterRows * 40) + 20
+    const calculatedFilterHeight = 70 + filterRows * 40 + 20
 
     // Calculate window height based on number of items (show all without scrolling if possible)
     const itemHeight = 75
@@ -345,7 +347,7 @@ export class StockInventoryView extends GameObjects.Container {
         onItemHover: (item) => {
           // Optional: Add hover effects
         },
-      }
+      },
     )
 
     // Set items and max visible based on window size

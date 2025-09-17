@@ -57,9 +57,8 @@ export class WarehouseModel extends AbstractLocationModel {
     }
 
     // Check if we already have this item type
-    const existing = this.armsStock.find(stock =>
-      stock.armsId === item.armsId &&
-      stock.condition === item.condition
+    const existing = this.armsStock.find(
+      (stock) => stock.armsId === item.armsId && stock.condition === item.condition,
     )
 
     if (existing) {
@@ -73,7 +72,7 @@ export class WarehouseModel extends AbstractLocationModel {
   }
 
   public removeArmsStock(stockId: string): ArmsStockModel | null {
-    const index = this.armsStock.findIndex(s => s.id === stockId)
+    const index = this.armsStock.findIndex((s) => s.id === stockId)
     if (index !== -1) {
       return this.armsStock.splice(index, 1)[0]
     }

@@ -111,7 +111,10 @@ export class CityZoomView extends GameObjects.Container {
     })
 
     scene.add.existing(this)
-    this.setDepth(2000)
+    // Allow depth to be set by parent component
+    if (!this.depth) {
+      this.setDepth(2000)
+    }
   }
 
   private createCities(scene: PotatoScene) {
@@ -239,8 +242,10 @@ export class CityZoomView extends GameObjects.Container {
           return
         }
         // Left-click selects the city
+        console.log('City clicked:', city.name, 'in country:', this.country)
         this.selectCity(city.name)
         this.emit('city-selected', { country: this.country, city: city.name })
+        console.log('Emitted city-selected event')
       })
 
       cityContainer.add([cityBlock, nameLabel])

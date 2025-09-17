@@ -3,13 +3,13 @@ import * as Phaser from 'phaser'
 import { GameObjects } from 'phaser'
 import type { ArmsStockModel } from '../../../../model/entities/ArmsStockModel.ts'
 import { ArmsBranchNames } from '../../../../model/enums/ArmsBranches.ts'
-import { CountryNames } from '../../../../model/enums/Countries.ts'
 import {
   getManufacturerDisplayName,
   manufacturerDetails,
 } from '../../../../model/enums/ArmsManufacturer.ts'
+import { CountryNames } from '../../../../model/enums/Countries.ts'
 import { DepthRegistry } from '../../../../registries/depthRegistry.ts'
-import { Colors, Typography, Borders, Opacity, Dimensions } from '../../../../registries/styleRegistry.ts'
+import { Borders, Colors, Opacity, Typography } from '../../../../registries/styleRegistry.ts'
 
 export class ArmsDetailView extends GameObjects.Container {
   private background: GameObjects.Graphics

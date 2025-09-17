@@ -47,7 +47,7 @@ import { EarthMap } from './molecules/map/EarthMap.ts'
 import { NavigationBar, NavigationState } from './molecules/navigation/NavigationBar.ts'
 import { EventLog } from './molecules/ui/EventLog.ts'
 import { NextTurnButton } from './molecules/ui/NextTurnButton.ts'
-import { type StatusData, StatusDisplay } from './molecules/ui/StatusDisplay.ts'
+import { StatusBar } from '../../components/StatusBar.ts'
 import { ToastContainer, type ToastData } from './molecules/ui/ToastContainer.ts'
 
 export class BoardScene extends PotatoScene {
@@ -63,7 +63,7 @@ export class BoardScene extends PotatoScene {
   private toastContainer!: ToastContainer
   private navigationBar!: NavigationBar
   private earthMap!: EarthMap
-  private statusDisplay!: StatusDisplay
+  private statusBar!: StatusBar
   private nextTurnButton!: NextTurnButton
   private eventLog!: EventLog
   private scheduleAttendanceButton: ScheduleAttendanceButton | null = null
@@ -451,15 +451,9 @@ export class BoardScene extends PotatoScene {
 
     // Game initialization is now handled by GameInitializer before scenes are created
 
-    const initialStatus: StatusData = {
-      date: this.worldModel.gameStatus.date,
-      week: this.worldModel.gameStatus.week,
-      money: this.worldModel.gameStatus.money,
-      turn: this.worldModel.gameStatus.turn,
-    }
-    // Move status display to top-right corner
-    this.statusDisplay = new StatusDisplay(this, width - 160, 80, initialStatus)
-    this.statusDisplay.setDepth(950)
+    // Create status bar that auto-updates from WorldModel events
+    this.statusBar = new StatusBar(this, this.worldModel)
+    this.statusBar.setDepth(950)
 
     // Move next turn button further down to avoid overlap
     this.nextTurnButton = new NextTurnButton(this, width - 110, 250)
@@ -519,9 +513,7 @@ export class BoardScene extends PotatoScene {
   private handleStockSale(item: ArmsStockModel) {
     const salePrice = item.sell(1) // Sell 1 unit
     this.worldModel.addMoney(salePrice)
-    this.statusDisplay.updateStatus({
-      ...this.worldModel.gameStatus,
-    })
+    // StatusBar auto-updates from event
     this.eventLog.addEntry(
       `Sold 1x ${item.getName()} for $${salePrice.toLocaleString()}`,
       'success',
@@ -571,10 +563,7 @@ export class BoardScene extends PotatoScene {
       this.worldModel.gameStatus.week,
     )
 
-    // Update display from world model
-    this.statusDisplay.updateStatus({
-      ...this.worldModel.gameStatus,
-    })
+    // StatusBar auto-updates from events
 
     // Check if we have a scheduled arms show to transition to
     if (this.scheduledArmsShowData) {
@@ -693,11 +682,7 @@ export class BoardScene extends PotatoScene {
 
     // Deduct money from world model
     this.worldModel.deductMoney(totalCost)
-
-    // Update display
-    this.statusDisplay.updateStatus({
-      ...this.worldModel.gameStatus,
-    })
+    // StatusBar auto-updates from event
 
     // Mark agent as busy
     agent.markAsBusy()

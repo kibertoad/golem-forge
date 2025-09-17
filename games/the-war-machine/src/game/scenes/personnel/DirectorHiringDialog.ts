@@ -6,6 +6,8 @@ import {
 } from '../../model/entities/ResearchDirectorModel.ts'
 import { Country, CountryNames } from '../../model/enums/Countries.ts'
 import { DirectorTrait } from '../../model/enums/ResearchDirectorEnums.ts'
+import { getScreenCenter, LayoutRegistry } from '../../registries/layoutRegistry.ts'
+import { Borders, Colors, Typography } from '../../registries/styleRegistry.ts'
 
 export interface HiringOption {
   director: ResearchDirectorModel
@@ -31,7 +33,9 @@ export class DirectorHiringDialog extends GameObjects.Container {
     isPremium: boolean,
     onConfirm: (director: ResearchDirectorModel | null) => void,
   ) {
-    super(scene, x, y)
+    // Use actual camera center instead of hardcoded values
+    const center = getScreenCenter(scene)
+    super(scene, center.x, center.y)
 
     this.isPremiumMode = isPremium
     this.standardFee = 50000
@@ -49,22 +53,37 @@ export class DirectorHiringDialog extends GameObjects.Container {
   }
 
   private createUI() {
-    // Dark overlay
-    this.overlay = this.scene.add.rectangle(0, 0, 2560, 1440, 0x000000, 0.8)
+    // Dark overlay - use actual camera dimensions
+    const center = getScreenCenter(this.scene)
+    this.overlay = this.scene.add.rectangle(
+      0,
+      0,
+      center.width,
+      center.height,
+      Colors.selection.overlayBg,
+      Colors.selection.overlayAlpha,
+    )
     this.overlay.setInteractive() // Block clicks
     this.add(this.overlay)
 
     // Main window
-    this.background = this.scene.add.rectangle(0, 0, 1400, 900, 0x1a1a1a, 0.98)
-    this.background.setStrokeStyle(3, 0x4a4a4a)
+    this.background = this.scene.add.rectangle(
+      0,
+      0,
+      LayoutRegistry.hiring.dialogWidth,
+      LayoutRegistry.hiring.dialogHeight,
+      Colors.selection.titleBg,
+      0.98,
+    )
+    this.background.setStrokeStyle(Borders.width.thick, Colors.selection.cardBorderHover)
     this.add(this.background)
 
     // Title
     const titleText = this.isPremiumMode ? 'PREMIUM AGENCY SELECTION' : 'STANDARD AGENCY SELECTION'
-    this.titleText = this.scene.add.text(0, -400, titleText, {
-      fontSize: '42px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+    this.titleText = this.scene.add.text(0, LayoutRegistry.selection.title.y - 150, titleText, {
+      fontSize: Typography.fontSize.h2,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     this.titleText.setOrigin(0.5)
     this.add(this.titleText)
@@ -72,8 +91,8 @@ export class DirectorHiringDialog extends GameObjects.Container {
     // Fee info
     const fee = this.isPremiumMode ? this.premiumFee : this.standardFee
     const feeText = this.scene.add.text(0, -360, `Agency Fee: $${fee.toLocaleString()}`, {
-      fontSize: '24px',
-      color: '#ffaa00',
+      fontSize: Typography.fontSize.h4,
+      color: Colors.selection.salaryText,
     })
     feeText.setOrigin(0.5)
     this.add(feeText)
@@ -83,16 +102,16 @@ export class DirectorHiringDialog extends GameObjects.Container {
       ? 'All traits and stats visible'
       : 'Stats visible, traits hidden for 3 months'
     const info = this.scene.add.text(0, -325, infoText, {
-      fontSize: '18px',
-      color: '#aaaaaa',
-      fontStyle: 'italic',
+      fontSize: Typography.fontSize.regular,
+      color: Colors.text.muted,
+      fontStyle: Typography.fontStyle.italic,
     })
     info.setOrigin(0.5)
     this.add(info)
 
     // Create option cards
     this.options.forEach((option, index) => {
-      const xPos = -450 + index * 450
+      const xPos = LayoutRegistry.hiring.candidateCard.getXPosition(index)
       const optionCard = this.createOptionCard(option, xPos, 0)
       this.optionContainers.push(optionCard)
       this.add(optionCard)
@@ -184,8 +203,18 @@ export class DirectorHiringDialog extends GameObjects.Container {
     const isSelected = this.selectedOption === option
 
     // Card background
-    const cardBg = this.scene.add.rectangle(0, 0, 400, 500, isSelected ? 0x2a3a4a : 0x2a2a2a, 0.95)
-    cardBg.setStrokeStyle(2, isSelected ? 0x4a6a8a : 0x3a3a3a)
+    const cardBg = this.scene.add.rectangle(
+      0,
+      0,
+      LayoutRegistry.hiring.candidateCard.width,
+      LayoutRegistry.hiring.candidateCard.height,
+      isSelected ? Colors.selection.cardBgSelected : Colors.selection.cardBg,
+      0.95,
+    )
+    cardBg.setStrokeStyle(
+      Borders.width.normal,
+      isSelected ? Colors.selection.cardBorderSelected : Colors.selection.cardBorder,
+    )
     cardBg.setInteractive()
     card.add(cardBg)
 
@@ -193,17 +222,17 @@ export class DirectorHiringDialog extends GameObjects.Container {
 
     // Name
     const nameText = this.scene.add.text(0, -220, director.name, {
-      fontSize: '24px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h4,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     nameText.setOrigin(0.5)
     card.add(nameText)
 
     // Nationality
     const natText = this.scene.add.text(0, -190, `📍 ${CountryNames[director.nationality]}`, {
-      fontSize: '18px',
-      color: '#888888',
+      fontSize: Typography.fontSize.regular,
+      color: Colors.text.muted,
     })
     natText.setOrigin(0.5)
     card.add(natText)
@@ -214,8 +243,8 @@ export class DirectorHiringDialog extends GameObjects.Container {
       -160,
       `Salary: $${director.salary.toLocaleString()}/mo`,
       {
-        fontSize: '18px',
-        color: '#ffaa00',
+        fontSize: Typography.fontSize.regular,
+        color: Colors.selection.salaryText,
       },
     )
     salaryText.setOrigin(0.5)
@@ -223,9 +252,9 @@ export class DirectorHiringDialog extends GameObjects.Container {
 
     // Stats section
     const statsTitle = this.scene.add.text(-180, -120, 'STATS:', {
-      fontSize: '18px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.regular,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     card.add(statsTitle)
 
@@ -242,26 +271,26 @@ export class DirectorHiringDialog extends GameObjects.Container {
 
       // Stat name
       const statText = this.scene.add.text(-180, yPos, statName, {
-        fontSize: '16px',
-        color: '#aaaaaa',
+        fontSize: Typography.fontSize.small,
+        color: Colors.text.secondary,
       })
       card.add(statText)
 
       // Stat value as stars
       const stars = '★'.repeat(statValues[index]) + '☆'.repeat(5 - statValues[index])
       const valueText = this.scene.add.text(-50, yPos, stars, {
-        fontSize: '20px',
-        color: '#ffcc00',
-        fontStyle: 'bold',
+        fontSize: Typography.fontSize.large,
+        color: Colors.selection.starRating,
+        fontStyle: Typography.fontStyle.bold,
       })
       card.add(valueText)
     })
 
     // Traits section
     const traitsTitle = this.scene.add.text(-180, 70, 'TRAITS:', {
-      fontSize: '18px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.regular,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     card.add(traitsTitle)
 
@@ -270,13 +299,13 @@ export class DirectorHiringDialog extends GameObjects.Container {
         const yPos = 105 + index * 38
         const traitBadge = this.scene.add.container(0, yPos)
 
-        const badgeBg = this.scene.add.rectangle(0, 0, 360, 34, 0x2a4a2a, 0.9)
-        badgeBg.setStrokeStyle(1, 0x4a6a4a)
+        const badgeBg = this.scene.add.rectangle(0, 0, 360, 34, Colors.selection.traitBadge, 0.9)
+        badgeBg.setStrokeStyle(Borders.width.thin, Colors.selection.cardBorderHover)
         traitBadge.add(badgeBg)
 
         const traitText = this.scene.add.text(0, 0, trait, {
-          fontSize: '16px',
-          color: '#88ff88',
+          fontSize: Typography.fontSize.small,
+          color: Colors.selection.traitPositive,
         })
         traitText.setOrigin(0.5)
         traitBadge.add(traitText)
@@ -289,14 +318,14 @@ export class DirectorHiringDialog extends GameObjects.Container {
         const yPos = 105 + i * 38
         const traitBadge = this.scene.add.container(0, yPos)
 
-        const badgeBg = this.scene.add.rectangle(0, 0, 360, 34, 0x2a2a2a, 0.9)
-        badgeBg.setStrokeStyle(1, 0x3a3a3a)
+        const badgeBg = this.scene.add.rectangle(0, 0, 360, 34, Colors.selection.cardBg, 0.9)
+        badgeBg.setStrokeStyle(Borders.width.thin, Colors.selection.cardBorder)
         traitBadge.add(badgeBg)
 
         const traitText = this.scene.add.text(0, 0, '???', {
-          fontSize: '16px',
-          color: '#666666',
-          fontStyle: 'italic',
+          fontSize: Typography.fontSize.small,
+          color: Colors.selection.traitHidden,
+          fontStyle: Typography.fontStyle.italic,
         })
         traitText.setOrigin(0.5)
         traitBadge.add(traitText)
@@ -306,9 +335,9 @@ export class DirectorHiringDialog extends GameObjects.Container {
 
       // Info about reveal
       const revealText = this.scene.add.text(0, 210, 'Traits revealed after 3 months', {
-        fontSize: '14px',
-        color: '#888888',
-        fontStyle: 'italic',
+        fontSize: Typography.fontSize.tiny,
+        color: Colors.text.muted,
+        fontStyle: Typography.fontStyle.italic,
       })
       revealText.setOrigin(0.5)
       card.add(revealText)
@@ -317,13 +346,13 @@ export class DirectorHiringDialog extends GameObjects.Container {
     // Selection interaction
     cardBg.on('pointerover', () => {
       if (!isSelected) {
-        cardBg.setFillStyle(0x3a3a3a, 1)
+        cardBg.setFillStyle(Colors.selection.cardBgHover, 1)
       }
     })
 
     cardBg.on('pointerout', () => {
       if (!isSelected) {
-        cardBg.setFillStyle(0x2a2a2a, 0.95)
+        cardBg.setFillStyle(Colors.selection.cardBg, 0.95)
       }
     })
 
@@ -345,7 +374,7 @@ export class DirectorHiringDialog extends GameObjects.Container {
     this.optionContainers = []
 
     this.options.forEach((option, index) => {
-      const xPos = -450 + index * 450
+      const xPos = LayoutRegistry.hiring.candidateCard.getXPosition(index)
       const optionCard = this.createOptionCard(option, xPos, 0)
       this.optionContainers.push(optionCard)
       this.add(optionCard)
@@ -354,25 +383,35 @@ export class DirectorHiringDialog extends GameObjects.Container {
 
   private createButtons() {
     // Hire button (on the left)
-    const hireButton = this.scene.add.container(-150, 380)
-    const hireBg = this.scene.add.rectangle(0, 0, 200, 50, 0x2a5a2a, 0.9)
-    hireBg.setStrokeStyle(2, 0x4a8a4a)
+    const hireButton = this.scene.add.container(
+      LayoutRegistry.hiring.buttons.hire.x,
+      LayoutRegistry.hiring.buttons.hire.y,
+    )
+    const hireBg = this.scene.add.rectangle(
+      0,
+      0,
+      LayoutRegistry.hiring.buttons.hire.width,
+      LayoutRegistry.hiring.buttons.hire.height,
+      Colors.selection.confirmButton,
+      0.9,
+    )
+    hireBg.setStrokeStyle(Borders.width.normal, Colors.selection.confirmButtonHover)
     hireBg.setInteractive()
     hireButton.add(hireBg)
 
     const hireText = this.scene.add.text(0, 0, 'Hire Selected', {
-      fontSize: '20px',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.button,
+      color: Colors.text.primary,
     })
     hireText.setOrigin(0.5)
     hireButton.add(hireText)
 
     hireBg.on('pointerover', () => {
-      hireBg.setFillStyle(0x3a6a3a, 1)
+      hireBg.setFillStyle(Colors.selection.confirmButtonHover, 1)
     })
 
     hireBg.on('pointerout', () => {
-      hireBg.setFillStyle(0x2a5a2a, 0.9)
+      hireBg.setFillStyle(Colors.selection.confirmButton, 0.9)
     })
 
     hireBg.on('pointerdown', () => {
@@ -385,25 +424,35 @@ export class DirectorHiringDialog extends GameObjects.Container {
     this.add(hireButton)
 
     // Skip button (on the right)
-    const skipButton = this.scene.add.container(150, 380)
-    const skipBg = this.scene.add.rectangle(0, 0, 200, 50, 0x3a3a3a, 0.9)
-    skipBg.setStrokeStyle(2, 0x5a5a5a)
+    const skipButton = this.scene.add.container(
+      LayoutRegistry.hiring.buttons.skip.x,
+      LayoutRegistry.hiring.buttons.skip.y,
+    )
+    const skipBg = this.scene.add.rectangle(
+      0,
+      0,
+      LayoutRegistry.hiring.buttons.skip.width,
+      LayoutRegistry.hiring.buttons.skip.height,
+      Colors.selection.skipButton,
+      0.9,
+    )
+    skipBg.setStrokeStyle(Borders.width.normal, Colors.selection.skipButtonHover)
     skipBg.setInteractive()
     skipButton.add(skipBg)
 
     const skipText = this.scene.add.text(0, 0, 'Skip (Lose Fee)', {
-      fontSize: '20px',
-      color: '#ffaaaa',
+      fontSize: Typography.fontSize.button,
+      color: Colors.selection.skipButtonText,
     })
     skipText.setOrigin(0.5)
     skipButton.add(skipText)
 
     skipBg.on('pointerover', () => {
-      skipBg.setFillStyle(0x4a4a4a, 1)
+      skipBg.setFillStyle(Colors.selection.skipButtonHover, 1)
     })
 
     skipBg.on('pointerout', () => {
-      skipBg.setFillStyle(0x3a3a3a, 0.9)
+      skipBg.setFillStyle(Colors.selection.skipButton, 0.9)
     })
 
     skipBg.on('pointerdown', () => {

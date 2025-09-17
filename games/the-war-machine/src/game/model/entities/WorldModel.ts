@@ -7,13 +7,12 @@ import {
 import { EventEmitter } from 'emitix'
 import { AgentStatus } from '../enums/AgentEnums.ts'
 import { ArmsManufacturer } from '../enums/ArmsManufacturer.ts'
-import { CountryCities, type CityData } from '../enums/Cities.ts'
+import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
+import { type CityData, CountryCities } from '../enums/Cities.ts'
 import type { Country } from '../enums/Countries.ts'
 import { StartingCountryAttributes } from '../enums/CountryAttributes.ts'
 import { ArmsStockModel } from './ArmsStockModel.ts'
 import type { BusinessAgentModel } from './BusinessAgentModel.ts'
-import { ArmsCondition } from '../enums/ArmsStockEnums.ts'
-import type { ArmsId } from '../definitions/armsDefinitions.ts'
 import { CountryModel } from './CountryModel.ts'
 import type { EntityModel } from './EntityModel.ts'
 import type { AbstractLocationModel } from './locations/AbstractLocationModel.ts'
@@ -32,9 +31,15 @@ export interface GameStatus {
   money: number
 }
 
+export type WorldModelEvents = {
+  'money-changed': [{ oldAmount: number; newAmount: number }]
+  'date-changed': [{ month: number; week: number; turn: number }]
+}
+
 export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly state: State<StateFlags, MainStates>
   public readonly globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
+  public readonly worldEventEmitter: EventEmitter<WorldModelEvents>
 
   public readonly entities: EntityModel[] = []
   public readonly businessAgents: BusinessAgentModel[] = []
@@ -47,6 +52,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
     this.globalSceneEventEmitter = globalSceneEventEmitter
+    this.worldEventEmitter = new EventEmitter<WorldModelEvents>()
     this.state = {
       mainState: 'travel',
       stateFlags: {
@@ -114,7 +120,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   // Add stock to a specific warehouse
   addStockToWarehouse(warehouseId: string, stock: ArmsStockModel): boolean {
     const warehouse = this.playerLocations.find(
-      loc => loc.id === warehouseId && loc.type === 'warehouse'
+      (loc) => loc.id === warehouseId && loc.type === 'warehouse',
     ) as WarehouseModel | undefined
 
     if (warehouse) {
@@ -153,14 +159,18 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   // Money management
   deductMoney(amount: number): boolean {
     if (this.gameStatus.money >= amount) {
+      const oldAmount = this.gameStatus.money
       this.gameStatus.money -= amount
+      this.worldEventEmitter.emit('money-changed', { oldAmount, newAmount: this.gameStatus.money })
       return true
     }
     return false
   }
 
   addMoney(amount: number) {
+    const oldAmount = this.gameStatus.money
     this.gameStatus.money += amount
+    this.worldEventEmitter.emit('money-changed', { oldAmount, newAmount: this.gameStatus.money })
   }
 
   // Turn management
@@ -174,6 +184,13 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     } else {
       this.gameStatus.date.setDate(this.gameStatus.date.getDate() + 7)
     }
+
+    // Emit date change event
+    this.worldEventEmitter.emit('date-changed', {
+      month: this.gameStatus.date.getMonth() + 1,
+      week: this.gameStatus.week,
+      turn: this.gameStatus.turn,
+    })
   }
 
   // Vendor contact management
@@ -246,6 +263,11 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.countries.set(country.country, country)
   }
 
+  // Get the event emitter for external listeners
+  getEventEmitter(): EventEmitter<WorldModelEvents> {
+    return this.worldEventEmitter
+  }
+
   getCountry(countryName: string): CountryModel | undefined {
     return this.countries.get(countryName)
   }
@@ -259,21 +281,21 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     // Create some basic starting stock using actual arms definition IDs
     const initialStock = [
       new ArmsStockModel({
-        armsId: 'copycat_ak',  // AK-47 knockoff
+        armsId: 'copycat_ak', // AK-47 knockoff
         quantity: 50,
         purchasePrice: 500,
         condition: ArmsCondition.GOOD,
         acquiredFrom: 'Starting Inventory',
       }),
       new ArmsStockModel({
-        armsId: 'scorpion_rifle',  // Basic assault rifle
+        armsId: 'scorpion_rifle', // Basic assault rifle
         quantity: 30,
         purchasePrice: 800,
         condition: ArmsCondition.NEW,
         acquiredFrom: 'Starting Inventory',
       }),
       new ArmsStockModel({
-        armsId: 'thunder_rocket',  // Basic RPG
+        armsId: 'thunder_rocket', // Basic RPG
         quantity: 10,
         purchasePrice: 2000,
         condition: ArmsCondition.FAIR,
@@ -296,7 +318,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     let countryCities: CityData[] | undefined
     let randomCountry: Country
     let attempts = 0
-    const maxAttempts = 100  // Safety limit to prevent infinite loop
+    const maxAttempts = 100 // Safety limit to prevent infinite loop
 
     // Keep picking random countries until we find one with cities
     do {
@@ -327,7 +349,9 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
     this.createInitialStock(warehouse)
 
     this.addLocation(warehouse)
-    console.log(`Created warehouse in ${randomCity.name}, ${randomCountry} with ${warehouse.armsStock.length} stock items`)
+    console.log(
+      `Created warehouse in ${randomCity.name}, ${randomCountry} with ${warehouse.armsStock.length} stock items`,
+    )
 
     // Add a random vendor contact for testing
     this.addRandomStartingVendorContact()

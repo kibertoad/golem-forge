@@ -35,9 +35,9 @@ export class NavigationBar extends GameObjects.Container {
       { state: NavigationState.STOCK, label: 'Stock', icon: '📦' },
       { state: NavigationState.RESEARCH, label: 'Research', icon: '🔬' },
       { state: NavigationState.PRODUCTION, label: 'Production', icon: '🏭' },
+      { state: NavigationState.PERSONNEL, label: 'Personnel', icon: '👥' },
       { state: NavigationState.CONTACTS, label: 'Contacts', icon: '📞' },
       { state: NavigationState.BAZAAR, label: 'Bazaar', icon: '🛒' },
-      { state: NavigationState.PERSONNEL, label: 'Personnel', icon: '👥' },
       { state: NavigationState.ASSETS, label: 'Assets', icon: '💼' },
     ]
 

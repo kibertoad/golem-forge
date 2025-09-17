@@ -18,6 +18,7 @@ export class CountryModel {
   public industrialTech: BranchCapabilities
   public visibility: number
   public standards: number
+  public wealth: number // 1-5 scale for economic wealth
 
   // War-related state
   public isAtWar: boolean = false
@@ -46,6 +47,11 @@ export class CountryModel {
     this.industrialTech = { ...initialAttributes.industrialTech }
     this.visibility = initialAttributes.visibility
     this.standards = initialAttributes.standards
+    // Calculate initial wealth based on military budget and industrial tech
+    this.wealth = Math.min(
+      5,
+      Math.max(1, Math.round(this.militaryBudget / 20 + this.getAverageIndustrialTech())),
+    )
   }
 
   declareWarOn(country: Country, asAggressor: boolean = true) {
@@ -72,6 +78,17 @@ export class CountryModel {
     }
   }
 
+  getAverageIndustrialTech(): number {
+    return (
+      (this.industrialTech.army +
+        this.industrialTech.navy +
+        this.industrialTech.airforce +
+        this.industrialTech.specialForces +
+        this.industrialTech.drones) /
+      5
+    )
+  }
+
   getMilitaryPower(): number {
     const avgStrength =
       (this.militaryStrength.army +
@@ -87,13 +104,7 @@ export class CountryModel {
         this.industrialProduction.specialForces +
         this.industrialProduction.drones) /
       5
-    const avgTech =
-      (this.industrialTech.army +
-        this.industrialTech.navy +
-        this.industrialTech.airforce +
-        this.industrialTech.specialForces +
-        this.industrialTech.drones) /
-      5
+    const avgTech = this.getAverageIndustrialTech()
 
     return this.militaryBudget * 2 + avgStrength * 1.5 + avgProduction + avgTech * 0.5
   }

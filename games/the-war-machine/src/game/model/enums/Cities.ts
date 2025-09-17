@@ -6,6 +6,7 @@ export interface CityData {
   y: number // Position in 10x10 grid (0-9)
   population?: number // Optional, for reference
   isCapital?: boolean
+  wealth?: number // 1-5 scale, relative to country wealth
 }
 
 // Major cities for each country (10-25 per country)

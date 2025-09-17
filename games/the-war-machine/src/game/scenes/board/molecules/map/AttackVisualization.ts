@@ -10,7 +10,6 @@ import { CountryCities } from '../../../../model/enums/Cities.ts'
 import { type Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import {
   type BorderCity,
-  CountryBorderCities,
   getBorderCitiesForDirection,
 } from '../../../../model/enums/CountryBorderCities.ts'
 import {

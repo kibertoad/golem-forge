@@ -2,15 +2,8 @@ import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 import { ArmsManufacturer } from '../../../model/enums/ArmsManufacturer.ts'
-import { armsRegistry } from '../../../registries/armsRegistry.ts'
 import { ArmsGrade } from '../../../model/enums/ArmsStockEnums.ts'
-import {
-  Colors,
-  Typography,
-  Borders,
-  Spacing,
-  Dimensions,
-} from '../../../registries/styleRegistry.ts'
+import { Borders, Colors, Typography } from '../../../registries/styleRegistry.ts'
 
 interface VendorInfo {
   manufacturer: ArmsManufacturer
@@ -42,7 +35,8 @@ export class VendorsView extends Phaser.GameObjects.Container {
     info.set(ArmsManufacturer.NEXUS_DEFENSE, {
       manufacturer: ArmsManufacturer.NEXUS_DEFENSE,
       displayName: 'Nexus Defense Systems',
-      description: 'Premier defense contractor specializing in advanced missiles and electronic warfare',
+      description:
+        'Premier defense contractor specializing in advanced missiles and electronic warfare',
       specialties: ['Missiles', 'Electronic Warfare', 'Command Systems'],
       gradeRange: [ArmsGrade.MODERN, ArmsGrade.NEXTGEN],
       contactQuality: 'premium',
@@ -193,15 +187,16 @@ export class VendorsView extends Phaser.GameObjects.Container {
 
     if (unlockedVendors.length === 0) {
       // No vendors unlocked yet
-      const noVendorsText = this.scene.add.text(0, 0,
-        'No Vendor Contacts\n\n' +
-        'Unlock vendor contacts by successfully\nattending Arms Shows',
+      const noVendorsText = this.scene.add.text(
+        0,
+        0,
+        'No Vendor Contacts\n\n' + 'Unlock vendor contacts by successfully\nattending Arms Shows',
         {
           fontSize: Typography.fontSize.h4,
           fontFamily: Typography.fontFamily.primary,
           color: Colors.text.muted,
           align: 'center',
-        }
+        },
       )
       noVendorsText.setOrigin(0.5)
       this.add(noVendorsText)
@@ -209,14 +204,16 @@ export class VendorsView extends Phaser.GameObjects.Container {
     }
 
     // Title
-    const titleText = this.scene.add.text(0, -200,
+    const titleText = this.scene.add.text(
+      0,
+      -200,
       `Vendor Contacts (${unlockedVendors.length} unlocked)`,
       {
         fontSize: Typography.fontSize.h3,
         fontFamily: Typography.fontFamily.primary,
         color: Colors.text.primary,
         fontStyle: Typography.fontStyle.bold,
-      }
+      },
     )
     titleText.setOrigin(0.5)
     this.add(titleText)
@@ -236,19 +233,12 @@ export class VendorsView extends Phaser.GameObjects.Container {
       const vendorInfo = this.vendorInfoMap.get(vendor)
       if (!vendorInfo) return
 
-      const y = -140 + index * 55  // Compact spacing
+      const y = -140 + index * 55 // Compact spacing
       const vendorContainer = this.scene.add.container(-650, y)
 
       // Background
       const bgColor = this.getQualityColor(vendorInfo.contactQuality)
-      const bg = this.scene.add.rectangle(
-        350,
-        25,
-        1300,
-        50,
-        bgColor,
-        0.2
-      )
+      const bg = this.scene.add.rectangle(350, 25, 1300, 50, bgColor, 0.2)
       bg.setStrokeStyle(Borders.width.thin, bgColor)
       bg.setInteractive()
       vendorContainer.add(bg)
@@ -263,15 +253,12 @@ export class VendorsView extends Phaser.GameObjects.Container {
       vendorContainer.add(nameText)
 
       // Quality badge
-      const qualityText = this.scene.add.text(350, 10,
-        vendorInfo.contactQuality.toUpperCase(),
-        {
-          fontSize: Typography.fontSize.small,
-          fontFamily: Typography.fontFamily.primary,
-          color: this.getQualityTextColor(vendorInfo.contactQuality),
-          fontStyle: Typography.fontStyle.bold,
-        }
-      )
+      const qualityText = this.scene.add.text(350, 10, vendorInfo.contactQuality.toUpperCase(), {
+        fontSize: Typography.fontSize.small,
+        fontFamily: Typography.fontFamily.primary,
+        color: this.getQualityTextColor(vendorInfo.contactQuality),
+        fontStyle: Typography.fontStyle.bold,
+      })
       vendorContainer.add(qualityText)
 
       // Description
@@ -283,24 +270,23 @@ export class VendorsView extends Phaser.GameObjects.Container {
       vendorContainer.add(descText)
 
       // Specialties
-      const specialtiesText = this.scene.add.text(500, 10,
-        vendorInfo.specialties.join(', '),
-        {
-          fontSize: Typography.fontSize.small,
-          fontFamily: Typography.fontFamily.primary,
-          color: Colors.text.muted,
-        }
-      )
+      const specialtiesText = this.scene.add.text(500, 10, vendorInfo.specialties.join(', '), {
+        fontSize: Typography.fontSize.small,
+        fontFamily: Typography.fontFamily.primary,
+        color: Colors.text.muted,
+      })
       vendorContainer.add(specialtiesText)
 
       // Grade range
-      const gradeText = this.scene.add.text(1000, 10,
-        `Grades: ${vendorInfo.gradeRange.map(g => this.getGradeDisplay(g)).join('-')}`,
+      const gradeText = this.scene.add.text(
+        1000,
+        10,
+        `Grades: ${vendorInfo.gradeRange.map((g) => this.getGradeDisplay(g)).join('-')}`,
         {
           fontSize: Typography.fontSize.small,
           fontFamily: Typography.fontFamily.primary,
           color: Colors.text.secondary,
-        }
+        },
       )
       vendorContainer.add(gradeText)
 
@@ -341,14 +327,16 @@ export class VendorsView extends Phaser.GameObjects.Container {
     })
 
     // Info text at bottom
-    const infoText = this.scene.add.text(0, 200,
+    const infoText = this.scene.add.text(
+      0,
+      200,
       'Contact vendors to purchase their equipment directly',
       {
         fontSize: Typography.fontSize.caption,
         fontFamily: Typography.fontFamily.primary,
         color: Colors.text.muted,
         fontStyle: Typography.fontStyle.italic,
-      }
+      },
     )
     infoText.setOrigin(0.5)
     this.add(infoText)

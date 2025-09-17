@@ -1,12 +1,14 @@
 import { PotatoScene } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
+import { StatusBar } from '../../components/StatusBar.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import type { ResearchDirectorModel } from '../../model/entities/ResearchDirectorModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { CountryNames } from '../../model/enums/Countries.ts'
 import { DirectorTrait } from '../../model/enums/ResearchDirectorEnums.ts'
+import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import { DirectorHiringUtils } from '../../utils/DirectorHiringUtils.ts'
+import { showDirectorHiringDialog } from '../../utils/DirectorHiringUtils.ts'
 
 export class PersonnelScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -39,11 +41,27 @@ export class PersonnelScene extends PotatoScene {
     // Back button
     this.createBackButton()
 
+    // Add StatusBar for consistency with other scenes
+    const statusBar = new StatusBar(this, this.worldModel)
+    statusBar.setDepth(DepthRegistry.UI_TEXT)
+
     // Directors panel on left
     this.createDirectorsPanel()
 
     // Details panel on right
     this.createDetailsPanel()
+
+    // Add right-click to return to BoardScene
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown()) {
+        this.goBack()
+      }
+    })
+  }
+
+  private goBack() {
+    this.scene.stop()
+    this.scene.wake(sceneRegistry.BOARD_SCENE)
   }
 
   private createBackButton() {
@@ -72,8 +90,7 @@ export class PersonnelScene extends PotatoScene {
     })
 
     bg.on('pointerdown', () => {
-      this.scene.stop()
-      this.scene.wake(sceneRegistry.BOARD_SCENE)
+      this.goBack()
     })
   }
 
@@ -382,7 +399,7 @@ export class PersonnelScene extends PotatoScene {
   }
 
   private hireNewDirector() {
-    DirectorHiringUtils.showFeeSelectionDialog(this, this.worldModel, () => {
+    showDirectorHiringDialog(this, this.worldModel, () => {
       this.refreshDirectorsPanel()
     })
   }

@@ -1,8 +1,8 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
 import { ArmsBranch } from '../model/enums/ArmsBranches.ts'
-import { ArmsCondition, ArmsGrade } from '../model/enums/ArmsStockEnums.ts'
-import { Borders, Colors, Typography } from '../registries/styleRegistry.ts'
+import type { ArmsCondition, ArmsGrade } from '../model/enums/ArmsStockEnums.ts'
+import { Colors, Typography } from '../registries/styleRegistry.ts'
 
 // Generic filter types
 export interface FilterConfig {
@@ -29,7 +29,8 @@ export interface FilterSortCallbacks {
 /**
  * Reusable component for managing filters and sorting
  */
-export class FilterSortManager<TSortKey extends string = string> extends Phaser.GameObjects.Container {
+export class FilterSortManager<TSortKey extends string = string> extends Phaser.GameObjects
+  .Container {
   // Filter state
   private selectedFilters: Map<string, any> = new Map()
   private filterButtons: Map<string, Phaser.GameObjects.Container> = new Map()
@@ -50,7 +51,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
     y: number,
     filterConfig: FilterConfig,
     sortConfigs: SortConfig<TSortKey>[],
-    callbacks: FilterSortCallbacks = {}
+    callbacks: FilterSortCallbacks = {},
   ) {
     super(scene, x, y)
 
@@ -111,11 +112,8 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
 
       let xOffset = baseX
       this.filterConfig.branches.forEach((branch) => {
-        const button = this.createFilterButton(
-          this.getBranchLabel(branch),
-          xOffset,
-          currentY,
-          () => this.toggleFilter('branch', branch)
+        const button = this.createFilterButton(this.getBranchLabel(branch), xOffset, currentY, () =>
+          this.toggleFilter('branch', branch),
         )
         this.filterButtons.set(`branch_${branch}`, button)
         this.add(button)
@@ -140,7 +138,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
           this.getConditionLabel(condition),
           xOffset,
           currentY,
-          () => this.toggleFilter('condition', condition)
+          () => this.toggleFilter('condition', condition),
         )
         this.filterButtons.set(`condition_${condition}`, button)
         this.add(button)
@@ -161,11 +159,8 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
 
       let xOffset = baseX
       this.filterConfig.grades.forEach((grade) => {
-        const button = this.createFilterButton(
-          this.getGradeLabel(grade),
-          xOffset,
-          currentY,
-          () => this.toggleFilter('grade', grade)
+        const button = this.createFilterButton(this.getGradeLabel(grade), xOffset, currentY, () =>
+          this.toggleFilter('grade', grade),
         )
         this.filterButtons.set(`grade_${grade}`, button)
         this.add(button)
@@ -186,11 +181,8 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
 
       let xOffset = baseX
       this.filterConfig.custom.forEach((custom) => {
-        const button = this.createFilterButton(
-          custom.label,
-          xOffset,
-          currentY,
-          () => this.toggleFilter(custom.key, custom.value)
+        const button = this.createFilterButton(custom.label, xOffset, currentY, () =>
+          this.toggleFilter(custom.key, custom.value),
         )
         this.filterButtons.set(`${custom.key}_${custom.value}`, button)
         this.add(button)
@@ -222,12 +214,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
     let xOffset = -450 // Match the baseX from filter section
 
     this.sortConfigs.forEach((config) => {
-      const button = this.createSortButton(
-        config.label,
-        xOffset,
-        yOffset,
-        config.key
-      )
+      const button = this.createSortButton(config.label, xOffset, yOffset, config.key)
       this.sortButtons.set(config.key, button)
       this.add(button)
       xOffset += 100
@@ -238,7 +225,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
     label: string,
     x: number,
     y: number,
-    onClick: () => void
+    onClick: () => void,
   ): Phaser.GameObjects.Container {
     const container = this.scene.add.container(x, y)
 
@@ -302,7 +289,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
     label: string,
     x: number,
     y: number,
-    sortKey: TSortKey
+    sortKey: TSortKey,
   ): Phaser.GameObjects.Container {
     const container = this.scene.add.container(x, y)
 
@@ -386,7 +373,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
       bg.setFillStyle(isActive ? Colors.primary.main : Colors.background.cardHover)
 
       // Find the label for this sort key
-      const config = this.sortConfigs.find(c => c.key === sortKey)
+      const config = this.sortConfigs.find((c) => c.key === sortKey)
       const label = config?.label || sortKey
 
       if (isActive) {
@@ -433,7 +420,7 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
   public getSortCompareFunction(): ((a: any, b: any) => number) | null {
     if (!this.currentSortKey) return null
 
-    const config = this.sortConfigs.find(c => c.key === this.currentSortKey)
+    const config = this.sortConfigs.find((c) => c.key === this.currentSortKey)
     if (!config) return null
 
     return (a: any, b: any) => {
@@ -445,9 +432,9 @@ export class FilterSortManager<TSortKey extends string = string> extends Phaser.
   // Apply filters to a collection
   public applyFilters<T>(
     items: T[],
-    filterFunctions: Map<string, (item: T, filterValue: any) => boolean>
+    filterFunctions: Map<string, (item: T, filterValue: any) => boolean>,
   ): T[] {
-    return items.filter(item => {
+    return items.filter((item) => {
       for (const [filterKey, filterValue] of this.selectedFilters) {
         const filterFunc = filterFunctions.get(filterKey)
         if (filterFunc && !filterFunc(item, filterValue)) {

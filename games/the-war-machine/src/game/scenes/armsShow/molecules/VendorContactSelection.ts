@@ -7,6 +7,8 @@ import {
   manufacturerDetails,
 } from '../../../model/enums/ArmsManufacturer.ts'
 import { DepthRegistry } from '../../../registries/depthRegistry.ts'
+import { getScreenCenter, LayoutRegistry } from '../../../registries/layoutRegistry.ts'
+import { Borders, Colors, colorToString, Typography } from '../../../registries/styleRegistry.ts'
 
 export interface VendorCard {
   manufacturer: ArmsManufacturer
@@ -24,35 +26,37 @@ export class VendorContactSelection extends GameObjects.Container {
     vendors: ArmsManufacturer[],
     onSelect: (manufacturer: ArmsManufacturer | null) => void,
   ) {
-    super(scene, scene.cameras.main.width / 2, scene.cameras.main.height / 2)
+    // Use actual camera center instead of hardcoded values
+    const center = getScreenCenter(scene)
+    super(scene, center.x, center.y)
     this.onSelectCallback = onSelect
 
     // Create overlay
     this.overlay = scene.add.graphics()
-    this.overlay.fillStyle(0x000000, 0.8)
-    this.overlay.fillRect(
-      -scene.cameras.main.width / 2,
-      -scene.cameras.main.height / 2,
-      scene.cameras.main.width,
-      scene.cameras.main.height,
-    )
+    this.overlay.fillStyle(Colors.selection.overlayBg, Colors.selection.overlayAlpha)
+    this.overlay.fillRect(-center.width / 2, -center.height / 2, center.width, center.height)
     this.add(this.overlay)
 
     // Title
-    const title = scene.add.text(0, -250, 'SELECT VENDOR CONTACT', {
-      fontSize: '36px',
-      fontFamily: 'Courier',
-      color: '#ffff00',
-      fontStyle: 'bold',
+    const title = scene.add.text(0, LayoutRegistry.selection.title.y, 'SELECT VENDOR CONTACT', {
+      fontSize: Typography.fontSize.h2,
+      fontFamily: Typography.fontFamily.primary,
+      color: Colors.text.primary,
+      fontStyle: Typography.fontStyle.bold,
     })
     title.setOrigin(0.5)
     this.add(title)
 
-    const subtitle = scene.add.text(0, -210, 'Choose one manufacturer to establish contact with', {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
-    })
+    const subtitle = scene.add.text(
+      0,
+      LayoutRegistry.selection.title.y + 40,
+      'Choose one manufacturer to establish contact with',
+      {
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.primary,
+        color: Colors.text.secondary,
+      },
+    )
     subtitle.setOrigin(0.5)
     this.add(subtitle)
 
@@ -69,15 +73,12 @@ export class VendorContactSelection extends GameObjects.Container {
   }
 
   private createVendorCards(scene: PotatoScene, vendors: ArmsManufacturer[]) {
-    const cardWidth = 280
-    const cardHeight = 400
-    const spacing = 30
-    const totalWidth = vendors.length * cardWidth + (vendors.length - 1) * spacing
-    const startX = -totalWidth / 2 + cardWidth / 2
+    const cardWidth = LayoutRegistry.selection.tierCards.width
+    const cardHeight = 400 // Taller for vendor cards
 
     vendors.forEach((vendor, index) => {
       const info = manufacturerDetails[vendor]
-      const cardX = startX + index * (cardWidth + spacing)
+      const cardX = LayoutRegistry.selection.tierCards.getXPosition(index, vendors.length)
       const card = this.createCard(scene, cardX, 0, vendor, info, cardWidth, cardHeight)
       this.cards.push(card)
       this.add(card)
@@ -97,25 +98,25 @@ export class VendorContactSelection extends GameObjects.Container {
 
     // Card background
     const bg = scene.add.graphics()
-    bg.fillStyle(0x1a1a1a, 0.95)
-    bg.fillRoundedRect(-width / 2, -height / 2, width, height, 10)
-    bg.lineStyle(3, 0x444444, 1)
-    bg.strokeRoundedRect(-width / 2, -height / 2, width, height, 10)
+    bg.fillStyle(Colors.selection.titleBg, 0.95)
+    bg.fillRoundedRect(-width / 2, -height / 2, width, height, Borders.radius.medium)
+    bg.lineStyle(Borders.width.thick, Colors.selection.cardBorder, 1)
+    bg.strokeRoundedRect(-width / 2, -height / 2, width, height, Borders.radius.medium)
     card.add(bg)
 
     // Glow effect for hover
     const glowBg = scene.add.graphics()
-    glowBg.lineStyle(4, 0x00ffff, 0)
-    glowBg.strokeRoundedRect(-width / 2, -height / 2, width, height, 10)
+    glowBg.lineStyle(Borders.width.heavy, Colors.selection.vendorGlow, 0)
+    glowBg.strokeRoundedRect(-width / 2, -height / 2, width, height, Borders.radius.medium)
     glowBg.setVisible(false)
     card.add(glowBg)
 
     // Manufacturer name
     const nameText = scene.add.text(0, -height / 2 + 30, info.displayName, {
-      fontSize: '22px',
-      fontFamily: 'Courier',
-      color: '#00ffff',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h5,
+      fontFamily: Typography.fontFamily.monospace,
+      color: colorToString(Colors.selection.vendorGlow),
+      fontStyle: Typography.fontStyle.bold,
       align: 'center',
       wordWrap: { width: width - 20 },
     })
@@ -124,9 +125,9 @@ export class VendorContactSelection extends GameObjects.Container {
 
     // Country
     const countryText = scene.add.text(0, -height / 2 + 65, info.country, {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#888888',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
     })
     countryText.setOrigin(0.5)
     card.add(countryText)
@@ -135,9 +136,9 @@ export class VendorContactSelection extends GameObjects.Container {
     const prestigeY = -height / 2 + 100
     const starText = '★'.repeat(info.prestigeLevel) + '☆'.repeat(5 - info.prestigeLevel)
     const prestigeText = scene.add.text(0, prestigeY, starText, {
-      fontSize: '24px',
-      fontFamily: 'Courier',
-      color: '#ffaa00',
+      fontSize: Typography.fontSize.h4,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.selection.salaryText,
     })
     prestigeText.setOrigin(0.5)
     card.add(prestigeText)
@@ -145,9 +146,9 @@ export class VendorContactSelection extends GameObjects.Container {
     // Technology level
     const techY = prestigeY + 35
     const techLabel = scene.add.text(-width / 2 + 20, techY, 'Tech:', {
-      fontSize: '16px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
+      fontSize: Typography.fontSize.small,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.secondary,
     })
     card.add(techLabel)
 
@@ -157,16 +158,16 @@ export class VendorContactSelection extends GameObjects.Container {
       techY,
       info.technologyLevel,
       5,
-      0x00aaff,
+      Colors.selection.techLevelFill,
     )
     card.add(techLevels)
 
     // Manufacturing scale - increased spacing from 30 to 45
     const scaleY = techY + 45
     const scaleLabel = scene.add.text(-width / 2 + 20, scaleY, 'Scale:', {
-      fontSize: '16px',
-      fontFamily: 'Courier',
-      color: '#aaaaaa',
+      fontSize: Typography.fontSize.small,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.secondary,
     })
     card.add(scaleLabel)
 
@@ -176,17 +177,17 @@ export class VendorContactSelection extends GameObjects.Container {
       scaleY,
       info.manufacturingScale,
       5,
-      0x00ff00,
+      Colors.selection.scaleLevelFill,
     )
     card.add(scaleLevels)
 
     // Specialties - adjusted spacing due to increased scale row position
     const specY = scaleY + 45
     const specTitle = scene.add.text(0, specY, 'SPECIALTIES', {
-      fontSize: '16px',
-      fontFamily: 'Courier',
-      color: '#888888',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.small,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.muted,
+      fontStyle: Typography.fontStyle.bold,
     })
     specTitle.setOrigin(0.5)
     card.add(specTitle)
@@ -198,14 +199,14 @@ export class VendorContactSelection extends GameObjects.Container {
       const tagY = specY + 30 + idx * 25
       lastTagY = tagY
       const tagBg = scene.add.graphics()
-      tagBg.fillStyle(0x004444, 0.6)
-      tagBg.fillRoundedRect(-width / 2 + 20, tagY - 10, width - 40, 22, 3)
+      tagBg.fillStyle(Colors.selection.specialtyBadge, 0.6)
+      tagBg.fillRoundedRect(-width / 2 + 20, tagY - 10, width - 40, 22, Borders.radius.small)
       card.add(tagBg)
 
       const branchText = scene.add.text(0, tagY, branch.replace(/_/g, ' '), {
-        fontSize: '14px',
-        fontFamily: 'Courier',
-        color: '#00ffff',
+        fontSize: Typography.fontSize.tiny,
+        fontFamily: Typography.fontFamily.monospace,
+        color: colorToString(Colors.selection.vendorGlow),
       })
       branchText.setOrigin(0.5)
       card.add(branchText)
@@ -217,9 +218,9 @@ export class VendorContactSelection extends GameObjects.Container {
     const actualDescY = Math.min(descY, maxDescY)
 
     const descText = scene.add.text(0, actualDescY, `${info.description.substring(0, 80)}...`, {
-      fontSize: '14px',
-      fontFamily: 'Courier',
-      color: '#cccccc',
+      fontSize: Typography.fontSize.tiny,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.secondary,
       align: 'center',
       wordWrap: { width: width - 30 },
     })
@@ -234,8 +235,8 @@ export class VendorContactSelection extends GameObjects.Container {
 
     bg.on('pointerover', () => {
       glowBg.clear()
-      glowBg.lineStyle(4, 0x00ffff, 0.8)
-      glowBg.strokeRoundedRect(-width / 2, -height / 2, width, height, 10)
+      glowBg.lineStyle(Borders.width.heavy, Colors.selection.vendorGlow, 0.8)
+      glowBg.strokeRoundedRect(-width / 2, -height / 2, width, height, Borders.radius.medium)
       glowBg.setVisible(true)
       card.setScale(1.05)
     })
@@ -271,15 +272,15 @@ export class VendorContactSelection extends GameObjects.Container {
       if (i < value) {
         // Filled box
         box.fillStyle(color, 0.9)
-        box.fillRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, 3)
-        box.lineStyle(1, color, 1)
-        box.strokeRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, 3)
+        box.fillRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, Borders.radius.small)
+        box.lineStyle(Borders.width.thin, color, 1)
+        box.strokeRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, Borders.radius.small)
       } else {
         // Empty box
-        box.fillStyle(0x222222, 0.4)
-        box.fillRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, 3)
-        box.lineStyle(1, 0x444444, 0.6)
-        box.strokeRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, 3)
+        box.fillStyle(Colors.selection.emptyLevelBox, 0.4)
+        box.fillRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, Borders.radius.small)
+        box.lineStyle(Borders.width.thin, Colors.selection.emptyLevelBorder, 0.6)
+        box.strokeRoundedRect(boxX, -boxSize / 2, boxSize, boxSize, Borders.radius.small)
       }
 
       container.add(box)
@@ -295,16 +296,16 @@ export class VendorContactSelection extends GameObjects.Container {
     const confirmContainer = this.scene.add.container(0, 200)
 
     const confirmBg = this.scene.add.graphics()
-    confirmBg.fillStyle(0x00aa00, 0.8)
-    confirmBg.fillRoundedRect(-100, -25, 200, 50, 5)
-    confirmBg.lineStyle(2, 0x00ff00, 1)
-    confirmBg.strokeRoundedRect(-100, -25, 200, 50, 5)
+    confirmBg.fillStyle(Colors.selection.confirmButton, 0.8)
+    confirmBg.fillRoundedRect(-100, -25, 200, 50, Borders.radius.small)
+    confirmBg.lineStyle(Borders.width.normal, Colors.selection.confirmButtonHover, 1)
+    confirmBg.strokeRoundedRect(-100, -25, 200, 50, Borders.radius.small)
     confirmContainer.add(confirmBg)
 
     const confirmText = this.scene.add.text(0, 0, 'ESTABLISH CONTACT', {
-      fontSize: '18px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.regular,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
     })
     confirmText.setOrigin(0.5)
     confirmContainer.add(confirmText)
@@ -324,17 +325,17 @@ export class VendorContactSelection extends GameObjects.Container {
 
   private showNoContactsMessage(scene: PotatoScene) {
     const msgBg = scene.add.graphics()
-    msgBg.fillStyle(0x330000, 0.9)
-    msgBg.fillRoundedRect(-300, -100, 600, 200, 10)
-    msgBg.lineStyle(2, 0xff0000, 0.8)
-    msgBg.strokeRoundedRect(-300, -100, 600, 200, 10)
+    msgBg.fillStyle(Colors.status.danger, 0.9)
+    msgBg.fillRoundedRect(-300, -100, 600, 200, Borders.radius.medium)
+    msgBg.lineStyle(Borders.width.normal, Colors.status.danger, 0.8)
+    msgBg.strokeRoundedRect(-300, -100, 600, 200, Borders.radius.medium)
     this.add(msgBg)
 
     const msgText = scene.add.text(0, -30, 'NO NEW CONTACTS AVAILABLE', {
-      fontSize: '28px',
-      fontFamily: 'Courier',
-      color: '#ff4444',
-      fontStyle: 'bold',
+      fontSize: Typography.fontSize.h3,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.status.dangerText,
+      fontStyle: Typography.fontStyle.bold,
     })
     msgText.setOrigin(0.5)
     this.add(msgText)
@@ -344,9 +345,9 @@ export class VendorContactSelection extends GameObjects.Container {
       20,
       'You failed to establish any new vendor contacts.\nAll eligible manufacturers are already known to you.',
       {
-        fontSize: '18px',
-        fontFamily: 'Courier',
-        color: '#ffffff',
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.monospace,
+        color: Colors.text.primary,
         align: 'center',
       },
     )
@@ -355,16 +356,16 @@ export class VendorContactSelection extends GameObjects.Container {
 
     const closeBtn = scene.add.container(0, 100)
     const btnBg = scene.add.graphics()
-    btnBg.fillStyle(0x444444, 0.8)
-    btnBg.fillRoundedRect(-80, -20, 160, 40, 5)
-    btnBg.lineStyle(2, 0x888888, 1)
-    btnBg.strokeRoundedRect(-80, -20, 160, 40, 5)
+    btnBg.fillStyle(Colors.selection.skipButton, 0.8)
+    btnBg.fillRoundedRect(-80, -20, 160, 40, Borders.radius.small)
+    btnBg.lineStyle(Borders.width.normal, Colors.selection.skipButtonHover, 1)
+    btnBg.strokeRoundedRect(-80, -20, 160, 40, Borders.radius.small)
     closeBtn.add(btnBg)
 
     const btnText = scene.add.text(0, 0, 'CONTINUE', {
-      fontSize: '20px',
-      fontFamily: 'Courier',
-      color: '#ffffff',
+      fontSize: Typography.fontSize.button,
+      fontFamily: Typography.fontFamily.monospace,
+      color: Colors.text.primary,
     })
     btnText.setOrigin(0.5)
     closeBtn.add(btnText)

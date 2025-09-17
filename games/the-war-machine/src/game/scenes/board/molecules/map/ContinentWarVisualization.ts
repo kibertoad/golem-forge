@@ -1,4 +1,5 @@
 import type { PotatoScene } from '@potato-golem/ui'
+import * as Phaser from 'phaser'
 import { GameObjects } from 'phaser'
 import type { WorldModel } from '../../../../model/entities/WorldModel.ts'
 import type { CountryInfo } from '../../../../model/enums/ContinentData.ts'
@@ -165,7 +166,9 @@ export class ContinentWarVisualization extends GameObjects.Container {
 
   private clearVisualizations() {
     // Clear war lines
-    this.warLines.forEach((line) => line.destroy())
+    this.warLines.forEach((line) => {
+      line.destroy()
+    })
     this.warLines = []
 
     // Clear all children

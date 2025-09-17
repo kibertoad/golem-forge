@@ -1,24 +1,19 @@
 import type { GlobalSceneEvents } from '@potato-golem/core'
 import { PotatoScene } from '@potato-golem/ui'
 import type { EventEmitter } from 'emitix'
+import { StatusBar } from '../../components/StatusBar.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { CountryNames } from '../../model/enums/Countries.ts'
+import type { WarSystem } from '../../model/WarSystem.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import {
-  Borders,
-  Colors,
-  Dimensions,
-  Opacity,
-  Spacing,
-  StylePresets,
-  Typography,
-} from '../../registries/styleRegistry.ts'
+import { Borders, Colors, Dimensions, Opacity, Typography } from '../../registries/styleRegistry.ts'
 import { WarehouseView } from './tabs/WarehouseView.ts'
 
 interface AssetsSceneDependencies {
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
   worldModel: WorldModel
+  warSystem: WarSystem
 }
 
 export enum AssetTab {
@@ -31,16 +26,19 @@ export enum AssetTab {
 
 export class AssetsScene extends PotatoScene {
   private worldModel: WorldModel
+  private warSystem: WarSystem
   private currentTab: AssetTab = AssetTab.WAREHOUSES
   private tabButtons: Map<AssetTab, Phaser.GameObjects.Container> = new Map()
   public contentContainer?: Phaser.GameObjects.Container
+  public contentBg?: Phaser.GameObjects.Rectangle
   private currentView?: Phaser.GameObjects.Container
   private selectedLocationId?: string
   private locationBackgrounds: Map<string, Phaser.GameObjects.Rectangle> = new Map()
 
-  constructor({ globalSceneEventEmitter, worldModel }: AssetsSceneDependencies) {
+  constructor({ globalSceneEventEmitter, worldModel, warSystem }: AssetsSceneDependencies) {
     super(globalSceneEventEmitter, sceneRegistry.ASSETS_SCENE)
     this.worldModel = worldModel
+    this.warSystem = warSystem
   }
 
   init() {
@@ -98,14 +96,9 @@ export class AssetsScene extends PotatoScene {
     title.setOrigin(0.5)
     title.setDepth(DepthRegistry.UI_TEXT)
 
-    // Show money
-    const money = this.add.text(1400, 70, `$${this.worldModel.gameStatus.money.toLocaleString()}`, {
-      fontSize: Typography.fontSize.h4,
-      fontFamily: Typography.fontFamily.primary,
-      color: Colors.money.positive,
-    })
-    money.setOrigin(1, 0.5)
-    money.setDepth(DepthRegistry.UI_TEXT)
+    // Show money using StatusBar that auto-updates
+    const statusBar = new StatusBar(this, this.worldModel)
+    statusBar.setDepth(DepthRegistry.UI_TEXT)
   }
 
   private createTabs() {
@@ -163,8 +156,8 @@ export class AssetsScene extends PotatoScene {
 
   private createContentArea() {
     // Content background
-    const contentBg = this.add.rectangle(740, 440, 1400, 500, Colors.background.tertiary)
-    contentBg.setDepth(DepthRegistry.UI_BACKGROUND)
+    this.contentBg = this.add.rectangle(740, 440, 1400, 500, Colors.background.tertiary)
+    this.contentBg.setDepth(DepthRegistry.UI_BACKGROUND)
 
     // Content container
     this.contentContainer = this.add.container(740, 440)
@@ -328,7 +321,7 @@ export class AssetsScene extends PotatoScene {
   }
 
   private showWarehousesView() {
-    this.currentView = new WarehouseView(this, this.worldModel)
+    this.currentView = new WarehouseView(this, this.worldModel, this.warSystem)
     this.contentContainer?.add(this.currentView)
   }
 

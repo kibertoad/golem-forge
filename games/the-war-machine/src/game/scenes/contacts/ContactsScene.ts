@@ -1,15 +1,11 @@
 import type { GlobalSceneEvents } from '@potato-golem/core'
 import { PotatoScene } from '@potato-golem/ui'
 import type { EventEmitter } from 'emitix'
+import { StatusBar } from '../../components/StatusBar.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import {
-  Borders,
-  Colors,
-  Dimensions,
-  Typography,
-} from '../../registries/styleRegistry.ts'
+import { Colors, Dimensions, Typography } from '../../registries/styleRegistry.ts'
 import { BlackMarketView } from './tabs/BlackMarketView.ts'
 import { VendorsView } from './tabs/VendorsView.ts'
 
@@ -88,14 +84,9 @@ export class ContactsScene extends PotatoScene {
     title.setOrigin(0.5)
     title.setDepth(DepthRegistry.UI_TEXT)
 
-    // Show money
-    const money = this.add.text(1400, 70, `$${this.worldModel.gameStatus.money.toLocaleString()}`, {
-      fontSize: Typography.fontSize.h4,
-      fontFamily: Typography.fontFamily.primary,
-      color: Colors.money.positive,
-    })
-    money.setOrigin(1, 0.5)
-    money.setDepth(DepthRegistry.UI_TEXT)
+    // Show money using StatusBar that auto-updates
+    const statusBar = new StatusBar(this, this.worldModel)
+    statusBar.setDepth(DepthRegistry.UI_TEXT)
   }
 
   private createTabs() {
@@ -219,9 +210,9 @@ export class ContactsScene extends PotatoScene {
       // - List bottom at: 20 + 450 = 470
 
       // Simple approach: make frame big enough and position both together
-      const frameHeight = 950  // Extra large to definitely fit everything
-      const frameTop = 190     // Just below tabs
-      const frameCenterY = frameTop + frameHeight / 2  // 190 + 450 = 640
+      const frameHeight = 950 // Extra large to definitely fit everything
+      const frameTop = 190 // Just below tabs
+      const frameCenterY = frameTop + frameHeight / 2 // 190 + 450 = 640
 
       // Position both frame and container at the same Y
       this.contentBg.setSize(1400, frameHeight)
@@ -380,8 +371,8 @@ export class ContactsScene extends PotatoScene {
   }
 
   private goBack() {
-    this.scene.stop()  // Stop current scene
-    this.scene.wake(sceneRegistry.BOARD_SCENE)  // Wake the board scene
+    this.scene.stop() // Stop current scene
+    this.scene.wake(sceneRegistry.BOARD_SCENE) // Wake the board scene
   }
 
   update() {

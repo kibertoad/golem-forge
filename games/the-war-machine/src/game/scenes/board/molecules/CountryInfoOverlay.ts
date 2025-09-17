@@ -1,5 +1,5 @@
 import type { PotatoScene } from '@potato-golem/ui'
-import { GameObjects, Geom } from 'phaser'
+import { GameObjects } from 'phaser'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
 import { PoliticalStance, RegimeType } from '../../../model/enums/CountryAttributes.ts'

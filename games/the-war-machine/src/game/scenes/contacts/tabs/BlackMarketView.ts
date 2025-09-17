@@ -1,23 +1,17 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
-import type { WorldModel } from '../../../model/entities/WorldModel.ts'
-import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
-import { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
-import { ArmsCondition, ArmsGrade } from '../../../model/enums/ArmsStockEnums.ts'
-import type { ArmsId } from '../../../model/definitions/armsDefinitions.ts'
-import { armsRegistry } from '../../../registries/armsRegistry.ts'
-import { WarehouseModel } from '../../../model/entities/locations/WarehouseModel.ts'
-import { ArmsBranch } from '../../../model/enums/ArmsBranches.ts'
 import { FilterSortManager, type SortConfig } from '../../../components/FilterSortManager.ts'
 import { StockListDisplay, type StockListItem } from '../../../components/StockListDisplay.ts'
-import {
-  Colors,
-  Typography,
-  Borders,
-  Spacing,
-  Dimensions,
-} from '../../../registries/styleRegistry.ts'
+import type { ArmsId } from '../../../model/definitions/armsDefinitions.ts'
+import { ArmsStockModel } from '../../../model/entities/ArmsStockModel.ts'
+import type { WarehouseModel } from '../../../model/entities/locations/WarehouseModel.ts'
+import type { WorldModel } from '../../../model/entities/WorldModel.ts'
+import type { ArmsBranch } from '../../../model/enums/ArmsBranches.ts'
+import { ArmsCondition, ArmsGrade } from '../../../model/enums/ArmsStockEnums.ts'
 import { CountryCities } from '../../../model/enums/Cities.ts'
+import { type Country, CountryNames } from '../../../model/enums/Countries.ts'
+import { armsRegistry } from '../../../registries/armsRegistry.ts'
+import { Colors, Typography } from '../../../registries/styleRegistry.ts'
 
 export enum BlackMarketSortBy {
   NAME = 'name',
@@ -31,7 +25,7 @@ export interface BlackMarketOffer extends StockListItem {
   id: string
   armsId: ArmsId
   // quantity and condition are inherited from StockListItem
-  price: number  // Total price for the quantity
+  price: number // Total price for the quantity
   country: Country
   city: string
 }
@@ -61,10 +55,12 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
     const allArmsDefinitions = armsRegistry.getAllDefinitions()
 
     // Filter arms by black market eligible grades (obsolete, legacy, or modern with poor condition)
-    const blackMarketArms = allArmsDefinitions.filter(armsDef => {
-      return armsDef.grade === ArmsGrade.OBSOLETE ||
-             armsDef.grade === ArmsGrade.LEGACY ||
-             armsDef.grade === ArmsGrade.MODERN
+    const blackMarketArms = allArmsDefinitions.filter((armsDef) => {
+      return (
+        armsDef.grade === ArmsGrade.OBSOLETE ||
+        armsDef.grade === ArmsGrade.LEGACY ||
+        armsDef.grade === ArmsGrade.MODERN
+      )
     })
 
     const allCountries = Object.keys(CountryCities) as Country[]
@@ -88,27 +84,38 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       if (armsDef.grade === ArmsGrade.OBSOLETE) {
         // Obsolete: mostly poor to fair condition
         const obsoleteConditions = [
-          ArmsCondition.SALVAGE, ArmsCondition.SALVAGE,
-          ArmsCondition.POOR, ArmsCondition.POOR, ArmsCondition.POOR,
-          ArmsCondition.FAIR, ArmsCondition.FAIR,
-          ArmsCondition.GOOD
+          ArmsCondition.SALVAGE,
+          ArmsCondition.SALVAGE,
+          ArmsCondition.POOR,
+          ArmsCondition.POOR,
+          ArmsCondition.POOR,
+          ArmsCondition.FAIR,
+          ArmsCondition.FAIR,
+          ArmsCondition.GOOD,
         ]
         condition = obsoleteConditions[Math.floor(Math.random() * obsoleteConditions.length)]
       } else if (armsDef.grade === ArmsGrade.LEGACY) {
         // Legacy: poor to good condition
         const legacyConditions = [
-          ArmsCondition.POOR, ArmsCondition.POOR,
-          ArmsCondition.FAIR, ArmsCondition.FAIR, ArmsCondition.FAIR,
-          ArmsCondition.GOOD, ArmsCondition.GOOD,
-          ArmsCondition.EXCELLENT
+          ArmsCondition.POOR,
+          ArmsCondition.POOR,
+          ArmsCondition.FAIR,
+          ArmsCondition.FAIR,
+          ArmsCondition.FAIR,
+          ArmsCondition.GOOD,
+          ArmsCondition.GOOD,
+          ArmsCondition.EXCELLENT,
         ]
         condition = legacyConditions[Math.floor(Math.random() * legacyConditions.length)]
       } else {
         // Modern: only fair or below on black market
         const modernConditions = [
           ArmsCondition.SALVAGE,
-          ArmsCondition.POOR, ArmsCondition.POOR,
-          ArmsCondition.FAIR, ArmsCondition.FAIR, ArmsCondition.FAIR
+          ArmsCondition.POOR,
+          ArmsCondition.POOR,
+          ArmsCondition.FAIR,
+          ArmsCondition.FAIR,
+          ArmsCondition.FAIR,
         ]
         condition = modernConditions[Math.floor(Math.random() * modernConditions.length)]
       }
@@ -168,7 +175,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
     const availableConditions = new Set<ArmsCondition>()
     const availableGrades = new Set<ArmsGrade>()
 
-    this.offers.forEach(offer => {
+    this.offers.forEach((offer) => {
       const armsDef = armsRegistry.getDefinition(offer.armsId)
       if (armsDef) {
         availableBranches.add(armsDef.branch)
@@ -184,7 +191,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       {
         key: BlackMarketSortBy.PRICE,
         label: 'Price',
-        compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => a.price - b.price
+        compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => a.price - b.price,
       },
       {
         key: BlackMarketSortBy.NAME,
@@ -193,12 +200,12 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
           const aName = armsRegistry.getDefinition(a.armsId)?.name || ''
           const bName = armsRegistry.getDefinition(b.armsId)?.name || ''
           return aName.localeCompare(bName)
-        }
+        },
       },
       {
         key: BlackMarketSortBy.QUANTITY,
         label: 'Qty',
-        compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => a.quantity - b.quantity
+        compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => a.quantity - b.quantity,
       },
       {
         key: BlackMarketSortBy.CONDITION,
@@ -206,27 +213,39 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
         compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => {
           const conditions = Object.values(ArmsCondition)
           return conditions.indexOf(a.condition) - conditions.indexOf(b.condition)
-        }
+        },
       },
       {
         key: BlackMarketSortBy.LOCATION,
         label: 'Location',
         compareFunction: (a: BlackMarketOffer, b: BlackMarketOffer) => {
           return `${a.city}, ${a.country}`.localeCompare(`${b.city}, ${b.country}`)
-        }
+        },
       },
     ]
 
     // Sort conditions in quality order (best to worst)
-    const conditionOrder = [ArmsCondition.NEW, ArmsCondition.GOOD, ArmsCondition.FAIR, ArmsCondition.POOR, ArmsCondition.SALVAGE]
-    const sortedConditions = Array.from(availableConditions).sort((a, b) =>
-      conditionOrder.indexOf(a) - conditionOrder.indexOf(b)
+    const conditionOrder = [
+      ArmsCondition.NEW,
+      ArmsCondition.GOOD,
+      ArmsCondition.FAIR,
+      ArmsCondition.POOR,
+      ArmsCondition.SALVAGE,
+    ]
+    const sortedConditions = Array.from(availableConditions).sort(
+      (a, b) => conditionOrder.indexOf(a) - conditionOrder.indexOf(b),
     )
 
     // Sort grades in quality order (obsolete to experimental)
-    const gradeOrder = [ArmsGrade.OBSOLETE, ArmsGrade.LEGACY, ArmsGrade.MODERN, ArmsGrade.NEXTGEN, ArmsGrade.EXPERIMENTAL]
-    const sortedGrades = Array.from(availableGrades).sort((a, b) =>
-      gradeOrder.indexOf(a) - gradeOrder.indexOf(b)
+    const gradeOrder = [
+      ArmsGrade.OBSOLETE,
+      ArmsGrade.LEGACY,
+      ArmsGrade.MODERN,
+      ArmsGrade.NEXTGEN,
+      ArmsGrade.EXPERIMENTAL,
+    ]
+    const sortedGrades = Array.from(availableGrades).sort(
+      (a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b),
     )
 
     // Create filter sort manager with actual available options
@@ -243,7 +262,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       {
         onFiltersChanged: () => this.applyFiltersAndSort(),
         onSortChanged: () => this.applyFiltersAndSort(),
-      }
+      },
     )
 
     this.add(this.filterSortManager)
@@ -261,15 +280,15 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
     this.stockListDisplay = new StockListDisplay<BlackMarketOffer>(
       scene,
       -650,
-      20,  // Moved even lower to give more space after filters
+      20, // Moved even lower to give more space after filters
       {
         width: 1300,
         height: 40,
         spacing: 5,
         showQuantity: true,
         showCondition: true,
-        showValue: false,  // We'll use custom column for price
-        showProfit: false,  // No profit/loss for black market
+        showValue: false, // We'll use custom column for price
+        showProfit: false, // No profit/loss for black market
         showActions: true,
         actions: [
           {
@@ -311,20 +330,22 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       },
       {
         onItemClick: (offer) => this.selectOffer(offer.id),
-      }
+      },
     )
 
     // Set items (show max 10)
     this.stockListDisplay.setItems(this.displayedOffers, 10)
     this.add(this.stockListDisplay)
-
   }
 
   private applyFiltersAndSort() {
     if (!this.filterSortManager) return
 
     // Define filter functions
-    const filterFunctions = new Map<string, (offer: BlackMarketOffer, filterValue: any) => boolean>()
+    const filterFunctions = new Map<
+      string,
+      (offer: BlackMarketOffer, filterValue: any) => boolean
+    >()
 
     filterFunctions.set('branch_filter', (offer, branch: ArmsBranch) => {
       const armsDef = armsRegistry.getDefinition(offer.armsId)
@@ -360,12 +381,10 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
   private handleBuyClick(offer: BlackMarketOffer) {
     // Get warehouses with enough space
     const warehouses = this.worldModel.playerLocations.filter(
-      loc => loc.type === 'warehouse'
+      (loc) => loc.type === 'warehouse',
     ) as WarehouseModel[]
 
-    const availableWarehouses = warehouses.filter(
-      w => w.getAvailableStorage() >= offer.quantity
-    )
+    const availableWarehouses = warehouses.filter((w) => w.getAvailableStorage() >= offer.quantity)
 
     if (availableWarehouses.length === 0) {
       // Show no space message
@@ -422,7 +441,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
           fontSize: Typography.fontSize.regular,
           fontFamily: Typography.fontFamily.primary,
           color: Colors.text.primary,
-        }
+        },
       )
       locationText.setOrigin(0, 0.5)
       warehouseBtn.add(locationText)
@@ -435,7 +454,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
           fontSize: Typography.fontSize.small,
           fontFamily: Typography.fontFamily.primary,
           color: Colors.text.secondary,
-        }
+        },
       )
       spaceText.setOrigin(0, 0.5)
       warehouseBtn.add(spaceText)
@@ -495,7 +514,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
       this.worldModel.deductMoney(offer.price)
 
       // Remove the offer
-      const index = this.offers.findIndex(o => o.id === offer.id)
+      const index = this.offers.findIndex((o) => o.id === offer.id)
       if (index !== -1) {
         this.offers.splice(index, 1)
         // Update the stock list display
@@ -503,11 +522,7 @@ export class BlackMarketView extends Phaser.GameObjects.Container {
         this.applyFiltersAndSort()
       }
 
-      // Update money display
-      const moneyText = this.scene.children.getByName('moneyText') as Phaser.GameObjects.Text
-      if (moneyText) {
-        moneyText.setText(`$${this.worldModel.gameStatus.money.toLocaleString()}`)
-      }
+      // Money display auto-updates via StatusBar event listener
 
       this.showMessage('Purchase successful!', Colors.status.successText)
     } else {

@@ -1,4 +1,8 @@
-import { type ArmsDefinition, type ArmsId, armsDefinitions } from '../model/definitions/armsDefinitions.ts'
+import {
+  type ArmsDefinition,
+  type ArmsId,
+  armsDefinitions,
+} from '../model/definitions/armsDefinitions.ts'
 import type { ArmsBranch } from '../model/enums/ArmsBranches.ts'
 import type { ArmsManufacturer } from '../model/enums/ArmsManufacturer.ts'
 

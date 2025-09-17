@@ -3,28 +3,27 @@ import * as Phaser from 'phaser'
 import type { WarehouseModel } from '../../../model/entities/locations/WarehouseModel.ts'
 import type { WorldModel } from '../../../model/entities/WorldModel.ts'
 import { CountryNames } from '../../../model/enums/Countries.ts'
-import {
-  Borders,
-  Colors,
-  Dimensions,
-  getHeatColor,
-  Opacity,
-  Spacing,
-  Typography,
-} from '../../../registries/styleRegistry.ts'
+import type { WarSystem } from '../../../model/WarSystem.ts'
 import { StockOverlay } from '../../components/StockListView.ts'
+import {
+  type WarehouseOption,
+  WarehouseSelectionOverlay,
+} from '../overlays/WarehouseSelectionOverlay.ts'
 
 export class WarehouseView extends Phaser.GameObjects.Container {
   private worldModel: WorldModel
+  private warSystem: WarSystem
   private currentCommandBar?: Phaser.GameObjects.Container
   private stockOverlay?: Phaser.GameObjects.Container
   private selectedWarehouseId?: string
   private warehouseBackgrounds: Map<string, Phaser.GameObjects.Rectangle> = new Map()
   private assetsScene: any // Reference to parent AssetsScene
+  private warehouseSelectionOverlay?: WarehouseSelectionOverlay
 
-  constructor(scene: PotatoScene, worldModel: WorldModel) {
+  constructor(scene: PotatoScene, worldModel: WorldModel, warSystem: WarSystem) {
     super(scene, 0, 0)
     this.worldModel = worldModel
+    this.warSystem = warSystem
     this.assetsScene = scene // Store reference to parent scene
 
     this.createView()
@@ -215,8 +214,7 @@ export class WarehouseView extends Phaser.GameObjects.Container {
     addBg.on('pointerover', () => addBg.setFillStyle(0x059669))
     addBg.on('pointerout', () => addBg.setFillStyle(0x10b981))
     addBg.on('pointerdown', () => {
-      // TODO: Implement warehouse purchase dialog
-      console.log('Add new warehouse')
+      this.showWarehouseSelectionOverlay()
     })
 
     this.add(addButton)
@@ -323,9 +321,12 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       this.stockOverlay = undefined
     }
 
-    // Hide the entire content container while overlay is shown
+    // Hide the entire content container and background while overlay is shown
     if (this.assetsScene.contentContainer) {
       this.assetsScene.contentContainer.setVisible(false)
+    }
+    if (this.assetsScene.contentBg) {
+      this.assetsScene.contentBg.setVisible(false)
     }
 
     // Create stock overlay using the shared component
@@ -337,9 +338,12 @@ export class WarehouseView extends Phaser.GameObjects.Container {
       title,
       () => {
         this.stockOverlay = undefined
-        // Show the content container again when overlay closes
+        // Show the content container and background again when overlay closes
         if (this.assetsScene.contentContainer) {
           this.assetsScene.contentContainer.setVisible(true)
+        }
+        if (this.assetsScene.contentBg) {
+          this.assetsScene.contentBg.setVisible(true)
         }
       },
     )
@@ -368,5 +372,76 @@ export class WarehouseView extends Phaser.GameObjects.Container {
   private freezeLocation(warehouse: WarehouseModel) {
     console.log('Freezing warehouse:', warehouse.id)
     // TODO: Implement freeze logic
+  }
+
+  private showWarehouseSelectionOverlay() {
+    // Remove any existing overlay
+    if (this.warehouseSelectionOverlay) {
+      this.warehouseSelectionOverlay.destroy()
+      this.warehouseSelectionOverlay = undefined
+    }
+
+    // Hide the assets scene content and background while overlay is shown
+    if (this.assetsScene.contentContainer) {
+      this.assetsScene.contentContainer.setVisible(false)
+    }
+    if (this.assetsScene.contentBg) {
+      this.assetsScene.contentBg.setVisible(false)
+    }
+
+    // Create warehouse selection overlay
+    this.warehouseSelectionOverlay = new WarehouseSelectionOverlay(
+      this.scene as PotatoScene,
+      this.worldModel,
+      this.warSystem,
+      {
+        onWarehouseSelected: (warehouse: WarehouseOption) => {
+          this.handleWarehouseSelection(warehouse)
+        },
+        onCancel: () => {
+          this.warehouseSelectionOverlay = undefined
+          // Show the content container and background again when overlay closes
+          if (this.assetsScene.contentContainer) {
+            this.assetsScene.contentContainer.setVisible(true)
+          }
+          if (this.assetsScene.contentBg) {
+            this.assetsScene.contentBg.setVisible(true)
+          }
+        },
+      },
+    )
+  }
+
+  private handleWarehouseSelection(warehouseOption: WarehouseOption & { purchased?: boolean }) {
+    // Check if player has enough money
+    const cost = warehouseOption.purchased ? warehouseOption.buyPrice : warehouseOption.rentPrice
+    if (this.worldModel.gameStatus.money < cost) {
+      console.log('Not enough money to acquire warehouse')
+      // TODO: Show error message
+      return
+    }
+
+    // Deduct money
+    this.worldModel.gameStatus.money -= cost
+
+    // Create new warehouse model
+    // TODO: Actually create and add the warehouse to the world model
+    console.log('Warehouse selected:', warehouseOption)
+    console.log('Purchase type:', warehouseOption.purchased ? 'Bought' : 'Rented')
+    console.log('Location:', warehouseOption.city, warehouseOption.country)
+    console.log('Concealment:', warehouseOption.concealment)
+    console.log('Storage:', warehouseOption.storageSpace)
+    console.log('Cost:', cost)
+
+    // Refresh the view to show the new warehouse
+    this.createView()
+
+    // Show the content container and background again
+    if (this.assetsScene.contentContainer) {
+      this.assetsScene.contentContainer.setVisible(true)
+    }
+    if (this.assetsScene.contentBg) {
+      this.assetsScene.contentBg.setVisible(true)
+    }
   }
 }

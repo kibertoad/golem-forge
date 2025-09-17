@@ -1,13 +1,15 @@
 import { PotatoScene } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
+import { StatusBar } from '../../components/StatusBar.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import type { ResearchDirectorModel } from '../../model/entities/ResearchDirectorModel.ts'
 import type { ResearchFacilityModel } from '../../model/entities/ResearchFacilityModel.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { CountryNames } from '../../model/enums/Countries.ts'
 import type { ResearchProject } from '../../model/enums/ResearchEnums.ts'
+import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-import { DirectorHiringUtils } from '../../utils/DirectorHiringUtils.ts'
+import { showDirectorHiringDialog } from '../../utils/DirectorHiringUtils.ts'
 import { formatMoney } from '../../utils/FormatUtils.ts'
 import {
   GenericPersonSelector,
@@ -29,7 +31,8 @@ export class ResearchScene extends PotatoScene {
   private facilitiesPanel!: GameObjects.Container
   private detailsPanel!: GameObjects.Container
   private selectedFacility: ResearchFacilityModel | null = null
-  private statusBar!: GameObjects.Container
+  private statusContainer!: GameObjects.Container
+  private moneyStatusBar!: StatusBar
 
   constructor({ worldModel, globalSceneEventEmitter }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.RESEARCH_SCENE)
@@ -72,6 +75,18 @@ export class ResearchScene extends PotatoScene {
     if (this.selectedFacility) {
       this.updateDetailsPanel(this.selectedFacility)
     }
+
+    // Add right-click to go back
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown()) {
+        this.goBack()
+      }
+    })
+  }
+
+  private goBack() {
+    this.scene.stop()
+    this.scene.wake(sceneRegistry.BOARD_SCENE)
   }
 
   private createBackButton() {
@@ -100,19 +115,18 @@ export class ResearchScene extends PotatoScene {
     })
 
     bg.on('pointerdown', () => {
-      this.scene.stop()
-      this.scene.wake(sceneRegistry.BOARD_SCENE)
+      this.goBack()
     })
   }
 
   private createStatusBar() {
     const { width } = this.cameras.main
 
-    this.statusBar = this.add.container(width / 2, 100)
+    this.statusContainer = this.add.container(width / 2, 100)
 
     const bg = this.add.rectangle(0, 0, width - 100, 60, 0x1a1a1a, 0.9)
     bg.setStrokeStyle(1, 0x3a3a3a)
-    this.statusBar.add(bg)
+    this.statusContainer.add(bg)
 
     // Calculate total research costs
     let totalMonthlyCost = 0
@@ -132,7 +146,6 @@ export class ResearchScene extends PotatoScene {
       `Active Projects: ${activeProjects}`,
       `Monthly Cost: ${formatMoney(totalMonthlyCost)}`,
       `Available Directors: ${availableDirectors}`,
-      `Cash: ${formatMoney(this.worldModel.gameStatus.money)}`,
     ]
 
     stats.forEach((stat, index) => {
@@ -142,8 +155,12 @@ export class ResearchScene extends PotatoScene {
         color: '#aaaaaa',
       })
       statText.setOrigin(0.5)
-      this.statusBar.add(statText)
+      this.statusContainer.add(statText)
     })
+
+    // Add money display using StatusBar
+    this.moneyStatusBar = new StatusBar(this, this.worldModel)
+    this.moneyStatusBar.setDepth(DepthRegistry.RESEARCH_DIALOG + 100)
   }
 
   private createFacilitiesPanel() {
@@ -825,7 +842,7 @@ export class ResearchScene extends PotatoScene {
       showAddNewButton: true,
       addNewButtonText: '+ Hire New Director',
       onAddNew: () => {
-        DirectorHiringUtils.showFeeSelectionDialog(this, this.worldModel, (directorName) => {
+        showDirectorHiringDialog(this, this.worldModel, (directorName) => {
           if (directorName) {
             // Refresh the facilities panel after hiring
             this.refreshFacilitiesPanel()

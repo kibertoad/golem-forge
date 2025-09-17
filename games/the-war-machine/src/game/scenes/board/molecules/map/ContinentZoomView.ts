@@ -5,7 +5,7 @@ import { ContinentCountries, type CountryInfo } from '../../../../model/enums/Co
 import { Country, CountryNames } from '../../../../model/enums/Countries.ts'
 import { CountryCapitals } from '../../../../model/enums/CountryCapitals.ts'
 import { EarthRegion } from '../../../../model/enums/EarthRegions.ts'
-import { WarSystem } from '../../../../model/WarSystem.ts'
+import type { WarSystem } from '../../../../model/WarSystem.ts'
 import { CountryInfoOverlay } from '../CountryInfoOverlay.ts'
 import { CityZoomView } from './CityZoomView.ts'
 import { ContinentWarVisualization } from './ContinentWarVisualization.ts'
@@ -28,6 +28,7 @@ export class ContinentZoomView extends GameObjects.Container {
   private worldModel: WorldModel
   private currentInfoOverlay: CountryInfoOverlay | null = null
   private warVisualization: ContinentWarVisualization
+  private emitSelectionOnly: boolean = false
 
   constructor(
     scene: PotatoScene,
@@ -35,12 +36,14 @@ export class ContinentZoomView extends GameObjects.Container {
     y: number,
     continent: EarthRegion,
     worldModel: WorldModel,
-    warSystem?: WarSystem,
+    warSystem: WarSystem,
+    emitSelectionOnly: boolean = false,
   ) {
     super(scene, x, y)
     this.continent = continent
     this.worldModel = worldModel
-    this.warSystem = warSystem || new WarSystem()
+    this.warSystem = warSystem
+    this.emitSelectionOnly = emitSelectionOnly
 
     // Create background panel - larger size matching Earth map (increased by 10px on each side)
     this.background = scene.add.graphics()
@@ -274,8 +277,13 @@ export class ContinentZoomView extends GameObjects.Container {
         }
         // Left-click opens the city view
         this.selectCountry(countryInfo.country)
-        // Show city zoom view
-        this.showCityView(countryInfo.country)
+        // If in selection mode, emit event instead of showing city view
+        if (this.emitSelectionOnly) {
+          this.emit('country-selected', countryInfo.country)
+        } else {
+          // Show city zoom view
+          this.showCityView(countryInfo.country)
+        }
       })
 
       this.add(graphics)

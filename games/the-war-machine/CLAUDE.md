@@ -277,6 +277,52 @@ const currentSort = filterSortManager.getCurrentSort() // { key: SortKey, ascend
 - Clear button uses red styling with hover effects for better visibility
 - Multi-row layout ensures scalability for many filter options
 
+### StatusBar
+
+A fixed-position component that displays the player's money and current game date, automatically updating when values change.
+
+**Location**: `src/game/components/StatusBar.ts`
+
+**Features**:
+- Fixed position at top-right of screen (x: width - 160, y: 80)
+- Fixed size of 320x80 pixels with rounded border
+- Displays money with 💰 icon and automatic formatting (e.g., $1.5M)
+- Displays date with 📅 icon showing month, week, and year
+- Automatically updates via WorldModel event listeners
+- Money changes trigger color flash (green for gains, red for losses) with scale animation
+- Clean, consistent appearance across all scenes
+
+**Usage**:
+```typescript
+import { StatusBar } from '../../components/StatusBar.ts'
+
+// In any scene's create() method
+const statusBar = new StatusBar(this, this.worldModel)
+statusBar.setDepth(DepthRegistry.UI_TEXT) // Adjust depth as needed
+```
+
+**No Configuration Required**:
+The StatusBar has a fixed optimal design and doesn't accept any configuration parameters. Simply pass the scene and world model.
+
+**Currently Used In**:
+- `BoardScene`: Main game board (depth: 950)
+- `AssetsScene`: Asset management screen (depth: UI_TEXT)
+- `ContactsScene`: Contacts management screen (depth: UI_TEXT)
+- `PersonnelScene`: Personnel management screen (depth: UI_TEXT)
+- `ResearchScene`: Research & Development screen (depth: RESEARCH_DIALOG + 100)
+
+**Event Integration**:
+The StatusBar automatically listens to WorldModel events:
+- `money-changed`: Updates money display with animation
+- `date-changed`: Updates date display
+
+**Visual Design**:
+- Background: Semi-transparent dark panel (Colors.background.secondary)
+- Border: 2px light blue rounded rectangle
+- Money text: Large font (h4), golden color with shadow
+- Date text: Regular font, secondary color with shadow
+- Separator line between money and date for clarity
+
 ### StockListDisplay
 
 A reusable component for displaying lists of arms stock items with consistent styling and behavior.
@@ -959,7 +1005,7 @@ The Research & Development system allows players to:
 - **`src/game/scenes/personnel/PersonnelScene.ts`**: Director hiring and management
 - **`src/game/scenes/personnel/DirectorHiringDialog.ts`**: Agency hiring interface with larger fonts
 - **`src/game/scenes/board/molecules/ui/GenericPersonSelector.ts`**: Reusable person selection UI with hiring integration
-- **`src/game/utils/DirectorHiringUtils.ts`**: Shared hiring logic for both Personnel and Research scenes
+- **`src/game/utils/DirectorHiringUtils.ts`**: Shared hiring function for both Personnel and Research scenes
 
 #### Processing
 - **`src/game/model/processors/EndTurnProcessor.ts`**: Turn-based research progress, trait reveals, and lab upgrades
@@ -1002,13 +1048,13 @@ Traits modify research outcomes:
 #### Hiring Process
 - Available from Personnel scene via "Hire New Director" button
 - Also available in Research scene when assigning directors to facilities
-- Shared hiring logic in `DirectorHiringUtils.ts` prevents code duplication
+- Shared hiring function `showDirectorHiringDialog` prevents code duplication
 - Hire button on left, Skip (lose fee) button on right
 - No cancel option - player must choose to hire or skip
 
 ```typescript
-// Shared hiring utility
-DirectorHiringUtils.showFeeSelectionDialog(
+// Shared hiring function
+showDirectorHiringDialog(
   scene,
   worldModel,
   (directorName) => {
@@ -1227,6 +1273,89 @@ private setupRightClickClose(scene: PotatoScene) {
 }
 ```
 
+## Layout Registry (`src/game/registries/layoutRegistry.ts`)
+
+The layout registry centralizes all positioning and sizing constants for consistent UI layouts across the game.
+
+### When to Use Layout Registry
+
+Use the layout registry when:
+- Creating selection overlays (service tiers, vendor selection, hiring)
+- Positioning UI elements that appear in multiple places
+- Building modal dialogs or card-based layouts
+- Ensuring consistent spacing between elements
+- Centering content on screen
+
+### Key Layout Constants
+
+#### Scene Dimensions
+```typescript
+LayoutRegistry.scene.centerX  // 740
+LayoutRegistry.scene.centerY  // 400
+LayoutRegistry.scene.width    // 1480
+LayoutRegistry.scene.height   // 800
+```
+
+#### Selection Overlays
+For tier/card selection screens (warehouse service, vendor contacts, hiring):
+
+```typescript
+// Title positioning
+LayoutRegistry.selection.title.y  // -250 from center
+
+// Tier cards (3 cards horizontally)
+const x = LayoutRegistry.selection.tierCards.getXPosition(index, total)
+const width = LayoutRegistry.selection.tierCards.width   // 350
+const height = LayoutRegistry.selection.tierCards.height // 300
+
+// Navigation buttons
+LayoutRegistry.selection.buttons.back  // { x: 0, y: 250, width: 150, height: 50 }
+LayoutRegistry.selection.buttons.confirm  // { x: 200, y: 320, ... }
+```
+
+#### Dynamic Positioning Functions
+
+**Tier Cards** - Horizontally spaced cards:
+```typescript
+LayoutRegistry.selection.tierCards.getXPosition(index, total)
+// Returns x position for card at index
+// Centers all cards with 400px spacing
+```
+
+**Option Cards** - 2-column grid layout:
+```typescript
+LayoutRegistry.selection.optionCards.getPosition(index)
+// Returns { x, y } for card at index
+// Creates 2-column layout with proper spacing
+```
+
+### Usage Example
+
+```typescript
+import { LayoutRegistry } from '../../../registries/layoutRegistry.ts'
+import { Colors, Typography } from '../../../registries/styleRegistry.ts'
+
+// Center a container on screen
+const container = scene.add.container(
+  LayoutRegistry.scene.centerX,
+  LayoutRegistry.scene.centerY
+)
+
+// Add title at standard position
+const title = scene.add.text(
+  0,
+  LayoutRegistry.selection.title.y,
+  'Select Service Tier',
+  { fontSize: Typography.fontSize.h2 }
+)
+
+// Position tier cards
+tiers.forEach((tier, index) => {
+  const x = LayoutRegistry.selection.tierCards.getXPosition(index, tiers.length)
+  const card = createCard(x, 0, tier)
+})
+```
+
 ## Visual Style System
 
 ### Style Registry (`src/game/registries/styleRegistry.ts`)
@@ -1378,6 +1507,147 @@ bg.setFillStyle(Colors.primary.main, Opacity.selection)
 bg.setStrokeStyle(Borders.width.thick, Colors.primary.light)
 ```
 
+## Shared Map Components
+
+### Reusable Map Components for Selection
+
+The game's map components (EarthMap, ContinentZoomView, CityZoomView) can be reused for location selection in overlays.
+
+#### Making Map Components Reusable
+
+1. **Optional WarSystem Parameter**
+   - Map components accept optional `warSystem` parameter
+   - Pass `undefined` when war visualization isn't needed (e.g., warehouse selection)
+   - Never create new WarSystem instances - always get from DI container
+
+2. **Selection Mode for ContinentZoomView**
+   ```typescript
+   // Normal mode - creates its own CityZoomView
+   new ContinentZoomView(scene, x, y, continent, worldModel, warSystem)
+
+   // Selection mode - emits 'country-selected' event instead
+   new ContinentZoomView(scene, x, y, continent, worldModel, warSystem, true)
+   ```
+
+3. **Event-Driven Navigation**
+   - EarthMap emits 'region-selected' → show continent
+   - ContinentZoomView emits 'country-selected' → show cities
+   - CityZoomView emits 'city-selected' → process selection
+
+#### Example: Warehouse Location Selection
+
+```typescript
+export class WarehouseSelectionOverlay extends GameObjects.Container {
+  private showMapSelection() {
+    // Hide overlay background during map navigation
+    this.overlay.setVisible(false)
+
+    // Create EarthMap without war features
+    this.earthMap = new EarthMap(
+      this.scene,
+      LayoutRegistry.scene.centerX,
+      LayoutRegistry.scene.centerY + 100,
+      this.worldModel,
+      this.warSystem,  // Pass from DI, don't create new
+      undefined,        // No toast container needed
+    )
+
+    // Set high depth to appear above other elements
+    this.earthMap.setDepth(DepthRegistry.STOCK_INVENTORY + 100)
+
+    // Listen for continent selection
+    this.earthMap.on('region-selected', (region) => {
+      this.showContinentZoom(region)
+    })
+  }
+
+  private showContinentZoom(continent: EarthRegion) {
+    // Hide previous view
+    if (this.earthMap) {
+      this.earthMap.setVisible(false)
+    }
+
+    // Create continent view in selection mode
+    this.continentZoomView = new ContinentZoomView(
+      this.scene,
+      width / 2,
+      height / 2 + 100,
+      continent,
+      this.worldModel,
+      this.warSystem,
+      true,  // Selection mode - emits events instead of showing city view
+    )
+
+    // Listen for country selection
+    this.continentZoomView.on('country-selected', (country) => {
+      this.showCityZoom(country)
+    })
+  }
+}
+```
+
+#### Depth Management for Map Overlays
+
+When using map components in overlays:
+
+1. **Hide Background Elements**
+   ```typescript
+   // Hide AssetsScene content when showing overlay
+   if (this.assetsScene.contentContainer) {
+     this.assetsScene.contentContainer.setVisible(false)
+   }
+   if (this.assetsScene.contentBg) {
+     this.assetsScene.contentBg.setVisible(false)
+   }
+   ```
+
+2. **Set Appropriate Depths**
+   ```typescript
+   // Map components above scene content
+   this.earthMap.setDepth(DepthRegistry.STOCK_INVENTORY + 100)
+
+   // UI elements above map
+   this.instructionText.setDepth(DepthRegistry.STOCK_INVENTORY + 150)
+   this.closeButton.setDepth(DepthRegistry.STOCK_INVENTORY + 200)
+   ```
+
+3. **Overlay Background Control**
+   ```typescript
+   // Hide overlay during map navigation
+   this.overlay.setVisible(false)  // For map views
+
+   // Show overlay for modal selections
+   this.overlay.setVisible(true)   // For tier selection, options
+   ```
+
+#### Cleanup on Transition
+
+Properly destroy views when transitioning:
+```typescript
+this.cityZoomView.on('city-selected', (data) => {
+  const city = cities?.find(c => c.name === data.city)
+  if (city) {
+    this.selectedCity = city
+
+    // Clean up all map views before showing next screen
+    if (this.cityZoomView) {
+      this.cityZoomView.destroy()
+      this.cityZoomView = undefined
+    }
+    if (this.continentZoomView) {
+      this.continentZoomView.destroy()
+      this.continentZoomView = undefined
+    }
+    if (this.earthMap) {
+      this.earthMap.destroy()
+      this.earthMap = undefined
+    }
+
+    this.showServiceTierSelection()
+  }
+})
+```
+
 ## Common Issues and Fixes
 
 ### Duplicate Country Entries
@@ -1386,15 +1656,6 @@ If you encounter "An object literal cannot have multiple properties with the sam
 2. Keep the SECOND occurrence (usually the one that appears later in the file)
 3. Remove the FIRST occurrence
 4. The tests expect the later definitions, not the earlier ones
-
-### War System State Issues
-If war declarations aren't showing in UI:
-1. **Check GameInitializer is called** - Must explicitly call `gameInitializer.initializeGame()`
-2. Check that WarSystem is registered as singleton in diConfig.ts
-3. Verify all components get WarSystem from DI container, not creating new instances
-4. Ensure WarDirector's onWarDeclared callback is properly connected
-5. Check that WorldModel's country models have their war states updated
-6. Ensure war status is set BEFORE spawning units (order matters for targeting)
 
 ### Attack Visualization Issues
 - Attack visualization only appears when viewing defending countries
@@ -1405,9 +1666,74 @@ If war declarations aren't showing in UI:
 - City grid is 1480x680 with cities positioned on 10x10 grid (148px x 68px blocks)
 
 ### Navigation Issues
-- Right-click should consistently work as "back" navigation across all map elements
+- Right-click should consistently work as "back" navigation across all screens
 - Check for `pointer.rightButtonDown()` before processing left-click actions
 - Global right-click handler in scenes should handle navigation
+
+### Navigation Bar
+Located in `src/game/scenes/board/molecules/navigation/NavigationBar.ts`
+
+**Button Order** (top to bottom):
+1. Stock 📦
+2. Research 🔬
+3. Production 🏭
+4. Personnel 👥 (moved between Production and Contacts)
+5. Contacts 📞
+6. Bazaar 🛒
+7. Assets 💼
+
+To reorder buttons, modify the `navItems` array in the constructor.
+
+### Depth Layering Issues in Overlays
+When map components appear behind overlay backgrounds:
+1. Set overlay components to high depth (e.g., `DepthRegistry.STOCK_INVENTORY + 100`)
+2. Add components directly to scene with `scene.add.existing()` instead of to containers
+3. Force child components to same depth: `component.list.forEach(child => child.setDepth(depth))`
+4. Position close buttons and text at even higher depths (+150, +200)
+5. Store references to scene-level components for proper cleanup
+
+### Viewport-Aware Centering (Critical for Different Screen Sizes)
+The game can run at different resolutions (e.g., 1480x800, 2560x1440). Never use hardcoded center values.
+
+**❌ WRONG - Uses hardcoded values that break on different viewports:**
+```typescript
+const container = scene.add.container(740, 400)  // Hardcoded 1480x800 center
+const container = scene.add.container(
+  LayoutRegistry.scene.centerX,  // Still hardcoded!
+  LayoutRegistry.scene.centerY
+)
+```
+
+**✅ CORRECT - Uses camera-aware helpers from LayoutRegistry:**
+```typescript
+import { createCenteredContainer, getScreenCenter, createFullScreenOverlay } from '../registries/layoutRegistry.ts'
+
+// Get actual screen dimensions and center
+const center = getScreenCenter(scene)
+console.log(center.x, center.y)  // Actual center based on camera
+
+// Create properly centered container
+const container = createCenteredContainer(scene, depth)
+
+// Create full-screen overlay
+const overlay = createFullScreenOverlay(scene, 0.8, depthValue)
+```
+
+**Helper Functions Available:**
+- `getScreenCenter(scene)` - Returns `{x, y, width, height}` based on actual camera
+- `createCenteredContainer(scene, depth)` - Creates container at actual screen center
+- `createFullScreenOverlay(scene, alpha, depth)` - Creates properly sized overlay
+
+**Files Updated to Use Viewport-Aware Centering:**
+- `DirectorHiringUtils` - Hiring tier selection
+- `WarehouseSelectionOverlay` - Service tier and warehouse options
+- `VendorContactSelection` - Arms show vendor selection
+- `DirectorHiringDialog` - Personnel hiring dialog
+
+**Important:** When positioning UI elements in selection dialogs:
+1. Use `createCenteredContainer()` for the main container
+2. Position cards relative to container (e.g., -400, 0, +400 for 3 cards)
+3. Use `getScreenCenter()` for any absolute positioning needs
 
 ### Testing Best Practices
 - Always run `npm test` after making changes to game data files
@@ -1428,3 +1754,79 @@ If war declarations aren't showing in UI:
   - Uses perpendicular distance calculation with 30px tolerance
 - Corner cities can legitimately be border cities for multiple directions
 - Capital cities generally shouldn't be border cities unless geographically necessary
+
+## Scrolling Implementation
+
+### Item-Based Scrolling Pattern
+The game uses item-based scrolling (not pixel-based) for better performance and smoother UX:
+
+**Key Principles:**
+- `scrollIndex` tracks the index of the first visible item (not pixels)
+- Only render items in the visible range to improve performance
+- Scroll by 1 item at a time for smooth, predictable movement
+- Scrollbar position calculated from item index ratio
+
+**Implementation Example (WarehouseSelectionOverlay):**
+```typescript
+// Setup
+let scrollIndex = 0 // Index of first visible item
+const maxScrollIndex = Math.max(0, options.length - maxVisibleItems)
+
+// Update display - only render visible items
+const startIndex = scrollIndex
+const endIndex = Math.min(startIndex + maxVisibleItems, options.length)
+for (let i = startIndex; i < endIndex; i++) {
+  const displayIndex = i - startIndex // Position relative to visible area
+  const yPos = displayIndex * itemHeight
+  // ... render item at yPos
+}
+
+// Scroll handling
+scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
+  const scrollDirection = deltaY > 0 ? 1 : -1
+  scrollIndex = Math.max(0, Math.min(maxScrollIndex, scrollIndex + scrollDirection))
+  updateDisplay()
+})
+```
+
+**Components Using Item-Based Scrolling:**
+- `StockListDisplay` - Generic scrollable stock list component
+- `WarehouseSelectionOverlay` - Warehouse options (3 visible items)
+- `BlackMarketView` - Black market offers
+- `StockInventoryView` - Arms inventory display
+
+### Optimal Visible Item Counts
+- **Warehouse Selection:** 5 items visible - Balance between overview and scrolling
+- **Stock Lists:** 8-10 items visible - Balance information density
+- **Filter Lists:** 5-8 items visible - Quick scanning
+
+## Warehouse System
+
+### Service Tier Selection
+The warehouse selection process begins with choosing a service tier that determines the number of warehouse options available:
+
+- **Basic Service ($10,000):** 3 warehouse options
+- **Advanced Service ($25,000):** 6 warehouse options
+- **Premium Service ($50,000):** 10 warehouse options
+
+**Key Features:**
+- Service fees are deducted from player funds immediately upon selection
+- Tiers are automatically disabled if player has insufficient funds
+- Disabled tiers show grayed-out styling with "Insufficient Funds" message
+- Player's current funds are displayed at the top of the selection screen
+
+**Implementation Details:**
+```typescript
+// Check affordability
+const canAfford = playerMoney >= tier.cost
+
+// Visual feedback for disabled options
+borderColor: canAfford ? tier.color : Colors.military.neutral
+backgroundAlpha: canAfford ? 1.0 : 0.5
+
+// Deduct money on selection
+if (this.worldModel.deductMoney(tier.cost)) {
+  this.selectedServiceTier = tier.type
+  this.showWarehouseOptions()
+}
+```

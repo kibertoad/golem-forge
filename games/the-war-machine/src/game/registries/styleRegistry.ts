@@ -80,6 +80,36 @@ export const Colors = {
     itemHoverBorder: 0x666666, // Item hover border
   },
 
+  // Selection screen colors
+  selection: {
+    cardBg: 0x2a2a2a,
+    cardBgHover: 0x3a3a3a,
+    cardBgSelected: 0x2a3a4a,
+    cardBorder: 0x3a3a3a,
+    cardBorderHover: 0x4a4a4a,
+    cardBorderSelected: 0x4a6a8a,
+    overlayBg: 0x000000,
+    overlayAlpha: 0.8,
+    titleBg: 0x1a1a1a,
+    salaryText: '#ffaa00',
+    starRating: '#ffcc00',
+    starEmpty: '#666666',
+    traitPositive: '#88ff88',
+    traitHidden: '#666666',
+    traitBadge: 0x2a4a2a,
+    confirmButton: 0x2a5a2a,
+    confirmButtonHover: 0x3a6a3a,
+    skipButton: 0x3a3a3a,
+    skipButtonHover: 0x4a4a4a,
+    skipButtonText: '#ffaaaa',
+    techLevelFill: 0x00aaff,
+    scaleLevelFill: 0x00ff00,
+    emptyLevelBox: 0x222222,
+    emptyLevelBorder: 0x444444,
+    specialtyBadge: 0x004444,
+    vendorGlow: 0x00ffff,
+  },
+
   // Heat Levels
   heat: {
     low: '#10b981', // Green (0-3)
@@ -94,6 +124,9 @@ export const Colors = {
     selection: 0x3b82f6, // Selection highlight
     focus: 0x60a5fa, // Focus indicator
     divider: 0x2d3748, // Divider lines
+    scrollbarBg: 0x333333, // Scrollbar background
+    scrollbar: 0x666666, // Scrollbar thumb
+    maskFill: 0xffffff, // Mask fill color
   },
 
   // Military/War Colors
@@ -231,6 +264,23 @@ export const Dimensions = {
     warehouse: { width: 1300, height: 120 },
     location: { width: 1300, height: 80 },
     stock: { width: 1100, height: 50 },
+  },
+
+  // Warehouse selection specific
+  warehouseOption: {
+    width: 1200,
+    height: 100,
+    buyButtonWidth: 200,
+    buyButtonHeight: 80,
+    rentButtonWidth: 200,
+    rentButtonHeight: 80,
+  },
+
+  // Scrollbar dimensions
+  scrollbar: {
+    width: 10,
+    thumbAlpha: 0.8,
+    bgAlpha: 0.5,
   },
 
   // Modal/Overlay sizes

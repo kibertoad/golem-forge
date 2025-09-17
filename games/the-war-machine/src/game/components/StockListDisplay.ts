@@ -1,6 +1,5 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import * as Phaser from 'phaser'
-import type { ArmsStockModel } from '../model/entities/ArmsStockModel.ts'
 import type { ArmsDefinition } from '../model/definitions/armsDefinitions.ts'
 import { ArmsCondition } from '../model/enums/ArmsStockEnums.ts'
 import { Colors, Typography } from '../registries/styleRegistry.ts'
@@ -65,7 +64,8 @@ export interface StockListCallbacks<T extends StockListItem = StockListItem> {
 /**
  * Reusable component for displaying a list of stock items
  */
-export class StockListDisplay<T extends StockListItem = StockListItem> extends Phaser.GameObjects.Container {
+export class StockListDisplay<T extends StockListItem = StockListItem> extends Phaser.GameObjects
+  .Container {
   private config: Required<StockListConfig<T>>
   private callbacks: StockListCallbacks<T>
   private items: T[] = []
@@ -83,7 +83,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
     x: number,
     y: number,
     config: StockListConfig<T> = {},
-    callbacks: StockListCallbacks<T> = {}
+    callbacks: StockListCallbacks<T> = {},
   ) {
     super(scene, x, y)
 
@@ -160,7 +160,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
    */
   private updateDisplay() {
     // Clear existing item displays
-    this.itemContainers.forEach(container => container.destroy())
+    this.itemContainers.forEach((container) => container.destroy())
     this.itemContainers = []
 
     // Clear items container
@@ -203,7 +203,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
     if (this.callbacks.onItemClick) {
       bg.setInteractive(
         new Phaser.Geom.Rectangle(0, 0, this.config.width, this.config.height),
-        Phaser.Geom.Rectangle.Contains
+        Phaser.Geom.Rectangle.Contains,
       )
       bg.on('pointerdown', () => this.callbacks.onItemClick?.(item))
     }
@@ -237,9 +237,11 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
 
     // If showing branch, split vertical space. Otherwise center the name.
     const nameY = hasBranch
-      ? (this.config.height > 50 ? itemCenterY - 10 : 10)  // With branch: name near top
-      : itemCenterY  // No branch: center the name
-    const branchY = this.config.height > 50 ? itemCenterY + 10 : 30  // Branch near bottom
+      ? this.config.height > 50
+        ? itemCenterY - 10
+        : 10 // With branch: name near top
+      : itemCenterY // No branch: center the name
+    const branchY = this.config.height > 50 ? itemCenterY + 10 : 30 // Branch near bottom
 
     // Name (always shown)
     const itemName = this.config.getItemName(item)
@@ -249,7 +251,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
       color: Colors.text.primary,
       fontStyle: Typography.fontStyle.bold,
     })
-    nameText.setOrigin(0, 0.5)  // Center vertically
+    nameText.setOrigin(0, 0.5) // Center vertically
     container.add(nameText)
 
     // Branch (if available and there's space)
@@ -259,7 +261,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
         fontFamily: Typography.fontFamily.monospace,
         color: Colors.text.muted,
       })
-      branchText.setOrigin(0, 0.5)  // Center vertically
+      branchText.setOrigin(0, 0.5) // Center vertically
       container.add(branchText)
     }
 
@@ -325,29 +327,29 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
       const value = column.getValue(item)
       const color = column.getColor?.(item) ?? Colors.text.primary
       // Location goes on second line if we have branch, otherwise same line
-      const yPos = (column.label === 'Location' && hasBranch) ? branchY : nameY
+      const yPos = column.label === 'Location' && hasBranch ? branchY : nameY
       const text = scene.add.text(column.x, yPos, value, {
         fontSize: column.fontSize ?? Typography.fontSize.regular,
         fontFamily: Typography.fontFamily.monospace,
         color: color,
         fontStyle: column.fontStyle,
       })
-      text.setOrigin(0, 0.5)  // Center vertically
+      text.setOrigin(0, 0.5) // Center vertically
       container.add(text)
     })
 
     // Action buttons
     if (this.config.showActions) {
       let buttonX = 1000
-      this.config.actions.forEach(action => {
+      this.config.actions.forEach((action) => {
         const button = this.createActionButton(
           scene,
           action.label,
           buttonX,
-          itemCenterY,  // Center button vertically
+          itemCenterY, // Center button vertically
           () => action.onClick(item),
           action.color,
-          action.hoverColor
+          action.hoverColor,
         )
         container.add(button)
         buttonX += 90
@@ -368,7 +370,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
     y: number,
     onClick: () => void,
     color?: number,
-    hoverColor?: number
+    hoverColor?: number,
   ): Phaser.GameObjects.Container {
     const container = scene.add.container(x, y)
 
@@ -379,11 +381,12 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
     const buttonHeight = 30
     const bg = scene.add.graphics()
     bg.fillStyle(bgColor, 0.8)
-    bg.fillRoundedRect(0, -buttonHeight/2, 70, buttonHeight, 3)  // Center vertically
+    bg.fillRoundedRect(0, -buttonHeight / 2, 70, buttonHeight, 3) // Center vertically
     bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
-    bg.strokeRoundedRect(0, -buttonHeight/2, 70, buttonHeight, 3)
+    bg.strokeRoundedRect(0, -buttonHeight / 2, 70, buttonHeight, 3)
 
-    const text = scene.add.text(35, 0, label, {  // Text at y:0 since button is centered
+    const text = scene.add.text(35, 0, label, {
+      // Text at y:0 since button is centered
       fontSize: Typography.fontSize.small,
       fontFamily: Typography.fontFamily.monospace,
       color: Colors.inventory.profit,
@@ -397,14 +400,14 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
     bg.on('pointerover', () => {
       bg.clear()
       bg.fillStyle(bgHoverColor, 1)
-      bg.fillRoundedRect(0, -15, 70, 30, 3)  // Keep centered
+      bg.fillRoundedRect(0, -15, 70, 30, 3) // Keep centered
       bg.lineStyle(1, Colors.inventory.sellBorder, 1)
       bg.strokeRoundedRect(0, -15, 70, 30, 3)
     })
     bg.on('pointerout', () => {
       bg.clear()
       bg.fillStyle(bgColor, 0.8)
-      bg.fillRoundedRect(0, -15, 70, 30, 3)  // Keep centered
+      bg.fillRoundedRect(0, -15, 70, 30, 3) // Keep centered
       bg.lineStyle(1, Colors.inventory.sellBorder, 0.5)
       bg.strokeRoundedRect(0, -15, 70, 30, 3)
     })
@@ -480,7 +483,7 @@ export class StockListDisplay<T extends StockListItem = StockListItem> extends P
    */
   public clear() {
     this.items = []
-    this.itemContainers.forEach(container => container.destroy())
+    this.itemContainers.forEach((container) => container.destroy())
     this.itemContainers = []
     this.scrollOffset = 0
     this.maxScroll = 0
