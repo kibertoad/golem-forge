@@ -1,5 +1,5 @@
-import { type TurnProcessor, generateUuid } from '@potato-golem/core'
 import type { CommonEntity } from '@potato-golem/core'
+import { generateUuid, type TurnProcessor } from '@potato-golem/core'
 import { EntityTypeRegistry } from '../../registries/entityTypeRegistry.ts'
 import { type BoardEmitter, eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import type { EntityDefinition } from '../definitions/entityDefinitions.ts'

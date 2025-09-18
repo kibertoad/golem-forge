@@ -1,12 +1,12 @@
 import {
+  createGlobalPositionLabel,
+  createGlobalTrackerLabel,
   PotatoScene,
   SpriteBuilder,
-  createGlobalPositionLabel,
   updateGlobalPositionLabel,
+  updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import type { GameObjects } from 'phaser'
-
-import { createGlobalTrackerLabel, updateGlobalTrackerLabel } from '@potato-golem/ui'
 import { entityDefinitions } from '../../model/definitions/entityDefinitions.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import { EntityModel } from '../../model/entities/EntityModel.ts'

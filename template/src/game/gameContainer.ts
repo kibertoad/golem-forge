@@ -1,5 +1,5 @@
-import { AUTO, Game, Scale } from 'phaser'
 import type { Types as PhaserTypes } from 'phaser'
+import { AUTO, Game, Scale } from 'phaser'
 import { instantiateContainer } from './model/diConfig.ts'
 
 const GameResolutions = {
@@ -30,6 +30,5 @@ const StartGame = (parent: string) => {
   return new Game({ ...config, parent })
 }
 
-// this must be provided by a main file
-// biome-ignore lint/style/noDefaultExport: <explanation>
+// biome-ignore lint/style/noDefaultExport: this must be provided by a main file
 export default StartGame

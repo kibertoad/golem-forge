@@ -1,18 +1,18 @@
 import type { GlobalSceneEvents } from '@potato-golem/core'
 import {
-  Lifetime,
-  type NameAndRegistrationPair,
   asClass,
   asFunction,
   asValue,
   createContainer,
+  Lifetime,
+  type NameAndRegistrationPair,
 } from 'awilix'
 import type { EventEmitter } from 'emitix'
+import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
-import { type WorldModel, getWorldModel } from './entities/WorldModel.ts'
+import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
-import {ChoicesDirector} from "../content/choices/ChoicesDirector.ts";
 
 export const SINGLETON_CONFIG = { lifetime: Lifetime.SINGLETON }
 type DiConfig = NameAndRegistrationPair<Dependencies>

@@ -1,12 +1,12 @@
 import type { IdHolder } from '@potato-golem/core'
 import {
+  buildDragWithActivations,
   type Position,
   type PotatoScene,
   SpriteBuilder,
-  TextBuilder,
-  buildDragWithActivations,
   setEntityModel,
   setEntityType,
+  TextBuilder,
 } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
 import type { EntityModel } from '../../../model/entities/EntityModel.ts'

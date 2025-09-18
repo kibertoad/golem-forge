@@ -1,8 +1,8 @@
 import {
   type GlobalSceneEvents,
+  removeFromArrayById,
   type State,
   type StateHolder,
-  removeFromArrayById,
 } from '@potato-golem/core'
 import { EventEmitter } from 'emitix'
 import type { EntityModel } from './EntityModel.ts'

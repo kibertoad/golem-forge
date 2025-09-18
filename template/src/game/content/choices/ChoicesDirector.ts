@@ -3,9 +3,9 @@ import {
   type CommonChoice,
   type CommonResolvedChoices,
 } from '@potato-golem/prefab-scenes'
+import type { Dependencies } from '../../model/diConfig.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
-import {COMMON_TRAVEL_CHOICES} from "./travel/CommonTravelChoices.ts";
-import {Dependencies} from "../../model/diConfig.ts";
+import { COMMON_TRAVEL_CHOICES } from './travel/CommonTravelChoices.ts'
 
 export class ChoicesDirector extends AbstractChoicesDirector<WorldModel> {
   constructor(dependencies: Dependencies) {
