@@ -31,6 +31,27 @@ export interface GameStatus {
   money: number
 }
 
+// Properly typed warehouse option
+export interface WarehouseOption {
+  id: string
+  city: string
+  country: Country
+  concealment: number // 1-5
+  storageSpace: number
+  buyPrice: number
+  rentPrice: number // monthly
+  upkeep: number // monthly maintenance
+}
+
+export interface WarehouseServiceOrder {
+  country: Country
+  city: string
+  tier: 'basic' | 'advanced' | 'premium'
+  turn: number // Turn when the service was ordered
+  warehouseOptions: WarehouseOption[] // Store the generated warehouse options
+  purchasedIds: Set<string> // Track which warehouses have been purchased
+}
+
 export type WorldModelEvents = {
   'money-changed': [{ oldAmount: number; newAmount: number }]
   'date-changed': [{ month: number; week: number; turn: number }]
@@ -48,6 +69,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly researchDirectors: ResearchDirectorModel[] = []
   public readonly countries: Map<string, CountryModel> = new Map()
   public readonly playerLocations: AbstractLocationModel[] = []
+  public readonly warehouseServices: Map<string, WarehouseServiceOrder> = new Map()
   public gameStatus: GameStatus
 
   constructor(globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>) {
@@ -402,6 +424,62 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
 
   hasLocationInCity(country: Country, city: string): boolean {
     return this.playerLocations.some((l) => l.country === country && l.city === city)
+  }
+
+  // Warehouse service management
+  getWarehouseService(country: Country, city: string): WarehouseServiceOrder | undefined {
+    const key = `${country}-${city}`
+    const service = this.warehouseServices.get(key)
+
+    // Check if service is still valid (within 1 month = 4 turns)
+    if (service && (this.gameStatus.turn - service.turn) < 4) {
+      return service
+    }
+
+    // Remove expired service to prevent memory leak
+    if (service) {
+      this.warehouseServices.delete(key)
+    }
+
+    return undefined
+  }
+
+  setWarehouseService(
+    country: Country,
+    city: string,
+    tier: 'basic' | 'advanced' | 'premium',
+    warehouseOptions: WarehouseOption[]
+  ): void {
+    const key = `${country}-${city}`
+    this.warehouseServices.set(key, {
+      country,
+      city,
+      tier,
+      turn: this.gameStatus.turn,
+      warehouseOptions,
+      purchasedIds: new Set<string>()
+    })
+  }
+
+  markWarehousePurchased(country: Country, city: string, warehouseId: string): void {
+    const key = `${country}-${city}`
+    const service = this.warehouseServices.get(key)
+    if (service) {
+      service.purchasedIds.add(warehouseId)
+    }
+  }
+
+  cleanupExpiredServices(): void {
+    const currentTurn = this.gameStatus.turn
+    const expiredKeys: string[] = []
+
+    this.warehouseServices.forEach((service, key) => {
+      if (currentTurn - service.turn >= 4) { // 1 month = 4 turns
+        expiredKeys.push(key)
+      }
+    })
+
+    expiredKeys.forEach(key => this.warehouseServices.delete(key))
   }
 }
 

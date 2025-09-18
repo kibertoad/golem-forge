@@ -1757,46 +1757,56 @@ const overlay = createFullScreenOverlay(scene, 0.8, depthValue)
 
 ## Scrolling Implementation
 
-### Item-Based Scrolling Pattern
+### Item-Based Scrolling Pattern (Best Practice)
 The game uses item-based scrolling (not pixel-based) for better performance and smoother UX:
 
 **Key Principles:**
 - `scrollIndex` tracks the index of the first visible item (not pixels)
-- Only render items in the visible range to improve performance
+- **Only render items in the visible range** - Critical for performance
+- Re-render visible items on scroll rather than moving all containers
 - Scroll by 1 item at a time for smooth, predictable movement
 - Scrollbar position calculated from item index ratio
 
-**Implementation Example (WarehouseSelectionOverlay):**
+**Correct Implementation (render only visible):**
 ```typescript
-// Setup
-let scrollIndex = 0 // Index of first visible item
-const maxScrollIndex = Math.max(0, options.length - maxVisibleItems)
+// Function to render only visible items
+const renderVisibleItems = () => {
+  container.removeAll(true) // Clear all existing items
 
-// Update display - only render visible items
-const startIndex = scrollIndex
-const endIndex = Math.min(startIndex + maxVisibleItems, options.length)
-for (let i = startIndex; i < endIndex; i++) {
-  const displayIndex = i - startIndex // Position relative to visible area
-  const yPos = displayIndex * itemHeight
-  // ... render item at yPos
+  const startIndex = scrollIndex
+  const endIndex = Math.min(startIndex + maxVisibleItems, items.length)
+
+  // Only create containers for visible items
+  for (let i = startIndex; i < endIndex; i++) {
+    const displayIndex = i - startIndex // Position relative to visible area
+    const y = listStartY + displayIndex * itemHeight
+    // Create and add item at correct position
+    const itemContainer = createItem(items[i], y)
+    container.add(itemContainer)
+  }
 }
 
-// Scroll handling
+// Scroll handling - re-render on scroll
 scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
   const scrollDirection = deltaY > 0 ? 1 : -1
-  scrollIndex = Math.max(0, Math.min(maxScrollIndex, scrollIndex + scrollDirection))
-  updateDisplay()
+  const newIndex = Math.max(0, Math.min(maxScrollIndex, scrollIndex + scrollDirection))
+  if (newIndex !== scrollIndex) {
+    scrollIndex = newIndex
+    renderVisibleItems() // Re-render visible items
+    updateScrollbar()
+  }
 })
 ```
 
 **Components Using Item-Based Scrolling:**
 - `StockListDisplay` - Generic scrollable stock list component
-- `WarehouseSelectionOverlay` - Warehouse options (3 visible items)
+- `WarehouseSelectionOverlay` - Warehouse options (5 visible items)
+- `WarehouseView` - Owned/rented warehouses (5 visible items)
 - `BlackMarketView` - Black market offers
 - `StockInventoryView` - Arms inventory display
 
 ### Optimal Visible Item Counts
-- **Warehouse Selection:** 5 items visible - Balance between overview and scrolling
+- **Warehouse Lists:** 5 items visible - Standard for warehouse management
 - **Stock Lists:** 8-10 items visible - Balance information density
 - **Filter Lists:** 5-8 items visible - Quick scanning
 
@@ -1811,22 +1821,46 @@ The warehouse selection process begins with choosing a service tier that determi
 
 **Key Features:**
 - Service fees are deducted from player funds immediately upon selection
+- Service is cached for 1 month (4 turns) - free re-access during this period
+- Purchased/rented warehouses are tracked and removed from available options
 - Tiers are automatically disabled if player has insufficient funds
-- Disabled tiers show grayed-out styling with "Insufficient Funds" message
 - Player's current funds are displayed at the top of the selection screen
+
+### Warehouse Management
+
+**Ownership Types:**
+- **Owned**: Higher upfront cost, lower monthly maintenance
+- **Rented**: Lower upfront cost, monthly rent payments
+
+**Navigation Flow:**
+- World Map → Continent → Country → City → Service Tier (if not cached) → Warehouse Options
+- Right-click navigation is context-aware:
+  - From warehouse options → Back to city selection
+  - From service tier → Back to city selection
+  - From map views → Close overlay
+
+**List Display:**
+- Shows maximum of 5 warehouses at once with scrolling for more
+- Uses item-based scrolling for performance (only renders visible items)
+- Displays ownership badge (OWNED/RENTED) with color coding
+- Shows storage capacity, heat level, concealment, and monthly costs
 
 **Implementation Details:**
 ```typescript
-// Check affordability
-const canAfford = playerMoney >= tier.cost
-
-// Visual feedback for disabled options
-borderColor: canAfford ? tier.color : Colors.military.neutral
-backgroundAlpha: canAfford ? 1.0 : 0.5
-
-// Deduct money on selection
-if (this.worldModel.deductMoney(tier.cost)) {
-  this.selectedServiceTier = tier.type
-  this.showWarehouseOptions()
+// Service caching
+const cachedService = worldModel.getWarehouseService(country, city)
+if (cachedService) {
+  // Use cached service without charging
+  options = cachedService.warehouseOptions.filter(
+    option => !cachedService.purchasedIds.has(option.id)
+  )
+} else {
+  // Charge for new service
+  if (worldModel.deductMoney(tier.cost)) {
+    worldModel.setWarehouseService(country, city, tier, options)
+  }
 }
+
+// Mark warehouse as purchased
+worldModel.markWarehousePurchased(country, city, warehouseId)
 ```

@@ -220,6 +220,50 @@ export const LayoutRegistry = {
     scrollbar: {
       x: 610,
     },
+    // New layout for right-side warehouse selection
+    rightSideSelection: {
+      containerX: 1100,
+      containerY: 400,
+      frameWidth: 700,
+      frameHeight: 120,
+      listY: -200,
+      itemWidth: 600,
+      itemHeight: 90,
+      maxVisibleItems: 5,
+      buyButtonX: -120,
+      rentButtonX: 120,
+    },
+  },
+
+  // Assets scene specific
+  assetsScene: {
+    backButton: {
+      x: 1380,
+      y: 50,
+    },
+    warehouseList: {
+      titleY: -220,
+      startY: -140,
+      itemHeight: 140,
+      itemWidth: 1300,
+      maxVisibleItems: 5,
+      scrollbarX: 680,
+    },
+  },
+
+  // Common reusable patterns
+  common: {
+    // Add new item button below scrollable lists (warehouses, directors, etc.)
+    addNewButton: {
+      y: 320, // Position below typical scrollable list
+      width: 250,
+      height: 50,
+    },
+    // Back button in upper right corner for scenes
+    upperRightBackButton: {
+      x: 1380,
+      y: 50,
+    },
   },
 
   // Hiring dialog specific

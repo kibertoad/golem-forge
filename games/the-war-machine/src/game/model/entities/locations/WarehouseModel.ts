@@ -2,9 +2,16 @@ import type { Country } from '../../enums/Countries.ts'
 import type { ArmsStockModel } from '../ArmsStockModel.ts'
 import { AbstractLocationModel, LocationSize } from './AbstractLocationModel.ts'
 
+export enum WarehouseOwnershipType {
+  OWNED = 'owned',
+  RENTED = 'rented',
+}
+
 export class WarehouseModel extends AbstractLocationModel {
   public maxStorage: number
   public armsStock: ArmsStockModel[] = []
+  public ownershipType: WarehouseOwnershipType
+  public monthlyRent?: number // Only for rented warehouses
 
   constructor(params: {
     id: string
@@ -16,11 +23,16 @@ export class WarehouseModel extends AbstractLocationModel {
     infrastructure?: number
     size?: LocationSize
     maxStorage?: number
+    ownershipType?: WarehouseOwnershipType
+    monthlyRent?: number
   }) {
     super({
       ...params,
       type: 'warehouse',
     })
+
+    this.ownershipType = params.ownershipType ?? WarehouseOwnershipType.OWNED
+    this.monthlyRent = params.monthlyRent
 
     // Calculate max storage based on size if not provided
     if (params.maxStorage) {

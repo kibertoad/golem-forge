@@ -11,11 +11,11 @@ import { formatMoney } from '../utils/FormatUtils.ts'
  * Fixed optimal configuration for consistent display across all scenes
  */
 export class StatusBar extends GameObjects.Container {
-  private moneyText!: GameObjects.Text
-  private dateText!: GameObjects.Text
-  private background!: GameObjects.Rectangle
-  private border!: GameObjects.Graphics
-  private separator!: GameObjects.Graphics
+  private moneyText?: GameObjects.Text
+  private dateText?: GameObjects.Text
+  private background?: GameObjects.Rectangle
+  private border?: GameObjects.Graphics
+  private separator?: GameObjects.Graphics
   private worldModel: WorldModel
   private eventListeners: Array<() => void> = []
 

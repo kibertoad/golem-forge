@@ -1,7 +1,7 @@
 import type { PotatoScene } from '@potato-golem/ui'
 import { GameObjects } from 'phaser'
 import { SelectionCard } from '../../../components/SelectionCard.ts'
-import type { WorldModel } from '../../../model/entities/WorldModel.ts'
+import type { WarehouseOption, WorldModel } from '../../../model/entities/WorldModel.ts'
 import type { CityData } from '../../../model/enums/Cities.ts'
 import { CountryCities } from '../../../model/enums/Cities.ts'
 import type { Country } from '../../../model/enums/Countries.ts'
@@ -19,17 +19,6 @@ import { Borders, Colors, Dimensions, Typography } from '../../../registries/sty
 import { CityZoomView } from '../../board/molecules/map/CityZoomView.ts'
 import { ContinentZoomView } from '../../board/molecules/map/ContinentZoomView.ts'
 import { EarthMap } from '../../board/molecules/map/EarthMap.ts'
-
-export interface WarehouseOption {
-  id: string
-  city: string
-  country: Country
-  concealment: number // 1-5
-  storageSpace: number
-  buyPrice: number
-  rentPrice: number // monthly
-  upkeep: number // monthly maintenance
-}
 
 interface WarehouseSelectionCallbacks {
   onWarehouseSelected?: (warehouse: WarehouseOption) => void
@@ -115,12 +104,16 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     // Add close button directly to scene for proper depth
     this.scene.add.existing(this.closeButton)
 
-    // Right-click to close
+    // Right-click to go back or close
+    // Use higher priority to handle before other listeners
     this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.rightButtonDown()) {
-        this.close()
+        // Stop propagation to prevent other handlers
+        pointer.event.stopPropagation()
+        this.handleRightClick()
+        return false // Prevent further processing
       }
-    })
+    }, this, 1000) // High priority to handle first
   }
 
   private showMapSelection() {
@@ -233,19 +226,6 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
       console.log('Found city:', city)
       if (city) {
         this.selectedCity = city
-        // Clean up the map views before showing service tier
-        if (this.cityZoomView) {
-          this.cityZoomView.destroy()
-          this.cityZoomView = undefined
-        }
-        if (this.continentZoomView) {
-          this.continentZoomView.destroy()
-          this.continentZoomView = undefined
-        }
-        if (this.earthMap) {
-          this.earthMap.destroy()
-          this.earthMap = undefined
-        }
         console.log('Calling showServiceTierSelection')
         this.showServiceTierSelection()
       } else {
@@ -268,6 +248,22 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
 
   private showServiceTierSelection() {
     if (!this.selectedCity || !this.selectedCountry) return
+
+    // Check if we have a cached service for this location
+    const cachedService = this.worldModel.getWarehouseService(
+      this.selectedCountry,
+      this.selectedCity.name
+    )
+
+    if (cachedService) {
+      // Use cached service (free of charge)
+      console.log(`Using cached ${cachedService.tier} service for ${this.selectedCity.name}, ${this.selectedCountry}`)
+      this.selectedServiceTier = cachedService.tier
+      // Clear current view to destroy any existing map views
+      this.clearCurrentView()
+      this.showWarehouseOptions()
+      return
+    }
 
     this.clearCurrentView()
     this.currentView = 'service'
@@ -408,6 +404,18 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
                 // Deduct the service fee
                 if (this.worldModel.deductMoney(tier.cost)) {
                   this.selectedServiceTier = tier.type
+                  // Generate and cache warehouse options
+                  const options = this.generateWarehouseOptions(
+                    this.selectedCity!,
+                    this.selectedCountry!,
+                    tier.type
+                  )
+                  this.worldModel.setWarehouseService(
+                    this.selectedCountry!,
+                    this.selectedCity!.name,
+                    tier.type,
+                    options
+                  )
                   this.showWarehouseOptions()
                 }
               },
@@ -441,7 +449,7 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     backText.setOrigin(0.5)
     backButton.add(backText)
 
-    backBg.on('pointerdown', () => this.showMapSelection())
+    backBg.on('pointerdown', () => this.showCityView())
     backBg.on('pointerover', () => backBg.setFillStyle(Colors.background.card))
     backBg.on('pointerout', () => backBg.setFillStyle(Colors.background.cardHover))
 
@@ -458,26 +466,99 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
   private showWarehouseOptions() {
     if (!this.selectedCity || !this.selectedCountry || !this.selectedServiceTier) return
 
+    console.log('showWarehouseOptions - clearing current view')
     this.clearCurrentView()
     this.currentView = 'options'
 
-    // Show overlay background for warehouse options
-    this.overlay.setVisible(true)
+    // Don't show full overlay - we want to keep warehouse list visible
+    this.overlay.setVisible(false)
 
-    // Generate warehouse options
-    const options = this.generateWarehouseOptions(
-      this.selectedCity,
+    // Get options - either from cache or generate new ones
+    let options: WarehouseOption[]
+    const cachedService = this.worldModel.getWarehouseService(
       this.selectedCountry,
-      this.selectedServiceTier,
+      this.selectedCity.name
     )
 
-    // Create warehouse options display - centered on screen
-    const container = createCenteredContainer(this.scene, 0)
+    if (cachedService) {
+      // Use cached options but filter out already purchased ones
+      console.log('Cached service purchased IDs:', Array.from(cachedService.purchasedIds))
+      console.log('All warehouse option IDs:', cachedService.warehouseOptions.map(o => o.id))
+
+      options = cachedService.warehouseOptions.filter(
+        option => !cachedService.purchasedIds.has(option.id)
+      )
+      console.log(`Using cached options: ${options.length} remaining out of ${cachedService.warehouseOptions.length} total`)
+
+      // If all options have been purchased, inform the user
+      if (options.length === 0) {
+        this.showAllOptionsPurchasedMessage()
+        return
+      }
+    } else {
+      // This shouldn't happen as we set the service when tier is selected
+      options = this.generateWarehouseOptions(
+        this.selectedCity,
+        this.selectedCountry,
+        this.selectedServiceTier,
+      )
+    }
+
+    // Explicitly destroy all map views to ensure nothing remains visible
+    // This is redundant with clearCurrentView but ensures cleanup
+    if (this.earthMap) {
+      this.scene.children.remove(this.earthMap)
+      this.earthMap.destroy()
+      this.earthMap = undefined
+    }
+    if (this.continentZoomView) {
+      this.scene.children.remove(this.continentZoomView)
+      this.continentZoomView.destroy()
+      this.continentZoomView = undefined
+    }
+    if (this.cityZoomView) {
+      this.scene.children.remove(this.cityZoomView)
+      this.cityZoomView.destroy()
+      this.cityZoomView = undefined
+    }
+    // Also clean up instruction text if it exists
+    if (this.instructionText) {
+      this.scene.children.remove(this.instructionText)
+      this.instructionText.destroy()
+      this.instructionText = undefined
+    }
+
+    // Create warehouse options display - positioned on the right side using registry
+    const container = this.scene.add.container(
+      LayoutRegistry.warehouse.rightSideSelection.containerX,
+      LayoutRegistry.warehouse.rightSideSelection.containerY
+    )
+
+    // Add semi-transparent background just for the right side panel
+    const rightPanelBg = this.scene.add.rectangle(
+      0,
+      0,
+      LayoutRegistry.warehouse.rightSideSelection.frameWidth + 50,
+      600,
+      Colors.background.primary,
+      0.95
+    )
+    container.add(rightPanelBg)
+
+    // Location frame using registry values
+    const frameWidth = LayoutRegistry.warehouse.rightSideSelection.frameWidth
+    const frameHeight = LayoutRegistry.warehouse.rightSideSelection.frameHeight
+    const locationFrame = this.scene.add.graphics()
+    locationFrame.fillStyle(Colors.background.secondary, 1.0)
+    locationFrame.fillRoundedRect(-frameWidth/2, -280, frameWidth, frameHeight, 10)
+    locationFrame.lineStyle(2, Colors.ui.border, 1)
+    locationFrame.strokeRoundedRect(-frameWidth/2, -280, frameWidth, frameHeight, 10)
+    container.add(locationFrame)
 
     // Title
     const title = this.scene.add.text(
       0,
-      LayoutRegistry.selection.title.y - 100,
+      -250,
       'Select Warehouse',
       {
         fontSize: Typography.fontSize.h2,
@@ -489,35 +570,36 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     title.setOrigin(0.5)
     container.add(title)
 
-    // Subtitle with location
-    const subtitle = this.scene.add.text(
+    // Location info in frame
+    const locationText = this.scene.add.text(
       0,
-      -310,
+      -220,
       `${this.selectedCity.name}, ${CountryNames[this.selectedCountry] || this.selectedCountry}`,
       {
-        fontSize: Typography.fontSize.h4,
+        fontSize: Typography.fontSize.h3,
         fontFamily: Typography.fontFamily.primary,
         color: Colors.text.secondary,
       },
     )
-    subtitle.setOrigin(0.5)
-    container.add(subtitle)
+    locationText.setOrigin(0.5)
+    container.add(locationText)
 
-    // Create scrollable list of warehouse options
-    const listY = LayoutRegistry.warehouse.list.y
-    const itemHeight = LayoutRegistry.warehouse.list.itemHeight
-    const maxVisibleItems = Math.min(options.length, LayoutRegistry.warehouse.list.maxVisibleItems)
-    let scrollIndex = 0 // Use item-based scrolling like StockListDisplay
+    // Create scrollable list of warehouse options using registry
+    const listY = -150  // Adjusted for better positioning
+    const itemHeight = LayoutRegistry.warehouse.rightSideSelection.itemHeight
+    const itemWidth = LayoutRegistry.warehouse.rightSideSelection.itemWidth
+    const maxVisibleItems = Math.min(options.length, LayoutRegistry.warehouse.rightSideSelection.maxVisibleItems)
+    let scrollIndex = 0
     const maxScrollIndex = Math.max(0, options.length - maxVisibleItems)
 
     // Create a mask for scrolling
     const maskShape = this.scene.add.graphics()
     maskShape.fillStyle(Colors.ui.maskFill)
-    const maskPadding = LayoutRegistry.warehouse.list.maskPadding
+    const maskPadding = 10
     maskShape.fillRect(
-      -Dimensions.warehouseOption.width / 2,
+      -itemWidth / 2,
       listY - maskPadding,
-      Dimensions.warehouseOption.width,
+      itemWidth,
       maxVisibleItems * itemHeight + maskPadding * 2,
     )
     const mask = maskShape.createGeometryMask()
@@ -544,22 +626,22 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
 
         const optionContainer = this.scene.add.container(0, y)
 
-        // Option background
+        // Option background - adjusted for right side
         const bg = this.scene.add.rectangle(
           0,
           0,
-          Dimensions.warehouseOption.width,
-          Dimensions.warehouseOption.height,
+          itemWidth - 20,
+          itemHeight - 10,
           Colors.background.card,
         )
         bg.setStrokeStyle(Borders.width.normal, Colors.ui.border)
         bg.setInteractive()
         optionContainer.add(bg)
 
-        // Concealment stars
+        // Concealment stars - positioned on the left side of the card
         const concealmentText = this.scene.add.text(
-          LayoutRegistry.warehouse.optionCard.concealmentX,
-          LayoutRegistry.warehouse.optionCard.concealmentY,
+          -(itemWidth / 2) + 20,  // Left edge with padding
+          -25,
           `Concealment: ${'⭐'.repeat(option.concealment)}`,
           {
             fontSize: Typography.fontSize.regular,
@@ -569,10 +651,10 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         )
         optionContainer.add(concealmentText)
 
-        // Storage space
+        // Storage space - positioned on the left side of the card
         const storageText = this.scene.add.text(
-          LayoutRegistry.warehouse.optionCard.storageX,
-          LayoutRegistry.warehouse.optionCard.storageY,
+          -(itemWidth / 2) + 20,  // Left edge with padding
+          5,
           `Storage: ${option.storageSpace.toLocaleString()} units`,
           {
             fontSize: Typography.fontSize.regular,
@@ -582,24 +664,26 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         )
         optionContainer.add(storageText)
 
-        // Buy option
+        // Buy option - positioned on the center-right of the card
+        const buyButtonWidth = 180
+        const buyButtonHeight = 70
         const buyContainer = this.scene.add.container(
-          LayoutRegistry.warehouse.optionCard.buyButtonX,
+          60,  // Center-right position
           0,
         )
         const buyBg = this.scene.add.rectangle(
           0,
           0,
-          Dimensions.warehouseOption.buyButtonWidth,
-          Dimensions.warehouseOption.buyButtonHeight,
+          buyButtonWidth,
+          buyButtonHeight,
           Colors.status.success,
           0.3,
         )
         buyBg.setInteractive()
         buyContainer.add(buyBg)
 
-        const buyPrice = this.scene.add.text(0, -25, `BUY: $${option.buyPrice.toLocaleString()}`, {
-          fontSize: Typography.fontSize.regular,
+        const buyPrice = this.scene.add.text(0, -20, `BUY: $${option.buyPrice.toLocaleString()}`, {
+          fontSize: Typography.fontSize.small,
           fontFamily: Typography.fontFamily.primary,
           color: Colors.text.primary,
           fontStyle: Typography.fontStyle.bold,
@@ -623,8 +707,8 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
 
         const buyBreakeven = this.scene.add.text(
           0,
-          20,
-          `Break-even: ${Math.ceil(option.buyPrice / option.rentPrice)} months`,
+          18,
+          `${Math.ceil(option.buyPrice / option.rentPrice)} mo break-even`,
           {
             fontSize: Typography.fontSize.tiny,
             fontFamily: Typography.fontFamily.primary,
@@ -639,21 +723,24 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         buyBg.on('pointerdown', () => {
           const purchasedWarehouse = { ...option, purchased: true }
           this.callbacks.onWarehouseSelected?.(purchasedWarehouse)
-          this.close()
+          // Refresh the warehouse options instead of closing
+          this.showWarehouseOptions()
         })
 
         optionContainer.add(buyContainer)
 
-        // Rent option
+        // Rent option - positioned on the far right of the card
+        const rentButtonWidth = 150
+        const rentButtonHeight = 70
         const rentContainer = this.scene.add.container(
-          LayoutRegistry.warehouse.optionCard.rentButtonX,
+          240,  // Far right position
           0,
         )
         const rentBg = this.scene.add.rectangle(
           0,
           0,
-          Dimensions.warehouseOption.rentButtonWidth,
-          Dimensions.warehouseOption.rentButtonHeight,
+          rentButtonWidth,
+          rentButtonHeight,
           Colors.primary.main,
           0.3,
         )
@@ -663,12 +750,13 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         const rentPrice = this.scene.add.text(
           0,
           0,
-          `RENT: $${option.rentPrice.toLocaleString()}/mo`,
+          `RENT\n$${option.rentPrice.toLocaleString()}/mo`,
           {
-            fontSize: Typography.fontSize.regular,
+            fontSize: Typography.fontSize.small,
             fontFamily: Typography.fontFamily.primary,
             color: Colors.text.primary,
             fontStyle: Typography.fontStyle.bold,
+            align: 'center',
           },
         )
         rentPrice.setOrigin(0.5)
@@ -679,7 +767,8 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         rentBg.on('pointerdown', () => {
           const rentedWarehouse = { ...option, purchased: false }
           this.callbacks.onWarehouseSelected?.(rentedWarehouse)
-          this.close()
+          // Refresh the warehouse options instead of closing
+          this.showWarehouseOptions()
         })
 
         optionContainer.add(rentContainer)
@@ -697,7 +786,7 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
 
     // Add scrollbar if needed
     if (options.length > maxVisibleItems) {
-      const scrollbarX = LayoutRegistry.warehouse.scrollbar.x
+      const scrollbarX = (itemWidth / 2) + 10  // Right edge of items
       const scrollbarTrackHeight = maxVisibleItems * itemHeight
       const scrollbarTrackTop = listY - maskPadding
 
@@ -765,7 +854,21 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     backText.setOrigin(0.5)
     backButton.add(backText)
 
-    backBg.on('pointerdown', () => this.showServiceTierSelection())
+    // Check if we have a cached service - if so, go back to map selection instead
+    const hasCachedService = this.worldModel.getWarehouseService(
+      this.selectedCountry!,
+      this.selectedCity!.name
+    )
+
+    backBg.on('pointerdown', () => {
+      if (hasCachedService) {
+        // If using cached service, go back to city view
+        this.showCityView()
+      } else {
+        // If paid for service, go back to service tier selection
+        this.showServiceTierSelection()
+      }
+    })
     backBg.on('pointerover', () => backBg.setFillStyle(Colors.background.card))
     backBg.on('pointerout', () => backBg.setFillStyle(Colors.background.cardHover))
 
@@ -894,6 +997,12 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
       this.cityZoomView.destroy()
       this.cityZoomView = undefined
     }
+    // Destroy instruction text if it exists
+    if (this.instructionText) {
+      this.scene.children.remove(this.instructionText)
+      this.instructionText.destroy()
+      this.instructionText = undefined
+    }
     // Destroy current view container if it exists
     if (this.currentViewContainer) {
       this.scene.children.remove(this.currentViewContainer)
@@ -902,6 +1011,148 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     }
     // Clear any other content in the container
     this.contentContainer.removeAll(true)
+  }
+
+  private showCityView() {
+    // Clear current view and recreate city view for the selected country
+    if (!this.selectedCountry) return
+
+    this.clearCurrentView()
+    this.currentView = 'map'
+
+    // Hide overlay for map navigation
+    this.overlay.setVisible(false)
+
+    // Recreate the city zoom view
+    const { width, height } = getScreenCenter(this.scene)
+
+    this.cityZoomView = new CityZoomView(
+      this.scene as PotatoScene,
+      width / 2,
+      height / 2 + 100,
+      this.selectedCountry,
+      this.worldModel,
+      this.warSystem,
+    )
+    this.cityZoomView.setDepth(DepthRegistry.STOCK_INVENTORY + 110)
+
+    // Listen for city selection
+    this.cityZoomView.on('city-selected', (data: any) => {
+      const cities = CountryCities[this.selectedCountry!]
+      const city = cities?.find((c) => c.name === data.city)
+      if (city) {
+        this.selectedCity = city
+        // Clean up the city view before showing service tier
+        if (this.cityZoomView) {
+          this.cityZoomView.destroy()
+          this.cityZoomView = undefined
+        }
+        this.showServiceTierSelection()
+      }
+    })
+
+    // Listen for close event to go back to continent view
+    this.cityZoomView.on('close', () => {
+      // When closing from city view, close the entire overlay
+      this.close()
+    })
+
+    // Add directly to scene for proper depth
+    this.scene.add.existing(this.cityZoomView)
+  }
+
+  private showAllOptionsPurchasedMessage() {
+    this.clearCurrentView()
+    this.overlay.setVisible(true)
+
+    const container = createCenteredContainer(this.scene, 0)
+
+    // Message
+    const message = this.scene.add.text(
+      0,
+      -50,
+      'All warehouse options have been purchased!',
+      {
+        fontSize: Typography.fontSize.h3,
+        fontFamily: Typography.fontFamily.primary,
+        color: Colors.text.primary,
+        fontStyle: Typography.fontStyle.bold,
+        align: 'center',
+      },
+    )
+    message.setOrigin(0.5)
+    container.add(message)
+
+    const subMessage = this.scene.add.text(
+      0,
+      20,
+      `You have already acquired all available warehouses\nin ${this.selectedCity?.name}, ${CountryNames[this.selectedCountry!] || this.selectedCountry}.`,
+      {
+        fontSize: Typography.fontSize.regular,
+        fontFamily: Typography.fontFamily.primary,
+        color: Colors.text.secondary,
+        align: 'center',
+      },
+    )
+    subMessage.setOrigin(0.5)
+    container.add(subMessage)
+
+    // OK button
+    const okButton = this.scene.add.container(0, 100)
+    const okBg = this.scene.add.rectangle(
+      0,
+      0,
+      Dimensions.button.default.width,
+      Dimensions.button.default.height,
+      Colors.primary.main,
+    )
+    okBg.setInteractive()
+    okButton.add(okBg)
+
+    const okText = this.scene.add.text(0, 0, 'OK', {
+      fontSize: Typography.fontSize.button,
+      fontFamily: Typography.fontFamily.primary,
+      color: Colors.text.primary,
+    })
+    okText.setOrigin(0.5)
+    okButton.add(okText)
+
+    okBg.on('pointerdown', () => this.close())
+    okBg.on('pointerover', () => okBg.setFillStyle(Colors.primary.light))
+    okBg.on('pointerout', () => okBg.setFillStyle(Colors.primary.main))
+
+    container.add(okButton)
+
+    // Add container to scene
+    this.scene.add.existing(container)
+    container.setDepth(DepthRegistry.STOCK_INVENTORY + 300)
+    this.currentViewContainer = container
+  }
+
+  private handleRightClick() {
+    console.log('WarehouseSelectionOverlay - handling right click, current view:', this.currentView)
+    // Context-aware navigation based on current view
+    switch (this.currentView) {
+      case 'options':
+        // From warehouse options, go back to city selection
+        console.log('Going back to city view from options')
+        this.showCityView()
+        break
+      case 'service':
+        // From service tier selection, go back to city selection
+        console.log('Going back to city view from service')
+        this.showCityView()
+        break
+      case 'map':
+        // From map selection, close the overlay entirely
+        console.log('Closing overlay from map view')
+        this.close()
+        break
+      default:
+        console.log('Closing overlay from unknown view')
+        this.close()
+        break
+    }
   }
 
   private close() {

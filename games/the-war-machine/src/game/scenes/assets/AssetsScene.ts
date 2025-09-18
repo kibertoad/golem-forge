@@ -6,6 +6,7 @@ import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import { CountryNames } from '../../model/enums/Countries.ts'
 import type { WarSystem } from '../../model/WarSystem.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
+import { LayoutRegistry } from '../../registries/layoutRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { Borders, Colors, Dimensions, Opacity, Typography } from '../../registries/styleRegistry.ts'
 import { WarehouseView } from './tabs/WarehouseView.ts'
@@ -72,6 +73,11 @@ export class AssetsScene extends PotatoScene {
     // Add right-click to go back
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.rightButtonDown()) {
+        // Check if WarehouseView has an active overlay
+        if (this.currentView && (this.currentView as any).warehouseSelectionOverlay) {
+          // Let the overlay handle the right-click
+          return
+        }
         this.goBack()
       }
     })
@@ -371,7 +377,11 @@ export class AssetsScene extends PotatoScene {
   }
 
   private createBackButton() {
-    const backButton = this.add.container(100, 650)
+    // Position in upper right corner using common pattern
+    const backButton = this.add.container(
+      LayoutRegistry.common.upperRightBackButton.x,
+      LayoutRegistry.common.upperRightBackButton.y
+    )
 
     const bg = this.add.rectangle(
       0,
@@ -396,7 +406,7 @@ export class AssetsScene extends PotatoScene {
     bg.on('pointerout', () => bg.setFillStyle(Colors.background.cardHover))
     bg.on('pointerdown', () => this.goBack())
 
-    backButton.setDepth(DepthRegistry.UI_ELEMENTS)
+    backButton.setDepth(DepthRegistry.UI_ELEMENTS + 10) // Higher depth to ensure visibility
   }
 
   private goBack() {
