@@ -886,6 +886,46 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 3. **Tickets** (`/model/entities/Ticket.ts`): Tasks that move through development stages
 4. **Business Logic** (`/model/board/BoardBusinessLogic.ts`): Rules for ticket movement and team assignment
 
+#### Core Game Systems
+
+##### Progress and Confidence System
+
+**Progress Tracking**:
+- **Three Types of Progress**:
+  - **Analysis Progress** (Red): Added by analysts at 2x speed
+  - **Design Progress** (Green): Added by designers at 2x speed, limited by analysis progress
+  - **Implementation Progress** (Blue): Added by developers at 1x speed, limited by analysis/design
+- **Visual Representation**: Progress fills from left to right, with blue overlaying green, which overlays red
+- **Progress Dependencies**:
+  - Design cannot exceed analysis progress
+  - Implementation cannot exceed design (frontend) or analysis (backend)
+  - Backend tickets skip design phase entirely
+
+**Confidence System**:
+- **Max Confidence**: Set by analysts (empty golden rectangles), cannot exceed complexity
+- **Actual Confidence**: Filled golden rectangles, represents quality assurance
+- **Confidence Growth Rates**:
+  - Analysts: Set max confidence capacity (not actual confidence)
+  - Designers: 0.5x rate
+  - Developers: 0.2x rate
+  - Code Reviewers: 2x rate
+  - QA Testers: 2x rate
+- **Bug Discovery**: QA phase can find bugs based on confidence level
+  - Higher confidence = fewer bugs
+  - At confidence 10, no bugs are possible
+
+##### Turn Processing
+
+**Work Assignment**:
+- Team members are assigned to tickets by dragging from the pool
+- Each turn, assigned members contribute to their ticket's progress
+- Work history is tracked per member per ticket
+
+**Next Turn Button**:
+- Processes all tickets with assigned team members
+- Updates progress and confidence based on phase and team size
+- Triggers bug discovery during QA phase
+
 #### Game Mechanics
 
 ##### Ticket Types
@@ -907,17 +947,32 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 ```typescript
 // Enforced in BoardBusinessLogic.canAssignToTicket()
 - Requirements stage → Analysts only
-- Design stage → Designers only
-- Implementation/Code Review → Developers only
+- Design stage → Designers only (Backend tickets cannot enter this stage)
+- Implementation → Developers only
+- Code Review → Developers only (except the one who worked longest on implementation)
 - QA stage → QA only
 ```
 
+**Special Rules**:
+- Team members are automatically removed when tickets move between columns
+- The developer who contributed most to implementation cannot review their own code
+- Work history tracks turns spent by each member in each phase
+
 #### Drag and Drop Implementation
+
+**Core Mechanics**:
 - **Tickets**: Can be dragged between columns based on workflow rules
 - **Team Members**: Can be dragged from team pool to tickets based on stage requirements
 - **Team Member Extraction**: Can drag team members out of tickets back to the pool
 - Visual feedback: Items become semi-transparent while dragging
 - Validation: Invalid drops return items to original position
+
+**Movement Rules**:
+- Tickets must have at least 1 progress in current phase to move forward
+- Code Review and QA stages are optional - can be skipped
+- Direct release possible if implementation progress ≥ 50% of analysis progress
+- Backend tickets automatically skip Design phase
+- Can always move backward (except from Released)
 
 ##### Visual Feedback System
 **When Dragging Team Members:**
@@ -939,20 +994,35 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 - **Game Resolution**: 2560x1440 (defined in `gameContainer.ts`)
 - **Board Columns**: 7 columns, each 170px wide
 - **Column Heights**: 760px to accommodate ~6 tickets
+- **Ticket Dimensions**: 160x140px (increased height for progress bars)
 - **Team Pool**: Located below board at y:860-1260
 - **Spacing**: Compact horizontal layout (110-1250 x-coordinates)
+- **Progress Bar Layout**:
+  - First row: Progress rectangles (12x12px with 5px spacing)
+  - Second row: Confidence rectangles (same dimensions)
+  - Team member icons positioned below progress bars
 
 #### Color Coding
-- **Team Roles**:
-  - Developers: Blue (0x3b82f6)
-  - Analysts: Red (0xef4444)
-  - Designers: Green (0x10b981)
-  - QA: Yellow (0xf59e0b)
-- **Ticket Types**:
-  - Bugfix: Red
-  - Refactoring: Green
-  - Frontend: Blue
-  - Backend: Yellow/Amber
+
+**Team Roles**:
+- Developers: Blue (0x3b82f6)
+- Analysts: Red (0xef4444)
+- Designers: Green (0x10b981)
+- QA: Yellow (0xf59e0b)
+
+**Ticket Headers** (colored section):
+- Bugfix: Red
+- Refactoring: Green
+- Frontend: Blue
+- Backend: Yellow/Amber
+
+**Progress Indicators**:
+- Analysis Progress: Red (0xef4444)
+- Design Progress: Green (0x10b981)
+- Implementation Progress: Blue (0x3b82f6)
+- Confidence: Gold/Yellow (0xfbbf24)
+
+**Ticket Body**: Light gray (0xe5e7eb) for all ticket types
 
 ### Important Implementation Notes
 
@@ -969,3 +1039,58 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 6. **Column Position Management**: Column x-coordinates are stored as a class member array (`columnPositions`) in BoardScene to avoid redeclaration and enable consistent positioning across all drag/drop operations.
 
 7. **Coordinate Transformation**: When dragging nested objects (like team members within tickets), proper world coordinate transformation is required to maintain correct positioning during drag operations.
+
+8. **Work History Tracking**: Each ticket maintains a `workHistory` array tracking which team members worked on it and for how many turns in each phase. This enables features like preventing self-review.
+
+9. **Complexity Generation**: Ticket complexity is randomly generated based on type:
+   - Bugfix: 2-4 complexity
+   - Refactoring: 4-6 complexity
+   - Frontend: 5-8 complexity
+   - Backend: 6-9 complexity
+
+## Service Architecture
+
+The game uses dependency injection to separate concerns between presentation and business logic:
+
+### Core Services
+
+1. **TurnProcessor** (`/services/TurnProcessor.ts`):
+   - Manages turn counter
+   - Processes work for all tickets each turn
+   - Delegates to BoardBusinessLogic for actual work calculations
+   - Resets turn state when game restarts
+
+2. **WorkflowManager** (`/services/WorkflowManager.ts`):
+   - Handles ticket movement between columns
+   - Manages team member assignment/unassignment
+   - Enforces workflow rules (can move, can assign)
+   - Automatically removes team members when tickets change columns
+
+3. **GameStateManager** (`/services/GameStateManager.ts`):
+   - Central state management for tickets and team members
+   - Initializes game state with sample tickets
+   - Coordinates between TurnProcessor and WorkflowManager
+   - Provides unified API for BoardScene to interact with game logic
+   - Handles all state mutations to ensure consistency
+
+### Dependency Injection Setup
+
+All services are registered in the DI container (`diConfig.ts`) as singletons:
+```typescript
+turnProcessor: asClass(TurnProcessor, SINGLETON_CONFIG),
+workflowManager: asClass(WorkflowManager, SINGLETON_CONFIG),
+gameStateManager: asClass(GameStateManager, SINGLETON_CONFIG),
+```
+
+BoardScene accesses these services through constructor injection:
+```typescript
+constructor({ gameStateManager, ... }: Dependencies) {
+  this.gameStateManager = gameStateManager
+}
+```
+
+This architecture ensures:
+- Clean separation between presentation (BoardScene) and business logic (services)
+- Consistent state management through GameStateManager
+- Testable business logic independent of UI
+- Easy to extend with new features without modifying presentation layer

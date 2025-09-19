@@ -11,6 +11,9 @@ import type { EventEmitter } from 'emitix'
 import { ChoicesDirector } from '../content/choices/ChoicesDirector.ts'
 import { BoardScene } from '../scenes/board/BoardScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
+import { GameStateManager } from '../services/GameStateManager.ts'
+import { TurnProcessor } from '../services/TurnProcessor.ts'
+import { WorkflowManager } from '../services/WorkflowManager.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { EndTurnProcessor } from './processors/EndTurnProcessor.ts'
 
@@ -24,6 +27,9 @@ export interface Dependencies {
   endTurnProcessor: EndTurnProcessor
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
   choicesDirector: ChoicesDirector
+  turnProcessor: TurnProcessor
+  workflowManager: WorkflowManager
+  gameStateManager: GameStateManager
 }
 
 export function instantiateContainer() {
@@ -37,6 +43,9 @@ export function instantiateContainer() {
       SINGLETON_CONFIG,
     ),
     worldModel: asValue(getWorldModel()),
+    turnProcessor: asClass(TurnProcessor, SINGLETON_CONFIG),
+    workflowManager: asClass(WorkflowManager, SINGLETON_CONFIG),
+    gameStateManager: asClass(GameStateManager, SINGLETON_CONFIG),
     boardScene: asClass(BoardScene, SINGLETON_CONFIG),
     mainMenuScene: asClass(MainMenuScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),

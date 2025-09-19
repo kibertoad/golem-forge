@@ -6,14 +6,13 @@ import {
   updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import Phaser, { type GameObjects } from 'phaser'
-import { canAssignToTicket, canMoveToColumn } from '../../model/board/BoardBusinessLogic.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
 import { getRoleColor, type TeamMember, TeamMemberRole } from '../../model/entities/TeamMember.ts'
 import {
   BoardColumn,
+  getBugSymbol,
   getTicketColor,
   type Ticket,
-  TicketType,
 } from '../../model/entities/Ticket.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
@@ -21,9 +20,11 @@ import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
+import type { GameStateManager } from '../../services/GameStateManager.ts'
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
+  private readonly gameStateManager: GameStateManager
 
   private globalPositionLabel!: GameObjects.Text
   private globalTrackerLabel!: GameObjects.Text
@@ -49,16 +50,23 @@ export class BoardScene extends PotatoScene {
     { key: BoardColumn.RELEASED, x: 1250 },
   ]
 
-  constructor({ worldModel, endTurnProcessor, globalSceneEventEmitter }: Dependencies) {
+  constructor({
+    worldModel,
+    endTurnProcessor,
+    gameStateManager,
+    globalSceneEventEmitter,
+  }: Dependencies) {
     super(globalSceneEventEmitter, sceneRegistry.BOARD_SCENE)
 
     this.worldModel = worldModel
     this.endTurnProcessor = endTurnProcessor
+    this.gameStateManager = gameStateManager
   }
 
   init() {
-    this.initializeTickets()
-    this.initializeTeamMembers()
+    // Get initial state from the game state manager
+    this.tickets = this.gameStateManager.getTickets()
+    this.teamMembers = this.gameStateManager.getTeamMembers()
 
     eventEmitters.boardEmitter.on('destroyEntity', ({ entityUuid }) => {
       /*
@@ -69,56 +77,6 @@ export class BoardScene extends PotatoScene {
 
        */
     })
-  }
-
-  private initializeTickets() {
-    this.tickets = [
-      {
-        id: '1',
-        type: TicketType.BUGFIX,
-        title: 'Fix login bug',
-        column: BoardColumn.TODO,
-        assignedMembers: [],
-      },
-      {
-        id: '2',
-        type: TicketType.REFACTORING,
-        title: 'Refactor auth module',
-        column: BoardColumn.TODO,
-        assignedMembers: [],
-      },
-      {
-        id: '3',
-        type: TicketType.FRONTEND,
-        title: 'Create dashboard UI',
-        column: BoardColumn.TODO,
-        assignedMembers: [],
-      },
-      {
-        id: '4',
-        type: TicketType.BACKEND,
-        title: 'Implement API endpoint',
-        column: BoardColumn.TODO,
-        assignedMembers: [],
-      },
-      {
-        id: '5',
-        type: TicketType.FRONTEND,
-        title: 'Update user profile',
-        column: BoardColumn.TODO,
-        assignedMembers: [],
-      },
-    ]
-  }
-
-  private initializeTeamMembers() {
-    this.teamMembers = [
-      { id: 'dev1', name: 'Dev 1', role: TeamMemberRole.DEVELOPER },
-      { id: 'dev2', name: 'Dev 2', role: TeamMemberRole.DEVELOPER },
-      { id: 'analyst1', name: 'Ana 1', role: TeamMemberRole.ANALYST },
-      { id: 'designer1', name: 'Des 1', role: TeamMemberRole.DESIGNER },
-      { id: 'qa1', name: 'QA 1', role: TeamMemberRole.QA },
-    ]
   }
 
   private createMemberIconInTicket(
@@ -163,7 +121,7 @@ export class BoardScene extends PotatoScene {
       // Initialize visual feedback on all tickets
       for (const ticket of this.tickets) {
         if (ticket.displayObject) {
-          const canDrop = canAssignToTicket(this.draggedMember!, ticket)
+          const canDrop = this.gameStateManager.canAssignMemberToTicket(this.draggedMember!, ticket)
           if (canDrop) {
             ticket.displayObject.setAlpha(0.9) // Valid targets slightly dimmed
           } else {
@@ -183,7 +141,7 @@ export class BoardScene extends PotatoScene {
           const ticketX = ticket.displayObject.x
           const ticketY = ticket.displayObject.y
           const ticketWidth = 160
-          const ticketHeight = 100
+          const ticketHeight = 140
 
           const isOver =
             pointer.x >= ticketX &&
@@ -191,7 +149,7 @@ export class BoardScene extends PotatoScene {
             pointer.y >= ticketY &&
             pointer.y <= ticketY + ticketHeight
 
-          const canDrop = canAssignToTicket(this.draggedMember, ticket)
+          const canDrop = this.gameStateManager.canAssignMemberToTicket(this.draggedMember, ticket)
 
           // Clear any existing highlight graphics
           const existingHighlight = ticket.displayObject.getByName(
@@ -249,7 +207,7 @@ export class BoardScene extends PotatoScene {
           const ticketX = ticket.displayObject.x
           const ticketY = ticket.displayObject.y
           const ticketWidth = 160
-          const ticketHeight = 100
+          const ticketHeight = 140
 
           // Check if pointer is within ticket bounds
           if (
@@ -265,36 +223,19 @@ export class BoardScene extends PotatoScene {
       }
 
       // If dropped on a valid ticket that can accept this member
-      if (targetTicket && canAssignToTicket(this.draggedMember, targetTicket)) {
-        // Remove from current ticket
-        const currentTicket = this.tickets.find((t) => t.id === this.draggedMember!.assignedTo)
-        if (currentTicket) {
-          const memberIndex = currentTicket.assignedMembers.findIndex(
-            (m) => m.id === this.draggedMember!.id,
-          )
-          if (memberIndex !== -1) {
-            currentTicket.assignedMembers.splice(memberIndex, 1)
-          }
-        }
-
-        // Add to new ticket (if different)
-        if (targetTicket.id !== this.draggedMember.assignedTo) {
-          this.draggedMember.assignedTo = targetTicket.id
-          targetTicket.assignedMembers.push(this.draggedMember)
-        }
+      if (
+        targetTicket &&
+        this.gameStateManager.canAssignMemberToTicket(this.draggedMember, targetTicket)
+      ) {
+        this.gameStateManager.assignMemberToTicket(this.draggedMember, targetTicket)
       } else {
         // Return to pool - unassign from any ticket
-        const currentTicket = this.tickets.find((t) => t.id === this.draggedMember!.assignedTo)
-        if (currentTicket) {
-          const memberIndex = currentTicket.assignedMembers.findIndex(
-            (m) => m.id === this.draggedMember!.id,
-          )
-          if (memberIndex !== -1) {
-            currentTicket.assignedMembers.splice(memberIndex, 1)
-          }
-        }
-        this.draggedMember.assignedTo = undefined
+        this.gameStateManager.unassignMember(this.draggedMember)
       }
+
+      // Update state references
+      this.tickets = this.gameStateManager.getTickets()
+      this.teamMembers = this.gameStateManager.getTeamMembers()
 
       // Destroy the dragged container (the small icon)
       container.destroy()
@@ -367,7 +308,7 @@ export class BoardScene extends PotatoScene {
       // Initialize visual feedback on all tickets
       for (const ticket of this.tickets) {
         if (ticket.displayObject) {
-          const canDrop = canAssignToTicket(this.draggedMember!, ticket)
+          const canDrop = this.gameStateManager.canAssignMemberToTicket(this.draggedMember!, ticket)
           if (canDrop) {
             ticket.displayObject.setAlpha(0.9) // Valid targets slightly dimmed
           } else {
@@ -387,7 +328,7 @@ export class BoardScene extends PotatoScene {
           const ticketX = ticket.displayObject.x
           const ticketY = ticket.displayObject.y
           const ticketWidth = 160
-          const ticketHeight = 100
+          const ticketHeight = 140
 
           const isOver =
             pointer.x >= ticketX &&
@@ -395,7 +336,7 @@ export class BoardScene extends PotatoScene {
             pointer.y >= ticketY &&
             pointer.y <= ticketY + ticketHeight
 
-          const canDrop = canAssignToTicket(this.draggedMember, ticket)
+          const canDrop = this.gameStateManager.canAssignMemberToTicket(this.draggedMember, ticket)
 
           // Clear any existing highlight graphics
           const existingHighlight = ticket.displayObject.getByName(
@@ -452,7 +393,7 @@ export class BoardScene extends PotatoScene {
           const ticketX = ticket.displayObject.x
           const ticketY = ticket.displayObject.y
           const ticketWidth = 160
-          const ticketHeight = 100
+          const ticketHeight = 140
 
           // Check if pointer is within ticket bounds
           if (
@@ -467,23 +408,12 @@ export class BoardScene extends PotatoScene {
         }
       }
 
-      if (targetTicket && canAssignToTicket(this.draggedMember, targetTicket)) {
-        // Remove from any previous assignment
-        if (this.draggedMember.assignedTo) {
-          const prevTicket = this.tickets.find((t) => t.id === this.draggedMember!.assignedTo)
-          if (prevTicket) {
-            const memberIndex = prevTicket.assignedMembers.findIndex(
-              (m) => m.id === this.draggedMember!.id,
-            )
-            if (memberIndex !== -1) {
-              prevTicket.assignedMembers.splice(memberIndex, 1)
-            }
-          }
-        }
-
-        // Assign to new ticket
-        this.draggedMember.assignedTo = targetTicket.id
-        targetTicket.assignedMembers.push(this.draggedMember)
+      if (
+        targetTicket &&
+        this.gameStateManager.canAssignMemberToTicket(this.draggedMember, targetTicket)
+      ) {
+        // Use GameStateManager to handle assignment
+        this.gameStateManager.assignMemberToTicket(this.draggedMember, targetTicket)
 
         // Update displays
         this.updateBoard()
@@ -520,12 +450,22 @@ export class BoardScene extends PotatoScene {
     const container = this.add.container(0, 0)
 
     const ticketWidth = 160
-    const ticketHeight = 100
+    const ticketHeight = 140 // Increased from 100 to accommodate progress bars
 
+    // Light gray background for the entire ticket
     const bg = this.add.graphics()
-    bg.fillStyle(getTicketColor(ticket.type), 1)
+    bg.fillStyle(0xe5e7eb, 1) // Light gray
     bg.fillRoundedRect(0, 0, ticketWidth, ticketHeight, 10)
     container.add(bg)
+
+    // Color-coded header section (top part only)
+    const headerHeight = 65
+    const headerBg = this.add.graphics()
+    headerBg.fillStyle(getTicketColor(ticket.type), 1)
+    headerBg.fillRoundedRect(0, 0, ticketWidth, headerHeight, 10)
+    // Draw bottom corners square to blend with gray part
+    headerBg.fillRect(0, headerHeight - 10, ticketWidth, 10)
+    container.add(headerBg)
 
     const title = this.add.text(ticketWidth / 2, 25, ticket.title, {
       fontSize: '16px',
@@ -535,7 +475,7 @@ export class BoardScene extends PotatoScene {
     title.setOrigin(0.5, 0.5)
     container.add(title)
 
-    const typeLabel = this.add.text(ticketWidth / 2, 55, ticket.type.toUpperCase(), {
+    const typeLabel = this.add.text(ticketWidth / 2, 50, ticket.type.toUpperCase(), {
       fontSize: '14px',
       color: '#ffffff',
       fontStyle: 'bold',
@@ -543,11 +483,76 @@ export class BoardScene extends PotatoScene {
     typeLabel.setOrigin(0.5, 0.5)
     container.add(typeLabel)
 
+    // Progress bar (first row) - shows different progress types
+    const progressY = 75
+    const rectSize = 12
+    const rectSpacing = 5 // Increased from 2 to 5 for more horizontal space
+    const progressStartX = 10
+
+    for (let i = 0; i < ticket.complexity; i++) {
+      const rect = this.add.graphics()
+      const xPos = progressStartX + i * (rectSize + rectSpacing)
+
+      // Determine which color to use based on progress types
+      if (i < ticket.implementationProgress) {
+        // Implementation progress: blue rectangles
+        rect.fillStyle(0x3b82f6, 1) // Blue
+        rect.fillRect(xPos, progressY, rectSize, rectSize)
+      } else if (i < ticket.designProgress) {
+        // Design progress: green rectangles
+        rect.fillStyle(0x10b981, 1) // Green
+        rect.fillRect(xPos, progressY, rectSize, rectSize)
+      } else if (i < ticket.analysisProgress) {
+        // Analysis progress: red rectangles
+        rect.fillStyle(0xef4444, 1) // Red
+        rect.fillRect(xPos, progressY, rectSize, rectSize)
+      } else {
+        // Empty rectangle - dark gray border for visibility on light gray
+        rect.lineStyle(2, 0x374151, 0.8) // Thicker border (2px instead of 1px)
+        rect.strokeRect(xPos, progressY, rectSize, rectSize)
+      }
+      container.add(rect)
+    }
+
+    // Confidence bar (second row)
+    const confidenceY = progressY + rectSize + 4
+    for (let i = 0; i < ticket.complexity; i++) {
+      const rect = this.add.graphics()
+      const xPos = progressStartX + i * (rectSize + rectSpacing)
+
+      if (i < Math.floor(ticket.confidence)) {
+        // Filled confidence rectangle (gold/yellow)
+        rect.fillStyle(0xfbbf24, 1) // Gold/yellow for confidence
+        rect.fillRect(xPos, confidenceY, rectSize, rectSize)
+      } else if (i < ticket.maxConfidence) {
+        // Empty confidence rectangle (max confidence set by analysts)
+        rect.lineStyle(2, 0xfbbf24, 0.6) // Gold border for max confidence
+        rect.strokeRect(xPos, confidenceY, rectSize, rectSize)
+      } else {
+        // No confidence possible yet - very faint border
+        rect.lineStyle(1, 0x374151, 0.2) // Very faint gray
+        rect.strokeRect(xPos, confidenceY, rectSize, rectSize)
+      }
+      container.add(rect)
+    }
+
+    // Bug symbols
+    if (ticket.bugs.length > 0) {
+      let bugX = ticketWidth - 30
+      ticket.bugs.forEach((bug) => {
+        const bugSymbol = this.add.text(bugX, progressY, getBugSymbol(bug.severity), {
+          fontSize: '16px',
+        })
+        container.add(bugSymbol)
+        bugX -= 20
+      })
+    }
+
     // Display assigned team members as draggable small circles
     if (ticket.assignedMembers.length > 0) {
       const memberIconSize = 20
       const startX = 10
-      const yPos = 78
+      const yPos = 110 // Moved down to accommodate progress bars
 
       ticket.assignedMembers.forEach((member, index) => {
         const xPos = startX + index * (memberIconSize + 5)
@@ -576,7 +581,7 @@ export class BoardScene extends PotatoScene {
 
       // Initialize visual feedback on all columns
       for (const colDef of this.columnPositions) {
-        const canMove = canMoveToColumn(this.draggedTicket!, colDef.key)
+        const canMove = this.gameStateManager.canMoveTicket(this.draggedTicket!, colDef.key)
         const header = this.columnHeaders.get(colDef.key)
 
         if (header) {
@@ -605,7 +610,7 @@ export class BoardScene extends PotatoScene {
       if (this.draggedTicket) {
         for (const colDef of this.columnPositions) {
           const isOver = pointer.x >= colDef.x - 85 && pointer.x <= colDef.x + 85
-          const canMove = canMoveToColumn(this.draggedTicket, colDef.key)
+          const canMove = this.gameStateManager.canMoveTicket(this.draggedTicket, colDef.key)
           const header = this.columnHeaders.get(colDef.key)
 
           // Clear any existing column highlights
@@ -665,9 +670,11 @@ export class BoardScene extends PotatoScene {
         }
       }
 
-      if (targetColumn && canMoveToColumn(this.draggedTicket, targetColumn)) {
-        this.draggedTicket.column = targetColumn
+      if (targetColumn && this.gameStateManager.moveTicket(this.draggedTicket, targetColumn)) {
+        this.tickets = this.gameStateManager.getTickets()
+        this.teamMembers = this.gameStateManager.getTeamMembers()
         this.updateBoard()
+        this.updateTeamPool() // Update pool to show returned members
       } else {
         // Return to original position
         this.updateBoard()
@@ -701,6 +708,18 @@ export class BoardScene extends PotatoScene {
 
     ticket.displayObject = container
     return container
+  }
+
+  private processTurn() {
+    // Use the game state manager to process the turn
+    this.gameStateManager.processTurn()
+
+    // Get updated state
+    this.tickets = this.gameStateManager.getTickets()
+    this.teamMembers = this.gameStateManager.getTeamMembers()
+
+    // Update the visual display
+    this.updateBoard()
   }
 
   private updateTeamPool() {
@@ -848,6 +867,44 @@ export class BoardScene extends PotatoScene {
 
     this.updateBoard()
     this.updateTeamPool()
+
+    // Add Next Turn button
+    const nextTurnButton = this.add.container(2400, 40)
+    const buttonBg = this.add.graphics()
+    buttonBg.fillStyle(0x3b82f6, 1)
+    buttonBg.fillRoundedRect(-60, -20, 120, 40, 5)
+    nextTurnButton.add(buttonBg)
+
+    const buttonText = this.add.text(0, 0, 'Next Turn', {
+      fontSize: '18px',
+      color: '#ffffff',
+      fontStyle: 'bold',
+    })
+    buttonText.setOrigin(0.5, 0.5)
+    nextTurnButton.add(buttonText)
+
+    buttonBg.setInteractive(
+      new Phaser.Geom.Rectangle(-60, -20, 120, 40),
+      Phaser.Geom.Rectangle.Contains,
+    )
+
+    buttonBg.on('pointerdown', () => {
+      this.processTurn()
+    })
+
+    buttonBg.on('pointerover', () => {
+      buttonBg.clear()
+      buttonBg.fillStyle(0x60a5fa, 1)
+      buttonBg.fillRoundedRect(-60, -20, 120, 40, 5)
+    })
+
+    buttonBg.on('pointerout', () => {
+      buttonBg.clear()
+      buttonBg.fillStyle(0x3b82f6, 1)
+      buttonBg.fillRoundedRect(-60, -20, 120, 40, 5)
+    })
+
+    nextTurnButton.setDepth(DepthRegistry.BOARD_BACKGROUND + 100)
 
     this.globalPositionLabel = createGlobalPositionLabel(this)
     this.globalTrackerLabel = createGlobalTrackerLabel(this)
