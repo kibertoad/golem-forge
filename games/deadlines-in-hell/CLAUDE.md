@@ -628,7 +628,7 @@ The style registry centralizes all visual constants for consistent design across
 - `Borders.width.normal`: 2px
 - `Borders.width.thick`: 3px
 - `Borders.width.heavy`: 4px
-
+Wh
 **Border Radius**
 - `Borders.radius.small`: 5px
 - `Borders.radius.medium`: 10px
@@ -915,8 +915,25 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 #### Drag and Drop Implementation
 - **Tickets**: Can be dragged between columns based on workflow rules
 - **Team Members**: Can be dragged from team pool to tickets based on stage requirements
+- **Team Member Extraction**: Can drag team members out of tickets back to the pool
 - Visual feedback: Items become semi-transparent while dragging
 - Validation: Invalid drops return items to original position
+
+##### Visual Feedback System
+**When Dragging Team Members:**
+- **Valid Drop Targets**: Tickets that can accept the team member show with 0.9 alpha
+- **Invalid Targets**: Tickets that cannot accept the member are dimmed to 0.3 alpha
+- **Hover on Valid Target**: Multi-layered soft blue glow effect:
+  - Outer glow: Light blue (0x60a5fa) at 0.2 opacity for soft halo
+  - Middle glow: Medium blue (0x3b82f6) at 0.3 opacity for depth
+  - Inner border: Light blue (0x93c5fd) at 0.8 opacity for definition
+  - No scaling/popping effect to maintain clean appearance
+
+**When Dragging Tickets:**
+- **Valid Columns**: Show green tint (0x90ee90) on column headers
+- **Invalid Columns**: Column headers remain untinted with 0.3 alpha
+- **Hover on Valid Column**: Column header scales up slightly (1.2x) with green tint
+- **Column Backgrounds**: Valid columns highlighted with semi-transparent green overlay
 
 #### Layout Considerations
 - **Game Resolution**: 2560x1440 (defined in `gameContainer.ts`)
@@ -948,3 +965,7 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 4. **Display Object References**: Models can optionally hold references to their display objects for efficient updates, but this should be treated as a cache, not the source of truth.
 
 5. **Coordinate System**: The game uses absolute positioning. Team member icons and tickets maintain their positions through the `displayObject` reference stored in their model.
+
+6. **Column Position Management**: Column x-coordinates are stored as a class member array (`columnPositions`) in BoardScene to avoid redeclaration and enable consistent positioning across all drag/drop operations.
+
+7. **Coordinate Transformation**: When dragging nested objects (like team members within tickets), proper world coordinate transformation is required to maintain correct positioning during drag operations.
