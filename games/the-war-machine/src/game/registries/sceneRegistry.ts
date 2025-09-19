@@ -12,4 +12,5 @@ export const sceneRegistry = {
   ASSETS_SCENE: 'assets',
   CONTACTS_SCENE: 'contacts',
   POLITICS_SCENE: 'politics',
+  PRODUCTION_SCENE: 'production',
 } as const

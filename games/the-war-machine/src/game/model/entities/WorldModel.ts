@@ -20,6 +20,7 @@ import { LocationSize } from './locations/AbstractLocationModel.ts'
 import { WarehouseModel } from './locations/WarehouseModel.ts'
 import type { ResearchDirectorModel } from './ResearchDirectorModel.ts'
 import type { ResearchFacilityModel } from './ResearchFacilityModel.ts'
+import { ProductionFacilityModel } from './ProductionFacilityModel.ts'
 
 export type StateFlags = 'isAlive'
 export type MainStates = 'combat' | 'travel'
@@ -67,6 +68,7 @@ export class WorldModel implements StateHolder<StateFlags, MainStates> {
   public readonly vendorContacts: Set<ArmsManufacturer> = new Set()
   public readonly researchFacilities: ResearchFacilityModel[] = []
   public readonly researchDirectors: ResearchDirectorModel[] = []
+  public readonly productionFacilities: ProductionFacilityModel[] = []
   public readonly countries: Map<string, CountryModel> = new Map()
   public readonly playerLocations: AbstractLocationModel[] = []
   public readonly warehouseServices: Map<string, WarehouseServiceOrder> = new Map()

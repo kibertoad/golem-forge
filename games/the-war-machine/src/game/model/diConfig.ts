@@ -16,6 +16,7 @@ import { ContactsScene } from '../scenes/contacts/ContactsScene.ts'
 import { MainMenuScene } from '../scenes/main-menu/MainMenuScene.ts'
 import { PersonnelScene } from '../scenes/personnel/PersonnelScene.ts'
 import { PoliticsScene } from '../scenes/politics/PoliticsScene.ts'
+import { ProductionScene } from '../scenes/production/ProductionScene.ts'
 import { ResearchScene } from '../scenes/research/ResearchScene.ts'
 import { getWorldModel, type WorldModel } from './entities/WorldModel.ts'
 import { GameInitializer } from './GameInitializer.ts'
@@ -36,6 +37,7 @@ export interface Dependencies {
   personnelScene: PersonnelScene
   contactsScene: ContactsScene
   politicsScene: PoliticsScene
+  productionScene: ProductionScene
   endTurnProcessor: EndTurnProcessor
   warDirector: WarDirector
   warSystem: WarSystem
@@ -63,6 +65,7 @@ export function instantiateContainer() {
     personnelScene: asClass(PersonnelScene, SINGLETON_CONFIG),
     contactsScene: asClass(ContactsScene, SINGLETON_CONFIG),
     politicsScene: asClass(PoliticsScene, SINGLETON_CONFIG),
+    productionScene: asClass(ProductionScene, SINGLETON_CONFIG),
     endTurnProcessor: asClass(EndTurnProcessor, SINGLETON_CONFIG),
     warSystem: asClass(WarSystem, SINGLETON_CONFIG),
     warDirector: asClass(WarDirector, SINGLETON_CONFIG),
