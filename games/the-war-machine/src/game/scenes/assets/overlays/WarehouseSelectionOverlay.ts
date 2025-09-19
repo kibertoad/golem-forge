@@ -105,7 +105,6 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     this.scene.add.existing(this.closeButton)
 
     // Right-click to go back or close
-    // Use higher priority to handle before other listeners
     this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.rightButtonDown()) {
         // Stop propagation to prevent other handlers
@@ -113,7 +112,7 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
         this.handleRightClick()
         return false // Prevent further processing
       }
-    }, this, 1000) // High priority to handle first
+    }, this)
   }
 
   private showMapSelection() {
@@ -182,13 +181,19 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
       this.showCityZoom(country)
     })
 
-    // Listen for close event to go back to world map
+    // Listen for close event (right-click) to close the entire overlay
     this.continentZoomView.on('close', () => {
-      this.continentZoomView?.destroy()
-      this.continentZoomView = undefined
+      // Clean up all map views before closing
       if (this.earthMap) {
-        this.earthMap.setVisible(true)
+        this.earthMap.destroy()
+        this.earthMap = undefined
       }
+      if (this.continentZoomView) {
+        this.continentZoomView.destroy()
+        this.continentZoomView = undefined
+      }
+      // Close the entire overlay to return to assets list
+      this.close()
     })
 
     // Add directly to scene for proper depth
@@ -1117,7 +1122,7 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
     okText.setOrigin(0.5)
     okButton.add(okText)
 
-    okBg.on('pointerdown', () => this.close())
+    okBg.on('pointerdown', () => this.showCityView())
     okBg.on('pointerover', () => okBg.setFillStyle(Colors.primary.light))
     okBg.on('pointerout', () => okBg.setFillStyle(Colors.primary.main))
 
@@ -1158,5 +1163,41 @@ export class WarehouseSelectionOverlay extends GameObjects.Container {
   private close() {
     this.callbacks.onCancel?.()
     this.destroy()
+  }
+
+  destroy() {
+    // Clean up all map views that were added directly to the scene
+    if (this.earthMap) {
+      this.scene.children.remove(this.earthMap)
+      this.earthMap.destroy()
+      this.earthMap = undefined
+    }
+    if (this.continentZoomView) {
+      this.scene.children.remove(this.continentZoomView)
+      this.continentZoomView.destroy()
+      this.continentZoomView = undefined
+    }
+    if (this.cityZoomView) {
+      this.scene.children.remove(this.cityZoomView)
+      this.cityZoomView.destroy()
+      this.cityZoomView = undefined
+    }
+    if (this.instructionText) {
+      this.scene.children.remove(this.instructionText)
+      this.instructionText.destroy()
+      this.instructionText = undefined
+    }
+    if (this.currentViewContainer) {
+      this.scene.children.remove(this.currentViewContainer)
+      this.currentViewContainer.destroy()
+      this.currentViewContainer = undefined
+    }
+    if (this.closeButton) {
+      this.scene.children.remove(this.closeButton)
+      this.closeButton.destroy()
+    }
+
+    // Call parent destroy
+    super.destroy()
   }
 }
