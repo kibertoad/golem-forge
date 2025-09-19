@@ -377,11 +377,9 @@ export class AssetsScene extends PotatoScene {
   }
 
   private createBackButton() {
-    // Position in upper right corner using common pattern
-    const backButton = this.add.container(
-      LayoutRegistry.common.upperRightBackButton.x,
-      LayoutRegistry.common.upperRightBackButton.y
-    )
+    // Position below status bar
+    const { width } = this.cameras.main
+    const backButton = this.add.container(width - 100, 170)
 
     const bg = this.add.rectangle(
       0,

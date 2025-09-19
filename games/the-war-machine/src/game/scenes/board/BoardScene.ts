@@ -506,6 +506,14 @@ export class BoardScene extends PotatoScene {
         this.scene.sleep()
         this.scene.run(sceneRegistry.CONTACTS_SCENE, {})
         break
+      case NavigationState.POLITICS:
+        // Transition to Politics Scene
+        this.scene.sleep()
+        this.scene.run(sceneRegistry.POLITICS_SCENE, {})
+        break
+      case NavigationState.INVESTIGATIONS:
+        // Coming soon - Investigations Scene
+        break
       // Add other navigation cases here as needed
     }
   }

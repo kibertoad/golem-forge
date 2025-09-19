@@ -1810,6 +1810,65 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
 - **Stock Lists:** 8-10 items visible - Balance information density
 - **Filter Lists:** 5-8 items visible - Quick scanning
 
+## Politics System
+
+### Overview
+The Politics system provides insights into global stability and political dynamics, accessible from BoardScene via the Politics button (🏛️) in the navigation bar.
+
+### PoliticsScene
+**Location**: `src/game/scenes/politics/PoliticsScene.ts`
+
+A dedicated scene for viewing political and diplomatic information.
+
+**Tabs**:
+1. **Stability**: Shows the 10 least stable countries with stability ratings
+2. **Wars**: (Coming Soon) Active conflicts and military tensions
+3. **Insurgency**: (Coming Soon) Internal conflicts and rebellions
+4. **Alliances**: (Coming Soon) Political alliances and treaties
+
+### Stability System
+
+**Country Stability**:
+- Each country has a stability rating from 1-100
+- Lower values indicate greater instability and internal challenges
+- Stability data based on real-world Fragile States Index 2023
+- Affects likelihood of wars, coups, and internal conflicts
+
+**Stability View** (`src/game/scenes/politics/tabs/StabilityView.ts`):
+- Displays the 10 least stable countries in ranked order
+- Shows for each country:
+  - Rank (#1 being least stable)
+  - Country name
+  - Government regime type
+  - Stability score with color coding
+  - Visual stability bar
+  - Status text (Critical/Very Unstable/Unstable/Moderate/Stable)
+
+**Stability Color Coding**:
+- 0-20: Red (Critical)
+- 21-40: Orange (Very Unstable)
+- 41-60: Yellow (Unstable)
+- 61-80: Light Green (Moderate)
+- 81-100: Green (Stable)
+
+## UI Layout Standards
+
+### Back Button Positioning
+For consistency across all scenes with both StatusBar and Back button:
+
+**Standard Position**:
+- StatusBar: `(width - 160, 80)` - Top-right corner
+- Back Button: `(width - 100, 170)` - Below StatusBar with proper spacing
+
+**Affected Scenes**:
+- PoliticsScene
+- ResearchScene
+- PersonnelScene
+- ContactsScene
+- AssetsScene
+
+This ensures a consistent navigation experience with the Back button always appearing in the same relative position below the status information.
+
 ## Warehouse System
 
 ### Service Tier Selection

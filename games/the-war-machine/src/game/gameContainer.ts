@@ -35,6 +35,7 @@ const config: PhaserTypes.Core.GameConfig = {
     container.cradle.researchScene,
     container.cradle.personnelScene,
     container.cradle.contactsScene,
+    container.cradle.politicsScene,
   ],
 }
 

@@ -92,7 +92,7 @@ export class ResearchScene extends PotatoScene {
   private createBackButton() {
     const { width } = this.cameras.main
 
-    this.backButton = this.add.container(width - 100, 40)
+    this.backButton = this.add.container(width - 100, 170)
 
     const bg = this.add.rectangle(0, 0, 120, 40, 0x3a3a3a, 0.9)
     bg.setStrokeStyle(2, 0x5a5a5a)

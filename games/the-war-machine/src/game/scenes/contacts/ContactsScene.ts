@@ -332,8 +332,9 @@ export class ContactsScene extends PotatoScene {
   }
 
   private createBackButton() {
-    // Position in top-right corner
-    const backButton = this.add.container(1380, 50)
+    // Position below status bar
+    const { width } = this.cameras.main
+    const backButton = this.add.container(width - 100, 170)
 
     const bg = this.add.rectangle(
       0,

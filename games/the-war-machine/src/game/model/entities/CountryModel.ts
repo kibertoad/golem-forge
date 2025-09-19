@@ -19,6 +19,7 @@ export class CountryModel {
   public visibility: number
   public standards: number
   public wealth: number // 1-5 scale for economic wealth
+  public stability: number // 1-100 scale for political stability
 
   // War-related state
   public isAtWar: boolean = false
@@ -47,6 +48,7 @@ export class CountryModel {
     this.industrialTech = { ...initialAttributes.industrialTech }
     this.visibility = initialAttributes.visibility
     this.standards = initialAttributes.standards
+    this.stability = initialAttributes.stability
     // Calculate initial wealth based on military budget and industrial tech
     this.wealth = Math.min(
       5,
