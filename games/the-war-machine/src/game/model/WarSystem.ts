@@ -14,6 +14,11 @@ export class WarSystem {
   private countriesAtWar: Set<Country> = new Set()
   public onWarDeclared?: (aggressor: Country, defender: Country) => void
 
+  // Getter for active wars
+  public get activeWars(): War[] {
+    return this.wars.filter(war => war.active)
+  }
+
   public initializeWars() {
     console.log('[WarSystem] initializeWars() called')
 

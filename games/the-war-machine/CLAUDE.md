@@ -1362,6 +1362,40 @@ tiers.forEach((tier, index) => {
 
 The style registry centralizes all visual constants for consistent design across the game. All colors, typography, spacing, and visual properties should be defined here rather than hardcoded in components.
 
+### CRITICAL: Text Color Usage
+
+**For Phaser Text Objects:**
+- **ALWAYS use string format colors** from `Colors.text.*` (e.g., `Colors.text.primary`)
+- Text colors are defined as strings (`'#ffffff'`) for Phaser compatibility
+- Never use numeric color values (0xffffff) for text - these won't display correctly
+
+**For Shapes/Graphics:**
+- Use numeric format colors from other Color sections (e.g., `Colors.primary.main`)
+- Rectangle fills, strokes, and graphics use numeric values (0x3b82f6)
+
+**Common Text Colors:**
+```typescript
+// Correct usage for text
+const text = this.add.text(0, 0, 'Hello', {
+  color: Colors.text.primary,      // '#ffffff' - white
+  // color: Colors.text.secondary, // '#e2e8f0' - light gray
+  // color: Colors.text.muted,     // '#94a3b8' - muted gray
+  // color: Colors.text.danger,    // '#ef4444' - red
+  // color: Colors.text.accent,    // '#60a5fa' - light blue
+})
+
+// Correct usage for shapes
+const rect = this.add.rectangle(0, 0, 100, 50, Colors.primary.main) // 0x3b82f6 - numeric
+```
+
+**List Display Consistency:**
+When creating lists (stability, wars, inventory, etc.):
+- Primary text: `Colors.text.primary` (country names, item names)
+- Secondary info: `Colors.text.secondary` (descriptions, details)
+- Muted labels: `Colors.text.muted` (labels, less important info)
+- Danger/Warning: `Colors.text.danger` (aggressors, warnings, losses)
+- Accent/Highlight: `Colors.text.accent` (defenders, profits, highlights)
+
 #### Color Palette
 
 **Primary Colors**

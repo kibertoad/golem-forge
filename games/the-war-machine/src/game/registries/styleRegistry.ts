@@ -33,6 +33,8 @@ export const Colors = {
     muted: '#94a3b8', // Muted/subtle text
     disabled: '#64748b', // Disabled text
     dark: '#1a1a2e', // Dark text on light backgrounds
+    danger: '#ef4444', // Red text for warnings/aggressors
+    accent: '#60a5fa', // Light blue text for highlights/defenders
   },
 
   // Status Colors

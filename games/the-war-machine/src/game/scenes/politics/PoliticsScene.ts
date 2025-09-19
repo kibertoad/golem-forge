@@ -8,6 +8,7 @@ import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
 import { Borders, Colors, Dimensions, Typography } from '../../registries/styleRegistry.ts'
 import { StabilityView } from './tabs/StabilityView.ts'
+import { WarsView } from './tabs/WarsView.ts'
 
 interface PoliticsSceneDependencies {
   globalSceneEventEmitter: EventEmitter<GlobalSceneEvents>
@@ -188,7 +189,7 @@ export class PoliticsScene extends PotatoScene {
         this.currentView = new StabilityView(this, 0, 0, this.worldModel)
         break
       case PoliticsTab.WARS:
-        this.showComingSoon('Wars Management')
+        this.currentView = new WarsView(this, 0, 0, this.worldModel, this.warSystem)
         break
       case PoliticsTab.INSURGENCY:
         this.showComingSoon('Insurgency Tracking')
