@@ -1,4 +1,7 @@
-# Template Game - Project Guide
+# Deadlines in Hell - Project Guide
+
+## Game Overview
+A sprint board management game where players manage development teams and move tickets through various stages of development. Features drag-and-drop mechanics for both tickets and team members.
 
 ## Tech Stack
 - **Phaser 4**: Game engine (RC version)
@@ -55,8 +58,11 @@ npm run lint:fix     # Auto-fix linting issues
 ## Key Conventions
 
 ### File Organization
-- `/model`: Game logic, entities, processors
-- `/scenes`: Phaser scenes and UI components
+- `/model`: Game logic, entities, processors, business logic
+  - `/entities`: Core data models and interfaces (e.g., `TeamMember.ts`, `Ticket.ts`)
+  - `/board`: Business logic modules (e.g., `BoardBusinessLogic.ts`)
+  - `/processors`: Game state processors
+- `/scenes`: Phaser scenes and UI components (presentation layer only)
 - `/content`: Game content (choices, events, etc.)
 - `/registries`: Centralized constants and registries
 
@@ -66,6 +72,7 @@ npm run lint:fix     # Auto-fix linting issues
 - Scenes: `*Scene.ts` (e.g., `BoardScene`)
 - Processors: `*Processor.ts` (e.g., `EndTurnProcessor`)
 - Registries: `*Registry.ts` (lowercase instance)
+- Business Logic: `*BusinessLogic.ts` (contains pure functions for game rules)
 
 ### Scene Creation Pattern
 ```typescript
@@ -100,6 +107,54 @@ class EntityView extends GameObjects.Container {
   }
 }
 ```
+
+### Model Definition Best Practices
+
+#### 1. Separation of Concerns
+- **Models** (`/model/entities/`): Pure data structures and interfaces
+- **Business Logic** (`/model/board/`, etc.): Game rules as pure functions
+- **Scenes** (`/scenes/`): Presentation layer only - no business logic
+
+#### 2. Model Structure
+```typescript
+// src/game/model/entities/TeamMember.ts
+export enum TeamMemberRole {
+  DEVELOPER = 'developer',
+  ANALYST = 'analyst',
+  // ...
+}
+
+export interface TeamMember {
+  id: string
+  name: string
+  role: TeamMemberRole
+  assignedTo?: string
+  displayObject?: GameObjects.Container // Optional UI reference
+}
+
+// Helper functions for model-specific logic
+export const getRoleColor = (role: TeamMemberRole): number => {
+  // Return color based on role
+}
+```
+
+#### 3. Business Logic as Functions
+```typescript
+// src/game/model/board/BoardBusinessLogic.ts
+// Use plain functions, not static classes (per linting rules)
+export function canAssignToTicket(member: TeamMember, ticket: Ticket): boolean {
+  // Business rule implementation
+}
+
+export function canMoveToColumn(ticket: Ticket, targetColumn: BoardColumn): boolean {
+  // Business rule implementation
+}
+```
+
+#### 4. Import Best Practices
+- Always use `.ts` extensions for relative imports
+- Import types separately when possible: `import type { TeamMember }`
+- Group imports: external packages, then internal modules, then local files
 
 ### Adding New Dependencies
 1. Add interface to `Dependencies` in `diConfig.ts`
@@ -589,7 +644,6 @@ The style registry centralizes all visual constants for consistent design across
 **Common Sizes**
 - Scene: 1480x800
 - Buttons: `default` (150x50), `small` (100x35), `large` (200x60), `wide` (250x50)
-- Cards: `warehouse` (1300x120), `location` (1300x80), `stock` (1100x50)
 - Modals: `default` (1200x500), `large` (1400x600), `small` (800x400)
 - Tabs: 280x50 with 10px gap
 
@@ -821,3 +875,76 @@ scene.input.on('wheel', (pointer, objects, deltaX, deltaY) => {
   updateDisplay()
 })
 ```
+
+## Game-Specific Architecture
+
+### Board System (Deadlines in Hell)
+
+#### Core Components
+1. **BoardScene** (`/scenes/board/BoardScene.ts`): Main game board presentation
+2. **Team Members** (`/model/entities/TeamMember.ts`): Developer, Analyst, Designer, QA roles
+3. **Tickets** (`/model/entities/Ticket.ts`): Tasks that move through development stages
+4. **Business Logic** (`/model/board/BoardBusinessLogic.ts`): Rules for ticket movement and team assignment
+
+#### Game Mechanics
+
+##### Ticket Types
+- **BUGFIX**: Can skip directly to Implementation
+- **REFACTORING**: Can skip directly to Implementation
+- **FRONTEND**: Must go through Requirements → Design → Implementation
+- **BACKEND**: Must go through Requirements → Design → Implementation
+
+##### Board Columns (Stages)
+1. **TODO**: Starting point for all tickets
+2. **REQUIREMENT_ANALYSIS**: Only Analysts can work here
+3. **DESIGN**: Only Designers can work here
+4. **IMPLEMENTATION**: Only Developers can work here
+5. **CODE_REVIEW**: Only Developers can work here
+6. **QA**: Only QA team members can work here
+7. **RELEASED**: Final stage
+
+##### Team Assignment Rules
+```typescript
+// Enforced in BoardBusinessLogic.canAssignToTicket()
+- Requirements stage → Analysts only
+- Design stage → Designers only
+- Implementation/Code Review → Developers only
+- QA stage → QA only
+```
+
+#### Drag and Drop Implementation
+- **Tickets**: Can be dragged between columns based on workflow rules
+- **Team Members**: Can be dragged from team pool to tickets based on stage requirements
+- Visual feedback: Items become semi-transparent while dragging
+- Validation: Invalid drops return items to original position
+
+#### Layout Considerations
+- **Game Resolution**: 2560x1440 (defined in `gameContainer.ts`)
+- **Board Columns**: 7 columns, each 170px wide
+- **Column Heights**: 760px to accommodate ~6 tickets
+- **Team Pool**: Located below board at y:860-1260
+- **Spacing**: Compact horizontal layout (110-1250 x-coordinates)
+
+#### Color Coding
+- **Team Roles**:
+  - Developers: Blue (0x3b82f6)
+  - Analysts: Red (0xef4444)
+  - Designers: Green (0x10b981)
+  - QA: Yellow (0xf59e0b)
+- **Ticket Types**:
+  - Bugfix: Red
+  - Refactoring: Green
+  - Frontend: Blue
+  - Backend: Yellow/Amber
+
+### Important Implementation Notes
+
+1. **Model-View Separation**: Business logic is completely separated from presentation. Scenes should only handle display and user interaction, not game rules.
+
+2. **No Static Classes**: Per Biome linting rules, use plain functions instead of classes with only static members.
+
+3. **Import Extensions**: Always include `.ts` extension for relative imports.
+
+4. **Display Object References**: Models can optionally hold references to their display objects for efficient updates, but this should be treated as a cache, not the source of truth.
+
+5. **Coordinate System**: The game uses absolute positioning. Team member icons and tickets maintain their positions through the `displayObject` reference stored in their model.

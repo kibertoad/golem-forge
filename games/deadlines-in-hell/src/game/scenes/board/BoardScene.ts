@@ -6,54 +6,21 @@ import {
   updateGlobalTrackerLabel,
 } from '@potato-golem/ui'
 import Phaser, { type GameObjects } from 'phaser'
+import { canAssignToTicket, canMoveToColumn } from '../../model/board/BoardBusinessLogic.ts'
 import type { Dependencies } from '../../model/diConfig.ts'
+import { getRoleColor, type TeamMember, TeamMemberRole } from '../../model/entities/TeamMember.ts'
+import {
+  BoardColumn,
+  getTicketColor,
+  type Ticket,
+  TicketType,
+} from '../../model/entities/Ticket.ts'
 import type { WorldModel } from '../../model/entities/WorldModel.ts'
 import type { EndTurnProcessor } from '../../model/processors/EndTurnProcessor.ts'
 import { DepthRegistry } from '../../registries/depthRegistry.ts'
 import { eventEmitters } from '../../registries/eventEmitterRegistry.ts'
 import { imageRegistry } from '../../registries/imageRegistry.ts'
 import { sceneRegistry } from '../../registries/sceneRegistry.ts'
-
-export enum TicketType {
-  BUGFIX = 'bugfix',
-  REFACTORING = 'refactoring',
-  FRONTEND = 'frontend',
-  BACKEND = 'backend',
-}
-
-export enum BoardColumn {
-  TODO = 'todo',
-  REQUIREMENT_ANALYSIS = 'requirement_analysis',
-  DESIGN = 'design',
-  IMPLEMENTATION = 'implementation',
-  CODE_REVIEW = 'code_review',
-  QA = 'qa',
-  RELEASED = 'released',
-}
-
-export enum TeamMemberRole {
-  DEVELOPER = 'developer',
-  ANALYST = 'analyst',
-  DESIGNER = 'designer',
-  QA = 'qa',
-}
-
-interface TeamMember {
-  id: string
-  name: string
-  role: TeamMemberRole
-  assignedTo?: string // ticket id
-  displayObject?: GameObjects.Container
-}
-
-interface Ticket {
-  id: string
-  type: TicketType
-  title: string
-  column: BoardColumn
-  assignedMembers: TeamMember[]
-  displayObject?: GameObjects.Container
-}
 
 export class BoardScene extends PotatoScene {
   private readonly worldModel: WorldModel
@@ -144,121 +111,11 @@ export class BoardScene extends PotatoScene {
     ]
   }
 
-  private getTicketColor(type: TicketType): number {
-    switch (type) {
-      case TicketType.BUGFIX:
-        return 0xef4444 // Red
-      case TicketType.REFACTORING:
-        return 0x10b981 // Green
-      case TicketType.FRONTEND:
-        return 0x3b82f6 // Blue
-      case TicketType.BACKEND:
-        return 0xf59e0b // Darker amber/orange-yellow for better contrast
-      default:
-        return 0x9ca3af // Gray
-    }
-  }
-
-  private getRoleColor(role: TeamMemberRole): number {
-    switch (role) {
-      case TeamMemberRole.DEVELOPER:
-        return 0x3b82f6 // Blue
-      case TeamMemberRole.ANALYST:
-        return 0xef4444 // Red
-      case TeamMemberRole.DESIGNER:
-        return 0x10b981 // Green
-      case TeamMemberRole.QA:
-        return 0xf59e0b // Yellow
-      default:
-        return 0x9ca3af // Gray
-    }
-  }
-
-  private canAssignToTicket(member: TeamMember, ticket: Ticket): boolean {
-    const column = ticket.column
-
-    switch (column) {
-      case BoardColumn.REQUIREMENT_ANALYSIS:
-        return member.role === TeamMemberRole.ANALYST
-      case BoardColumn.DESIGN:
-        return member.role === TeamMemberRole.DESIGNER
-      case BoardColumn.IMPLEMENTATION:
-      case BoardColumn.CODE_REVIEW:
-        return member.role === TeamMemberRole.DEVELOPER
-      case BoardColumn.QA:
-        return member.role === TeamMemberRole.QA
-      default:
-        return false
-    }
-  }
-
-  private canMoveToColumn(ticket: Ticket, targetColumn: BoardColumn): boolean {
-    const currentColumn = ticket.column
-
-    // Can always move back to TODO from any column
-    if (targetColumn === BoardColumn.TODO) {
-      return true
-    }
-
-    // From TODO column - special rules
-    if (currentColumn === BoardColumn.TODO) {
-      // Bugfix can only go directly to Implementation
-      if (ticket.type === TicketType.BUGFIX) {
-        return targetColumn === BoardColumn.IMPLEMENTATION
-      }
-      // Refactoring can only go directly to Implementation
-      if (ticket.type === TicketType.REFACTORING) {
-        return targetColumn === BoardColumn.IMPLEMENTATION
-      }
-      // Frontend and Backend must go to Requirement Analysis
-      if (ticket.type === TicketType.FRONTEND || ticket.type === TicketType.BACKEND) {
-        return targetColumn === BoardColumn.REQUIREMENT_ANALYSIS
-      }
-    }
-
-    // From other columns - normal workflow
-    const columnOrder = [
-      BoardColumn.TODO,
-      BoardColumn.REQUIREMENT_ANALYSIS,
-      BoardColumn.DESIGN,
-      BoardColumn.IMPLEMENTATION,
-      BoardColumn.CODE_REVIEW,
-      BoardColumn.QA,
-      BoardColumn.RELEASED,
-    ]
-
-    const currentIndex = columnOrder.indexOf(currentColumn)
-    const targetIndex = columnOrder.indexOf(targetColumn)
-
-    // Special rules for bugfixes and refactoring - they skip requirements and design
-    if (ticket.type === TicketType.BUGFIX || ticket.type === TicketType.REFACTORING) {
-      // Cannot go to Requirements or Design from any column
-      if (
-        targetColumn === BoardColumn.REQUIREMENT_ANALYSIS ||
-        targetColumn === BoardColumn.DESIGN
-      ) {
-        return false
-      }
-    }
-
-    // Can move forward one step
-    if (targetIndex === currentIndex + 1) {
-      return true
-    }
-
-    // Can move backward one step (except from Released)
-    if (targetIndex === currentIndex - 1 && currentColumn !== BoardColumn.RELEASED) {
-      return true
-    }
-
-    return false
-  }
-
   private createTeamMemberDisplay(member: TeamMember): GameObjects.Container {
     const container = this.add.container(0, 0)
 
     const iconSize = 50
-    const roleColor = this.getRoleColor(member.role)
+    const roleColor = getRoleColor(member.role)
 
     // Colored circle background
     const circleBg = this.add.graphics()
@@ -317,7 +174,7 @@ export class BoardScene extends PotatoScene {
         }
       }
 
-      if (targetTicket && this.canAssignToTicket(this.draggedMember, targetTicket)) {
+      if (targetTicket && canAssignToTicket(this.draggedMember, targetTicket)) {
         // Remove from any previous assignment
         if (this.draggedMember.assignedTo) {
           const prevTicket = this.tickets.find((t) => t.id === this.draggedMember!.assignedTo)
@@ -358,7 +215,7 @@ export class BoardScene extends PotatoScene {
     const ticketHeight = 100
 
     const bg = this.add.graphics()
-    bg.fillStyle(this.getTicketColor(ticket.type), 1)
+    bg.fillStyle(getTicketColor(ticket.type), 1)
     bg.fillRoundedRect(0, 0, ticketWidth, ticketHeight, 10)
     container.add(bg)
 
@@ -388,7 +245,7 @@ export class BoardScene extends PotatoScene {
         const xPos = startX + index * (memberIconSize + 5)
 
         const memberCircle = this.add.graphics()
-        memberCircle.fillStyle(this.getRoleColor(member.role), 1)
+        memberCircle.fillStyle(getRoleColor(member.role), 1)
         memberCircle.fillCircle(xPos + memberIconSize / 2, yPos, memberIconSize / 2)
         container.add(memberCircle)
 
@@ -442,7 +299,7 @@ export class BoardScene extends PotatoScene {
         }
       }
 
-      if (targetColumn && this.canMoveToColumn(this.draggedTicket, targetColumn)) {
+      if (targetColumn && canMoveToColumn(this.draggedTicket, targetColumn)) {
         this.draggedTicket.column = targetColumn
         this.updateBoard()
       } else {
