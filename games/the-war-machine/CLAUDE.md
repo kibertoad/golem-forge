@@ -1903,6 +1903,128 @@ For consistency across all scenes with both StatusBar and Back button:
 
 This ensures a consistent navigation experience with the Back button always appearing in the same relative position below the status information.
 
+## Production System
+
+### Overview
+The Production system allows players to manufacture arms and equipment in their facilities.
+
+### Key Components
+
+#### ProductionScene
+**Location**: `src/game/scenes/production/ProductionScene.ts`
+
+Accessible from BoardScene via the Production button (🏭) in the navigation bar.
+
+**Features**:
+- Lists all player production facilities with real-time statistics
+- Shows facility details: location, size, technology level, heat, monthly upkeep
+- Displays current production status (idle/producing)
+- Facility selection opens detailed management view
+- "Purchase New Facility" button for expansion (placeholder)
+
+#### ProductionFacilityModel
+**Location**: `src/game/model/entities/ProductionFacilityModel.ts`
+
+**Attributes**:
+- **Size**: Small, Medium, Large, Industrial
+- **Technology**: Level 1-5 (determines available production types)
+- **Infrastructure**: Level 1-5 (affects efficiency)
+- **Concealment**: 0-10 (how hidden the facility is)
+- **Heat**: 0-10 (law enforcement attention level)
+- **Production**: Current production type and progress
+- **Output Warehouse**: Where produced items are stored
+
+**Methods**:
+- `changeProduction(type)`: Switch production type
+- `processProduction()`: Advance production each turn
+- `getProductionCapacity()`: Calculate monthly output
+- `getSellValue()`: Calculate facility sale price
+
+#### FacilityDetailsView
+**Location**: `src/game/scenes/production/views/FacilityDetailsView.ts`
+
+Detailed management interface for selected facility:
+- Displays all facility statistics in organized grid
+- Shows current production with progress bar
+- Change Production button opens type selection dialog
+- Select Warehouse button opens warehouse selection dialog
+- Upgrade Facility button (placeholder)
+- Sell Facility button with value display
+
+### Production Dialogs
+
+#### WarehouseSelectionDialog
+**Location**: `src/game/scenes/production/dialogs/WarehouseSelectionDialog.ts`
+
+**Features**:
+- Scrollable list of all player warehouses
+- Warehouses sorted by distance (same city → same country → remote)
+- Shows capacity, used, and available storage for each
+- Visual indicators for currently selected warehouse
+- Maximum 6 visible items with scroll support
+- Mouse wheel scrolling and draggable scrollbar
+
+#### ProductionTypeDialog
+**Location**: `src/game/scenes/production/dialogs/ProductionTypeDialog.ts`
+
+**Production Types** (13 total):
+- **Tech 1**: Small Arms, Ammunition
+- **Tech 2**: Explosives, Heavy Weapons
+- **Tech 3**: Vehicles, Artillery, Electronics
+- **Tech 4**: Tanks, Missiles, Drones
+- **Tech 5**: Aircraft, Naval Equipment
+
+Each type shows:
+- Name and description
+- Monthly output rate
+- Required technology level
+- Visual disabled state if tech too low
+- Current production highlighted
+
+### Initialization
+
+Production facilities are created via `GameInitializer`:
+
+```typescript
+// In GameInitializer.initializeProductionFacilities()
+const facility = new ProductionFacilityModel({
+  id: `facility-${Date.now()}`,
+  name: 'Small Arms Factory',
+  country: country,  // Same as starting warehouse
+  city: city,        // Same city as warehouse
+  size: FacilitySize.SMALL,
+  technology: 1,
+  infrastructure: 1,
+  concealment: 5,
+  heat: 2,
+  monthlyUpkeep: 50000,
+  productionRate: 10,
+  owned: true,
+  currentProduction: ProductionType.NONE,  // Starts idle
+  outputWarehouseId: undefined,  // No warehouse selected
+})
+```
+
+Starting conditions:
+- One small production facility in same city as starting warehouse
+- Additional warehouse created in same city for output storage
+- Facility starts idle (not producing)
+- Player must select output warehouse and production type
+
+### Dialog Positioning
+
+Dialogs are centered on screen using camera dimensions:
+
+```typescript
+const { width, height } = this.scene.cameras.main
+const dialog = new WarehouseSelectionDialog(
+  this.scene,
+  width / 2,   // Center horizontally
+  height / 2,  // Center vertically
+  // ... other params
+)
+```
+
 ## Warehouse System
 
 ### Service Tier Selection
